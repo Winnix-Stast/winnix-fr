@@ -1,5 +1,6 @@
 import * as Haptics from "expo-haptics";
 import { router, useRouter } from "expo-router";
+import { useState } from "react";
 import { Alert, Linking } from "react-native";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,6 +13,7 @@ import { SignUpFormData } from "@/presentation/types/SignUpData";
 export const UseSignUp = () => {
   const navigate = useRouter();
   const { top } = useSafeAreaInsets();
+  const [showCompleteProfileModal, setShowCompleteProfileModal] = useState(false);
 
   const { control, handleSubmit, errors, isSubmitting, isDisabled } = useCustomForm<SignUpFormData>(signUpSchema);
 
@@ -19,10 +21,15 @@ export const UseSignUp = () => {
     const wasSuccessful = await authActions.signUp(payload);
 
     if (wasSuccessful) {
-      router.replace("/winnix/tabs/dashboard/index");
+      setShowCompleteProfileModal(true);
       return;
     }
     Alert.alert("Error", "credenciales no validas");
+  };
+
+  const handleCompleteProfile = () => {
+    setShowCompleteProfileModal(false);
+    router.replace("/winnix/tabs/dashboard");
   };
 
   const handleTermsClick = () => {
@@ -32,6 +39,7 @@ export const UseSignUp = () => {
   return {
     //Props
     top,
+    showCompleteProfileModal,
 
     //Methods
     control,
@@ -40,6 +48,7 @@ export const UseSignUp = () => {
     isSubmitting,
     isDisabled,
     onSignUp,
+    handleCompleteProfile,
     navigate,
     Haptics,
     handleTermsClick,

@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 
 import { TermsAndConditions } from "@/presentation/auth/components/TermsAndConditions/TermsAndConditions";
+import { CompleteProfileModal } from "@/presentation/components/CompleteProfileModal";
 import { UseSignUp } from "@/presentation/hooks/auth/signup/useSignUp";
 import { Colors, Fonts } from "@/presentation/styles/global-styles";
 import { CustomButton } from "@/presentation/theme/components/CustomButton";
@@ -11,6 +12,7 @@ const SingUp = () => {
   const {
     //Props
     top,
+    showCompleteProfileModal,
 
     // //Methods
     control,
@@ -19,6 +21,7 @@ const SingUp = () => {
     isSubmitting,
     isDisabled,
     handleTermsClick,
+    handleCompleteProfile,
     Haptics,
     onSignUp,
   } = UseSignUp();
@@ -85,6 +88,11 @@ const SingUp = () => {
           />
         </View>
       </View>
+
+      <CompleteProfileModal
+        visible={showCompleteProfileModal}
+        onComplete={handleCompleteProfile}
+      />
     </CustomFormView>
   );
 };

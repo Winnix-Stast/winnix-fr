@@ -6,7 +6,7 @@ const STAGE = process.env.EXPO_PUBLIC_STATE || "dev";
 
 export const API_URL = STAGE === "prod" ? process.env.EXPO_PUBLIC_API_URL : Platform.OS === "ios" ? process.env.EXPO_PUBLIC_API_IOS : process.env.EXPO_PUBLIC_API_URL_ANDROID;
 
-const API_BASE_URL = "http://192.168.10.24:7002/api";
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL_ANDROID ?? "http://192.168.10.24:7002/api";
 
 // Instancia pública (login, register, forgotPassword...)
 export const authFetcher = new AxiosAdapter({
