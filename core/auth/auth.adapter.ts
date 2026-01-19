@@ -14,6 +14,17 @@ type RegisterPayload = {
   isChecked: boolean;
 };
 
+type CompleteProfilePayload = {
+  phone: number;
+  roleId: string;
+};
+
+export interface Role {
+  _id: string;
+  name: string;
+  label?: string;
+}
+
 export const AuthAdapter = {
   login: async (payload: LoginPayload) => {
     console.log("payload :>> ", payload);
@@ -59,5 +70,15 @@ export const AuthAdapter = {
     }
 
     return response.data;
+  },
+
+  completeProfile: async (payload: CompleteProfilePayload) => {
+    const response = await privateFetcher.instance.put("/user/complete-profile", payload);
+    return response.data;
+  },
+
+  getRoles: async (): Promise<Role[]> => {
+    const response = await authFetcher.instance.get("/roles");
+    return response.data?.data || response.data || [];
   },
 };
