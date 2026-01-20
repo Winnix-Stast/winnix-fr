@@ -3,25 +3,16 @@ import { StyleSheet, View } from "react-native";
 
 import { useTranslation } from "@/i18n/hooks/useTranslation";
 import { useLogin } from "@/presentation/hooks/auth/login/useLogin";
-import { Colors, Fonts } from "@/presentation/styles/global-styles";
 import { CustomButton } from "@/presentation/theme/components/CustomButton";
 import { CustomFormView } from "@/presentation/theme/components/CustomFormView";
 import { CustomInput } from "@/presentation/theme/components/CustomInput";
 import { CustomLink } from "@/presentation/theme/components/CustomLink";
 import { CustomText } from "@/presentation/theme/components/CustomText";
+import { colors, spacing, typography } from "@styles";
 
 const Login = () => {
   const { t } = useTranslation("auth");
-  const {
-    // Properties
-    //Methods
-    control,
-    handleSubmit,
-    errors,
-    isSubmitting,
-    isDisabled,
-    onLogin,
-  } = useLogin();
+  const { control, handleSubmit, errors, isSubmitting, isDisabled, onLogin } = useLogin();
 
   return (
     <CustomFormView>
@@ -52,16 +43,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: Colors.dark,
-    gap: 20,
-    padding: 20,
+    backgroundColor: colors.surface_screen,
+    gap: spacing.spacing_l,
+    padding: spacing.spacing_l,
     minHeight: "100%",
   },
   title: {
-    fontSize: Fonts.extraLarge,
-    fontWeight: "bold",
-    color: Colors.primary,
-    paddingTop: 20,
+    fontSize: typography.h1_bold.size,
+    fontWeight: typography.h1_bold.weight.toLowerCase() as "bold",
+    color: colors.brand_primary,
+    paddingTop: spacing.spacing_l,
   },
   rememberPassword: {
     width: "auto",
@@ -71,12 +62,12 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    marginTop: 30,
+    gap: spacing.spacing_s,
+    marginTop: spacing.spacing_2xl,
   },
   signUpText: {
-    color: Colors.light,
-    fontWeight: "bold",
-    fontSize: 20,
+    color: colors.text_primary,
+    fontWeight: typography.body_m_bold.weight.toLowerCase() as "bold",
+    fontSize: typography.body_m_bold.size,
   },
 });

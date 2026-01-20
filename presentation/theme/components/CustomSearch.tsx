@@ -1,5 +1,5 @@
-import { Colors } from "@/presentation/styles/global-styles";
 import { Ionicons } from "@expo/vector-icons";
+import { borderRadius, colors, spacing, typography } from "@styles";
 import React, { useEffect, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
 import { Animated, Keyboard, StyleSheet, Text, TextInput, TextStyle, TouchableWithoutFeedback, View } from "react-native";
@@ -56,16 +56,16 @@ export const CustomSearch = ({ name, control, label, placeholder = "Buscar...", 
               style={[
                 styles.inputContainer,
                 {
-                  borderColor: Colors.secondary,
-                  shadowColor: Colors.secondary,
+                  borderColor: colors.brand_secondary,
+                  shadowColor: colors.brand_secondary,
                 },
                 animatedStyle,
               ]}>
-              {iconLeft && <Ionicons name={iconLeft} size={22} color={Colors.secondary} style={{ marginRight: 6 }} />}
+              {iconLeft && <Ionicons name={iconLeft} size={22} color={colors.brand_secondary} style={{ marginRight: spacing.spacing_2xs }} />}
               <TextInput
                 style={styles.input}
                 placeholder={placeholder}
-                placeholderTextColor={Colors.gray}
+                placeholderTextColor={colors.text_tertiary}
                 value={value}
                 onChangeText={onChange}
                 onFocus={() => setIsActive(true)}
@@ -74,12 +74,12 @@ export const CustomSearch = ({ name, control, label, placeholder = "Buscar...", 
                   onBlur();
                 }}
               />
-              {iconRight && <Ionicons name={iconRight} size={22} color={Colors.secondary} />}
+              {iconRight && <Ionicons name={iconRight} size={22} color={colors.brand_secondary} />}
             </Animated.View>
           )}
         />
 
-        {errorMessage && <Text style={{ color: Colors.error, marginTop: 4, fontSize: 12 }}>{errorMessage}</Text>}
+        {errorMessage && <Text style={styles.errorMessage}>{errorMessage}</Text>}
       </View>
     </TouchableWithoutFeedback>
   );
@@ -88,28 +88,33 @@ export const CustomSearch = ({ name, control, label, placeholder = "Buscar...", 
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    paddingVertical: 8,
+    paddingVertical: spacing.spacing_xs,
   },
   inputContainer: {
     flexDirection: "row",
     borderWidth: 1.5,
-    borderRadius: 12,
-    paddingHorizontal: 10,
+    borderRadius: borderRadius.border_s,
+    paddingHorizontal: spacing.spacing_s,
     alignItems: "center",
-    backgroundColor: Colors.dark,
-    shadowOffset: { width: 0, height: 6 },
+    backgroundColor: colors.surface_base,
+    shadowOffset: { width: 0, height: spacing.spacing_2xs },
   },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: typography.body_m_medium.size,
     height: 50,
-    paddingHorizontal: 8,
-    color: Colors.light,
+    paddingHorizontal: spacing.spacing_xs,
+    color: colors.text_primary,
   },
   label: {
-    fontSize: 16,
-    marginBottom: 6,
-    fontWeight: "600",
-    color: Colors.light,
+    fontSize: typography.body_m_semibold.size,
+    marginBottom: spacing.spacing_2xs,
+    fontWeight: typography.body_m_semibold.weight.toLowerCase() as "600",
+    color: colors.text_primary,
+  },
+  errorMessage: {
+    color: colors.red_500,
+    marginTop: spacing.spacing_2xs,
+    fontSize: typography.caption_m_regular.size,
   },
 });

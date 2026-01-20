@@ -1,6 +1,6 @@
-import { Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors } from "../../styles/global-styles";
+import { borderRadius, colors } from "@styles";
+import { Pressable, StyleSheet } from "react-native";
 
 interface Props {
   onChange: () => void;
@@ -9,12 +9,8 @@ interface Props {
 
 export const MyCheckbox = ({ onChange, checked = false }: Props) => {
   return (
-    <Pressable
-      role='checkbox'
-      aria-checked={checked}
-      style={[styles.checkboxBase, checked && styles.checkboxChecked]}
-      onPress={onChange}>
-      {checked && <Ionicons name='checkmark-outline' size={24} />}
+    <Pressable role='checkbox' aria-checked={checked} style={[styles.checkboxBase, checked && styles.checkboxChecked]} onPress={onChange}>
+      {checked && <Ionicons name='checkmark-outline' size={24} color={colors.on_brand} />}
     </Pressable>
   );
 };
@@ -25,13 +21,13 @@ const styles = StyleSheet.create({
     height: 27,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 6,
+    borderRadius: borderRadius.border_2xs,
     borderWidth: 2,
-    borderColor: Colors.lightDark,
+    borderColor: colors.text_secondary,
     backgroundColor: "transparent",
   },
   checkboxChecked: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primary,
+    borderColor: colors.brand_primary,
+    backgroundColor: colors.brand_primary,
   },
 });

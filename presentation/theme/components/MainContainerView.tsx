@@ -1,7 +1,7 @@
+import { colors } from "@styles";
 import { ReactNode } from "react";
 import { SafeAreaView, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../../styles/global-styles";
 
 interface Props {
   children: ReactNode;
@@ -16,6 +16,6 @@ export const MainContainerView = ({ children, paddingTop }: Props) => {
 const styles = StyleSheet.create({
   contentView: {
     flex: 1,
-    backgroundColor: Colors.dark,
+    backgroundColor: colors.surface_screen,
   },
 });
