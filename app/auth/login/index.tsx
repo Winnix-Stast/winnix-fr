@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 
 import { useTranslation } from "@/i18n/hooks/useTranslation";
 import { useLogin } from "@/presentation/hooks/auth/login/useLogin";
@@ -10,6 +10,8 @@ import { CustomLink } from "@/presentation/theme/components/CustomLink";
 import { CustomText } from "@/presentation/theme/components/CustomText";
 import { colors, spacing, typography } from "@styles";
 
+const logoSource = require("@/assets/icons/brand/logoName.png");
+
 const Login = () => {
   const { t } = useTranslation("auth");
   const { control, handleSubmit, errors, isSubmitting, isDisabled, onLogin } = useLogin();
@@ -17,6 +19,7 @@ const Login = () => {
   return (
     <CustomFormView>
       <View style={styles.view}>
+        <Image source={logoSource} style={styles.logo} resizeMode='contain' />
         <CustomText style={styles.title} label={t("login.title")} />
 
         <CustomInput name='email' control={control} placeholder={t("login.emailPlaceholder")} label={t("login.emailLabel")} iconRight='mail-outline' keyboardType='email-address' errorMessage={errors.email?.message} />
@@ -48,11 +51,15 @@ const styles = StyleSheet.create({
     padding: spacing.spacing_l,
     minHeight: "100%",
   },
+  logo: {
+    width: 120,
+    height: 120,
+    marginBottom: spacing.spacing_m,
+  },
   title: {
     fontSize: typography.h1_bold.size,
     fontWeight: typography.h1_bold.weight.toLowerCase() as "bold",
     color: colors.brand_primary,
-    paddingTop: spacing.spacing_l,
   },
   rememberPassword: {
     width: "auto",

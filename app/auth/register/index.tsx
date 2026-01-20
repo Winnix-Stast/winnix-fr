@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 
 import { TermsAndConditions } from "@/presentation/auth/components/TermsAndConditions/TermsAndConditions";
 import { CompleteProfileModal } from "@/presentation/components/CompleteProfileModal";
@@ -7,6 +7,8 @@ import { CustomButton } from "@/presentation/theme/components/CustomButton";
 import { CustomFormView } from "@/presentation/theme/components/CustomFormView";
 import { CustomInput } from "@/presentation/theme/components/CustomInput";
 import { colors, spacing, typography } from "@styles";
+
+const logoSource = require("@/assets/icons/logotipo/logo.png");
 
 const SingUp = () => {
   const { top, showCompleteProfileModal, control, handleSubmit, errors, isSubmitting, isDisabled, handleTermsClick, handleCompleteProfile, Haptics, onSignUp } = UseSignUp();
@@ -20,6 +22,7 @@ const SingUp = () => {
             paddingTop: top + 10,
           },
         ]}>
+        <Image source={logoSource} style={styles.logo} resizeMode='contain' />
         <Text style={styles.title}> Crear cuenta</Text>
 
         <View style={styles.containerInformation}>
@@ -52,7 +55,11 @@ const styles = StyleSheet.create({
     padding: spacing.spacing_l,
     minHeight: "100%",
   },
-
+  logo: {
+    width: 120,
+    height: 120,
+    marginBottom: spacing.spacing_m,
+  },
   title: {
     fontSize: typography.h1_bold.size,
     fontWeight: typography.h1_bold.weight.toLowerCase() as "bold",
