@@ -1,4 +1,4 @@
-export const colors = {
+export const Colors = {
   /* ======================= * BRAND * ======================= */
   brand_primary: "#28D1C3",
   brand_secondary: "#6366F1",

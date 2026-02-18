@@ -1,7 +1,7 @@
-import { colors, spacing } from "@styles";
 import { ReactNode } from "react";
 import { Keyboard, StyleProp, TouchableWithoutFeedback, ViewStyle } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { Colors } from "../../styles/global-styles";
 
 interface Props {
   children: ReactNode;
@@ -19,11 +19,11 @@ export const CustomFormView = ({ children, contentStyle }: Props) => {
         keyboardShouldPersistTaps='handled'
         contentContainerStyle={{
           flexGrow: 1,
-          paddingBottom: spacing.spacing_4xl,
+          // paddingBottom: 60,
         }}
         style={[
           {
-            backgroundColor: colors.surface_screen,
+            backgroundColor: Colors.dark,
             minHeight: "100%",
           },
           contentStyle,

@@ -3,8 +3,8 @@ import { useRef, useState } from "react";
 import { Controller } from "react-hook-form";
 import { KeyboardTypeOptions, Platform, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View } from "react-native";
 
-import { borderRadius, colors, spacing, typography } from "@styles";
-// import { CustomFormView } from "@/presentation/theme/components/CustomFormView";
+import { Colors } from "@/presentation/styles";
+import { ErrorMessage, Fonts } from "../../styles/global-styles";
 
 interface Props extends TextInputProps {
   label?: string;
@@ -32,13 +32,13 @@ export const CustomInput = ({ name, control, iconLeft, iconRight, label = "", st
         render={({ field: { onChange, onBlur, value } }) => (
           <View
             style={{
-              borderColor: errorMessage ? colors.red_500 : isActive ? colors.border_focus : colors.text_tertiary,
+              borderColor: errorMessage ? Colors.surface_warning : isActive ? Colors.text_primary : Colors.neutral_500,
               ...styles.containerInput,
             }}>
-            {iconLeft && <Ionicons name={iconLeft} size={24} color={colors.text_primary} />}
+            {iconLeft && <Ionicons name={iconLeft} size={24} color={Colors.primary_50} />}
             <TextInput
               ref={inputRef}
-              placeholderTextColor={colors.text_tertiary}
+              placeholderTextColor={Colors.neutral_500}
               onFocus={() => setIsActive(true)}
               onBlur={() => {
                 setIsActive(false);
@@ -51,12 +51,12 @@ export const CustomInput = ({ name, control, iconLeft, iconRight, label = "", st
               style={styles.input}
               {...rest}
             />
-            {iconRight && <Ionicons name={iconRight} size={24} color={colors.text_primary} />}
+            {iconRight && <Ionicons name={iconRight} size={24} color={Colors.primary_50} />}
           </View>
         )}
       />
 
-      {errorMessage && <Text style={styles.errorMessage}>{errorMessage}</Text>}
+      {errorMessage && <Text style={ErrorMessage}>{errorMessage}</Text>}
     </View>
   );
 };
@@ -65,31 +65,25 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     display: "flex",
-    gap: spacing.spacing_2xs,
+    gap: 5,
   },
   containerInput: {
     borderWidth: 1,
-    borderRadius: borderRadius.border_s,
-    padding: Platform.OS === "ios" ? spacing.spacing_s : spacing.spacing_2xs,
+    borderRadius: 10,
+    padding: Platform.OS === "ios" ? 12 : 6,
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.spacing_s,
-    backgroundColor: colors.surface_input,
+    gap: 10,
   },
   input: {
     flex: 1,
-    fontSize: typography.body_m_medium.size,
-    fontWeight: typography.body_m_medium.weight.toLowerCase() as "500",
-    color: colors.text_primary,
+    fontSize: Fonts.normal,
+    fontWeight: "500",
+    color: Colors.primary_50,
   },
   label: {
-    fontSize: typography.body_m_bold.size,
-    color: colors.text_primary,
-    fontWeight: typography.body_m_bold.weight.toLowerCase() as "bold",
-  },
-  errorMessage: {
-    color: colors.red_500,
-    marginTop: spacing.spacing_2xs,
-    fontSize: typography.body_s_medium.size,
+    fontSize: Fonts.normal,
+    color: Colors.primary_50,
+    fontWeight: "bold",
   },
 });

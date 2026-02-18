@@ -1,4 +1,4 @@
-import { colors } from "./colors";
+import { Colors } from "./colors";
 import { borderRadius, spacing, typography } from "./theme";
 
-export { borderRadius, colors, spacing, typography };
+export { borderRadius, Colors, spacing, typography };
