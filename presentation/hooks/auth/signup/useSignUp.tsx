@@ -36,10 +36,16 @@ export const UseSignUp = () => {
     Linking.openURL("https://example.com/terms");
   };
 
+  const roles = [
+    { label: "Organizador", value: "organizer" },
+    { label: "Capitán", value: "captain" },
+  ];
+
   return {
     //Props
     top,
     showCompleteProfileModal,
+    roles,
 
     //Methods
     control,

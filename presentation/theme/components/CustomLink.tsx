@@ -1,6 +1,7 @@
-import { colors, typography } from "@styles";
+import { Colors } from "@/presentation/styles";
 import { Link, LinkProps } from "expo-router";
 import { StyleSheet } from "react-native";
+import { Fonts } from "../../styles/global-styles";
 
 interface Props extends LinkProps {
   label: string;
@@ -18,9 +19,9 @@ export const CustomLink = ({ label, href, style }: Props) => {
 
 const styles = StyleSheet.create({
   label: {
-    fontSize: typography.body_m_bold.size,
-    fontWeight: typography.body_m_bold.weight.toLowerCase() as "bold",
+    fontSize: Fonts.normal,
+    fontWeight: "bold",
     textDecorationLine: "underline",
-    color: colors.text_brand,
+    color: Colors.actions_primary_bg,
   },
 });

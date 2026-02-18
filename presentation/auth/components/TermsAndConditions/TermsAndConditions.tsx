@@ -1,6 +1,7 @@
+import { Colors } from "@/presentation/styles";
+import { Fonts } from "@/presentation/styles/global-styles";
 import { MyCheckbox } from "@/presentation/theme/components/CustomCheckbox";
 import { SignUpFormData } from "@/presentation/types/SignUpData";
-import { colors, spacing, typography } from "@styles";
 import React from "react";
 import { Control, Controller, FieldErrors } from "react-hook-form";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
-    gap: spacing.spacing_s + spacing.spacing_2xs,
+    gap: 15,
     zIndex: 2,
   },
 
@@ -55,22 +56,22 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.spacing_2xs,
+    gap: 5,
   },
 
   termText: {
-    fontSize: typography.body_s_medium.size + 2,
-    color: colors.text_primary,
+    fontSize: Fonts.small + 2,
+    color: Colors.primary_100,
   },
 
   termsLink: {
-    fontSize: typography.body_s_medium.size + 2,
-    color: colors.text_brand,
+    fontSize: Fonts.small + 2,
+    color: Colors.actions_primary_bg,
     textDecorationLine: "underline",
   },
   errorText: {
-    color: colors.red_500,
-    fontSize: typography.body_s_medium.size,
-    marginTop: spacing.spacing_2xs,
+    color: "#E97451",
+    fontSize: Fonts.small,
+    marginTop: 2,
   },
 });
