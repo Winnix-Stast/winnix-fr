@@ -7,6 +7,7 @@ import { UseSignUp } from "@/presentation/hooks/auth/signup/useSignUp";
 import { Colors } from "@/presentation/styles";
 import { Fonts } from "@/presentation/styles/global-styles";
 import { CustomButton } from "@/presentation/theme/components/CustomButton";
+import { CustomDatePicker } from "@/presentation/theme/components/CustomDatePicker";
 import { CustomFormView } from "@/presentation/theme/components/CustomFormView";
 import { CustomInput } from "@/presentation/theme/components/CustomInput";
 import { CustomSelect } from "@/presentation/theme/components/CustomSelect";
@@ -18,6 +19,7 @@ const SignUp = () => {
     // Props
     showCompleteProfileModal,
     roles,
+    isRoleDisabled,
 
     // Methods
     control,
@@ -48,11 +50,13 @@ const SignUp = () => {
 
             <CustomInput name='username' control={control} placeholder={t("register.usernamePlaceholder")} label={t("register.usernameLabel")} iconRight='person-outline' keyboardType='name-phone-pad' errorMessage={errors.username?.message} />
 
+            <CustomDatePicker name='birthDate' control={control} placeholder={t("register.birthDatePlaceholder", { defaultValue: "YYYY-MM-DD" })} label={t("register.birthDateLabel", { defaultValue: "Fecha de Nacimiento" })} modalTitle={t("register.birthDateModalTitle", { defaultValue: "Selecciona tu fecha de nacimiento" })} errorMessage={errors.birthDate?.message} />
+
             <CustomInput name='password' control={control} placeholder={t("register.passwordPlaceholder")} label={t("register.passwordLabel")} iconRight='eye-off-outline' keyboardType='visible-password' secureTextEntry errorMessage={errors.password?.message} />
 
             <CustomInput name='confirmPassword' control={control} placeholder={t("register.confirmPasswordPlaceholder")} label={t("register.confirmPasswordLabel")} iconRight='eye-off-outline' keyboardType='default' secureTextEntry errorMessage={errors.confirmPassword?.message} />
 
-            <CustomSelect name='role' control={control} label={t("register.roleLabel", { defaultValue: "Rol" })} placeholder={t("register.rolePlaceholder", { defaultValue: "Selecciona un rol" })} options={roles} iconLeft='person-outline' errorMessage={errors.roles?.message} />
+            <CustomSelect name='role' disabled={isRoleDisabled} control={control} label={t("register.roleLabel", { defaultValue: "Rol" })} placeholder={t("register.rolePlaceholder", { defaultValue: "Selecciona un rol" })} options={roles} iconLeft='person-outline' errorMessage={errors.role?.message} />
 
             <TermsAndConditions control={control} Haptics={Haptics} handleTermsClick={handleTermsClick} errors={errors} />
 

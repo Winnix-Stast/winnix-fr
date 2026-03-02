@@ -10,6 +10,7 @@ export const useCustomForm = <T extends FieldValues>(schema?: yup.ObjectSchema<T
     watch,
     reset,
     trigger,
+    setValue,
   } = useForm<T>({
     resolver: schema ? (yupResolver(schema) as any) : undefined,
     mode: "onChange",
@@ -26,5 +27,6 @@ export const useCustomForm = <T extends FieldValues>(schema?: yup.ObjectSchema<T
     watch,
     reset,
     trigger,
+    setValue,
   };
 };

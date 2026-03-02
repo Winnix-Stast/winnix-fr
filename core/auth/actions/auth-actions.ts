@@ -39,7 +39,8 @@ export const authActions = {
 
   signUp: async (params: any) => {
     try {
-      const data = await AuthAdapter.register(params);
+      const { role, ...restParams } = params;
+      const data = await AuthAdapter.register({ ...restParams, roleType: role });
       return mapAuthResponse(data);
     } catch (error) {
       console.error("authLogin error :>> ", error);

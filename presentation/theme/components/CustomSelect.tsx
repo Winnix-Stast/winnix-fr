@@ -25,12 +25,14 @@ interface Props {
   options: Option[];
   placeholder?: string;
   errorMessage?: string;
+  disabled?: boolean;
 }
 
-export const CustomSelect = ({ name, control, iconLeft, iconRight = "chevron-down-outline", label = "", styleLabel, options, placeholder = "Selecciona una opción", errorMessage }: Props) => {
+export const CustomSelect = ({ name, control, iconLeft, iconRight = "chevron-down-outline", label = "", styleLabel, options, placeholder = "Selecciona una opción", errorMessage, disabled = false }: Props) => {
   const [open, setOpen] = useState(false);
 
   const toggleDropdown = () => {
+    if (disabled) return;
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setOpen(!open);
   };
@@ -48,12 +50,13 @@ export const CustomSelect = ({ name, control, iconLeft, iconRight = "chevron-dow
           return (
             <>
               <TouchableOpacity
-                activeOpacity={0.8}
+                activeOpacity={disabled ? 1 : 0.8}
                 onPress={toggleDropdown}
                 style={[
                   styles.selectContainer,
                   {
-                    borderColor: errorMessage ? Colors.surface_error : open ? Colors.actions_primary_bg : Colors.neutral_500,
+                    borderColor: disabled ? Colors.neutral_500 : errorMessage ? Colors.surface_error : open ? Colors.actions_primary_bg : Colors.neutral_500,
+                    opacity: disabled ? 0.6 : 1,
                   },
                 ]}>
                 {iconLeft && <Ionicons name={iconLeft} size={22} color={Colors.primary_100} style={{ marginRight: 10 }} />}

@@ -12,6 +12,8 @@ type RegisterPayload = {
   password: string;
   confirmPassword: string;
   isChecked: boolean;
+  birthDate: string;
+  roleType: string;
 };
 
 type CompleteProfilePayload = {
