@@ -15,6 +15,7 @@ export class AxiosAdapter implements HttpAdapter {
       baseURL: options.baseUrl,
       params: options.params,
       headers: options.headers,
+      timeout: 10000,
     });
   }
 

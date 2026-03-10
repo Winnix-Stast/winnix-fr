@@ -18,7 +18,8 @@ type RegisterPayload = {
 
 type CompleteProfilePayload = {
   phone: number;
-  roleId: string;
+  roleType: string;
+  birthDate: string;
 };
 
 export interface Role {
@@ -29,33 +30,34 @@ export interface Role {
 
 export const AuthAdapter = {
   login: async (payload: LoginPayload) => {
-    console.log("payload :>> ", payload);
     const response = await authFetcher.instance.post("/auth/login-email", payload);
-    console.log("response :>> ", response);
+    const tokenPayload = response.data?.data || response.data;
 
     // Guardamos tokens si existen
-    if (response.data?.accessToken) {
-      await SecureStorageAdapter.setItem("accessToken", response.data.accessToken);
+    if (tokenPayload?.accessToken) {
+      await SecureStorageAdapter.setItem("accessToken", tokenPayload.accessToken);
     }
-    if (response.data?.refreshToken) {
-      await SecureStorageAdapter.setItem("refreshToken", response.data.refreshToken);
+    if (tokenPayload?.refreshToken) {
+      await SecureStorageAdapter.setItem("refreshToken", tokenPayload.refreshToken);
     }
 
-    return response.data;
+    return tokenPayload;
   },
 
   register: async (payload: RegisterPayload) => {
     const response = await authFetcher.instance.post("/auth/signup", payload);
 
-    if (response.data?.accessToken) {
-      await SecureStorageAdapter.setItem("accessToken", response.data.accessToken);
+    const tokenPayload = response.data?.data || response.data;
+
+    if (tokenPayload?.accessToken) {
+      await SecureStorageAdapter.setItem("accessToken", tokenPayload.accessToken);
     }
 
-    if (response.data?.refreshToken) {
-      await SecureStorageAdapter.setItem("refreshToken", response.data.refreshToken);
+    if (tokenPayload?.refreshToken) {
+      await SecureStorageAdapter.setItem("refreshToken", tokenPayload.refreshToken);
     }
 
-    return response.data;
+    return tokenPayload;
   },
 
   logout: async () => {

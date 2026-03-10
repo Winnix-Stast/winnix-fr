@@ -50,7 +50,10 @@
     "react-native-webview": "13.15.0",
     "yup": "^1.7.0",
     "zustand": "^5.0.7",
-    "@react-native-community/datetimepicker": "8.4.4"
+    "@react-native-community/datetimepicker": "8.4.4",
+    "react-native-svg": "15.12.1",
+    "expo-image-picker": "~17.0.10",
+    "expo-document-picker": "~14.0.8"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

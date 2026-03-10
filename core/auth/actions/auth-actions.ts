@@ -2,12 +2,14 @@ import { AuthAdapter } from "@/core/auth/auth.adapter";
 
 export interface AuthUser {
   email: string;
+  roles: string[];
   accessToken: string;
   refreshToken: string;
 }
 
 const mapAuthResponse = (data: any): AuthUser => ({
   email: data.email,
+  roles: data.roles || [],
   accessToken: data.accessToken,
   refreshToken: data.refreshToken,
 });
@@ -43,7 +45,7 @@ export const authActions = {
       const data = await AuthAdapter.register({ ...restParams, roleType: role });
       return mapAuthResponse(data);
     } catch (error) {
-      console.error("authLogin error :>> ", error);
+      console.error("authSignUp error :>> ", error);
       return null;
     }
   },

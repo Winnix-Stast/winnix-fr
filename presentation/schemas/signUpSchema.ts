@@ -12,11 +12,4 @@ export const signUpSchema = yup.object({
     .oneOf([yup.ref("password")], "Las contraseñas no coinciden")
     .required("Debes repetir la contraseña"),
   isChecked: yup.boolean().oneOf([true], "Debes aceptar los términos y condiciones"),
-  birthDate: yup
-    .date()
-    .nullable()
-    .transform((curr, orig) => (orig === "" ? null : curr))
-    .required("La fecha de nacimiento es requerida")
-    .max(new Date(), "La fecha no puede ser en el futuro"),
-  role: yup.string().required("Debes seleccionar un rol"),
 });

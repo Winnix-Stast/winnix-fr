@@ -13,6 +13,7 @@ export interface AuthState {
   user?: User;
 
   login: (email: string, password: string) => Promise<boolean>;
+  signup: (params: any) => Promise<boolean>;
   checkStatus: () => Promise<void>;
   logout: () => Promise<void>;
   changeStatus: (accessToken?: string, refreshToken?: string, user?: User) => Promise<boolean>;
@@ -42,8 +43,12 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   login: async (email: string, password: string) => {
     const resp = await authActions.login(email, password);
-    console.log("resp :>> ", resp);
-    return get().changeStatus(resp?.accessToken, resp?.refreshToken, { email: resp?.email });
+    return get().changeStatus(resp?.accessToken, resp?.refreshToken, { email: resp?.email, roles: resp?.roles });
+  },
+
+  signup: async (params: any) => {
+    const resp = await authActions.signUp(params);
+    return get().changeStatus(resp?.accessToken, resp?.refreshToken, { email: resp?.email, roles: resp?.roles });
   },
 
   checkStatus: async () => {
@@ -53,7 +58,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       set({ status: "unauthenticated", accessToken: undefined, refreshToken: undefined, user: undefined });
       return;
     }
-    set({ status: "authenticated", accessToken: resp.accessToken, refreshToken: resp.refreshToken, user: { email: resp.email } });
+    set({ status: "authenticated", accessToken: resp.accessToken, refreshToken: resp.refreshToken, user: { email: resp.email, roles: resp.roles } });
     return;
   },
 

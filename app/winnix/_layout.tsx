@@ -1,11 +1,12 @@
 import { useAuthStore } from "@/presentation/auth/store/useAuthStore";
+import { CustomDrawerContent, CustomHeader } from "@/presentation/theme/components/";
 import { Redirect } from "expo-router";
 import { Drawer } from "expo-router/drawer";
 import React, { useEffect } from "react";
-import { ActivityIndicator, Button, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 
 const CheckAuthenticationLayout = () => {
-  const { status, checkStatus, logout } = useAuthStore();
+  const { status, checkStatus } = useAuthStore();
 
   useEffect(() => {
     checkStatus();
@@ -25,15 +26,20 @@ const CheckAuthenticationLayout = () => {
 
   return (
     <Drawer
+      drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{
         headerShown: true,
-        headerRight: () => <Button title='Logout' color='red' onPress={logout} />,
+        header: ({ layout, navigation, route, options }) => <CustomHeader layout={layout} navigation={navigation} options={options} route={route} />,
+        drawerActiveBackgroundColor: "rgba(124, 43, 19, 0.15)",
+        drawerActiveTintColor: "#ea840a",
+        drawerInactiveTintColor: "#a3adb8",
+        drawerLabelStyle: { fontWeight: "bold" },
       }}>
       <Drawer.Screen
         name='tabs'
         options={{
           drawerLabel: "Dashboard",
-          title: "Dashboard",
+          title: "Mis torneos",
         }}
       />
 
@@ -58,6 +64,21 @@ const CheckAuthenticationLayout = () => {
         options={{
           drawerLabel: "Mis torneos",
           title: "Test",
+        }}
+      />
+
+      <Drawer.Screen
+        name='tournament/create'
+        options={{
+          drawerItemStyle: { display: "none" },
+          title: "Forjar Torneo",
+        }}
+      />
+      <Drawer.Screen
+        name='team/create'
+        options={{
+          drawerItemStyle: { display: "none" },
+          title: "Forjar Equipo",
         }}
       />
     </Drawer>

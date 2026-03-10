@@ -1,14 +1,19 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Pressable, ActivityIndicator } from "react-native";
-import ModalRN from "react-native-modal";
-import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import React, { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, View } from "react-native";
+import ModalRN from "react-native-modal";
 
-import { Colors, Fonts, ErrorMessage } from "@/presentation/styles/global-styles";
-import { CustomInput } from "@/presentation/theme/components/CustomInput";
-import { CustomButton } from "@/presentation/theme/components/CustomButton";
-import { completeProfileSchema, CompleteProfileFormData } from "@/presentation/schemas/completeProfileSchema";
-import { AuthAdapter, Role } from "@/core/auth/auth.adapter";
+import { AuthAdapter } from "@/core/auth/auth.adapter";
+import { CompleteProfileFormData, completeProfileSchema } from "@/presentation/schemas/completeProfileSchema";
+import { Colors } from "@/presentation/styles/colors";
+import { CustomButton, CustomDatePicker, CustomInput, CustomSelect } from "@/presentation/theme/components/";
+
+export interface Role {
+  _id?: string;
+  name: string;
+  label?: string;
+}
 
 interface Props {
   visible: boolean;
@@ -16,8 +21,6 @@ interface Props {
 }
 
 export const CompleteProfileModal: React.FC<Props> = ({ visible, onComplete }) => {
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [loadingRoles, setLoadingRoles] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   const {
@@ -30,124 +33,101 @@ export const CompleteProfileModal: React.FC<Props> = ({ visible, onComplete }) =
     resolver: yupResolver(completeProfileSchema),
     defaultValues: {
       phone: "",
-      roleId: "",
+      roleType: "",
+      birthDate: null as any,
     },
   });
 
-  const selectedRoleId = watch("roleId");
+  const selectedRoleType = watch("roleType");
+  const birthDate = watch("birthDate");
 
-  useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        const rolesData = await AuthAdapter.getRoles();
-        // Filtrar solo los roles permitidos para usuarios
-        const allowedRoles = rolesData.filter((role) =>
-          ["player", "organizer", "referee"].includes(role.name.toLowerCase())
-        );
-        setRoles(allowedRoles);
-      } catch (error) {
-        console.error("Error fetching roles:", error);
-      } finally {
-        setLoadingRoles(false);
+  const roles = useMemo(() => {
+    const defaultRoles = [
+      { label: "Organizador", value: "organizer" },
+      { label: "Capitán", value: "captain" },
+      { label: "Jugador", value: "player" },
+      { label: "Árbitro", value: "referee" },
+    ];
+
+    if (!birthDate) {
+      return [
+        { label: "Capitán", value: "captain" },
+        { label: "Jugador", value: "player" },
+      ];
+    }
+
+    const calculateAge = (dateString: Date) => {
+      const today = new Date();
+      const dob = new Date(dateString);
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age--;
       }
+      return age;
     };
 
-    if (visible) {
-      fetchRoles();
+    const userAge = calculateAge(birthDate as Date);
+
+    if (userAge >= 18) {
+      return defaultRoles;
+    } else {
+      return [
+        { label: "Capitán", value: "captain" },
+        { label: "Jugador", value: "player" },
+      ];
     }
-  }, [visible]);
+  }, [birthDate]);
+
+  useEffect(() => {
+    if (selectedRoleType) {
+      const isValidRole = roles.find((r) => r.value === selectedRoleType);
+      if (!isValidRole && setValue) {
+        setValue("roleType", "");
+      }
+    }
+  }, [roles, selectedRoleType, setValue]);
+
+  const isRoleDisabled = !birthDate;
 
   const onSubmit = async (data: CompleteProfileFormData) => {
     setSubmitting(true);
     try {
       await AuthAdapter.completeProfile({
         phone: parseInt(data.phone, 10),
-        roleId: data.roleId,
+        roleType: data.roleType,
+        birthDate: data.birthDate?.toISOString() as string,
       });
       onComplete();
     } catch (error) {
-      console.error("Error completing profile:", error);
+      Alert.alert("Error", "No se pudo completar el perfil. Por favor, verifica tus datos de red e intenta de nuevo.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const getRoleLabel = (role: Role) => {
-    const labels: Record<string, string> = {
-      player: "Jugador",
-      organizer: "Organizador",
-      referee: "Árbitro",
-    };
-    return role.label || labels[role.name.toLowerCase()] || role.name;
-  };
-
   return (
-    <ModalRN
-      isVisible={visible}
-      animationIn='fadeIn'
-      animationOut='fadeOut'
-      backdropOpacity={0.8}
-      style={styles.modal}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Completa tu perfil</Text>
-        <Text style={styles.subtitle}>
-          Necesitamos algunos datos adicionales para continuar
-        </Text>
+    <ModalRN isVisible={visible} animationIn='fadeIn' animationOut='fadeOut' backdropOpacity={0.8} style={styles.modal}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.keyboardView}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps='handled'>
+            <View style={styles.container}>
+              <Text style={styles.title}>Completa tu perfil</Text>
+              <Text style={styles.subtitle}>Necesitamos algunos datos adicionales para continuar</Text>
 
-        <View style={styles.form}>
-          <CustomInput
-            name='phone'
-            control={control}
-            placeholder='3001234567'
-            label='Número de teléfono'
-            iconRight='call-outline'
-            keyboardType='phone-pad'
-            errorMessage={errors.phone?.message}
-          />
+              <View style={styles.form}>
+                <CustomDatePicker name='birthDate' control={control} placeholder='YYYY-MM-DD' label='Fecha de Nacimiento' modalTitle='Selecciona tu fecha de nacimiento' errorMessage={errors.birthDate?.message} />
 
-          <View style={styles.rolesContainer}>
-            <Text style={styles.rolesLabel}>Selecciona tu rol</Text>
-            {loadingRoles ? (
-              <ActivityIndicator color={Colors.primary} />
-            ) : (
-              <View style={styles.rolesList}>
-                {roles.map((role) => (
-                  <Pressable
-                    key={role._id}
-                    style={[
-                      styles.roleOption,
-                      selectedRoleId === role._id && styles.roleOptionSelected,
-                    ]}
-                    onPress={() => setValue("roleId", role._id)}>
-                    <View
-                      style={[
-                        styles.radioOuter,
-                        selectedRoleId === role._id && styles.radioOuterSelected,
-                      ]}>
-                      {selectedRoleId === role._id && <View style={styles.radioInner} />}
-                    </View>
-                    <Text
-                      style={[
-                        styles.roleText,
-                        selectedRoleId === role._id && styles.roleTextSelected,
-                      ]}>
-                      {getRoleLabel(role)}
-                    </Text>
-                  </Pressable>
-                ))}
+                <CustomInput name='phone' control={control} placeholder='3001234567' label='Número de teléfono' iconRight='call-outline' keyboardType='phone-pad' errorMessage={errors.phone?.message} />
+
+                <CustomSelect name='roleType' disabled={isRoleDisabled} control={control} label='Rol' placeholder='Selecciona un rol' options={roles} iconLeft='person-outline' errorMessage={errors.roleType?.message} />
+
+                <CustomButton label={submitting ? "Guardando..." : "Continuar"} onPress={handleSubmit(onSubmit)} icon='arrow-forward-outline' disabled={submitting} />
               </View>
-            )}
-            {errors.roleId && <Text style={ErrorMessage}>{errors.roleId.message}</Text>}
-          </View>
-
-          <CustomButton
-            label={submitting ? "Guardando..." : "Continuar"}
-            onPress={handleSubmit(onSubmit)}
-            icon='arrow-forward-outline'
-            disabled={submitting}
-          />
-        </View>
-      </View>
+            </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </ModalRN>
   );
 };
@@ -158,77 +138,40 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  keyboardView: {
+    flex: 1,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    paddingVertical: 40,
+  },
   container: {
-    backgroundColor: Colors.dark,
+    backgroundColor: Colors.surface_elevated,
     borderRadius: 16,
     padding: 24,
     width: "90%",
     maxWidth: 400,
   },
   title: {
-    fontSize: Fonts.extraLarge,
+    fontSize: 24,
     fontWeight: "bold",
-    color: Colors.primary,
+    color: Colors.brand_primary,
     textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: Fonts.small,
-    color: Colors.gray,
+    fontSize: 14,
+    color: Colors.text_secondary,
     textAlign: "center",
     marginBottom: 24,
   },
   form: {
     gap: 20,
-  },
-  rolesContainer: {
-    gap: 10,
-  },
-  rolesLabel: {
-    fontSize: Fonts.normal,
-    color: Colors.light,
-    fontWeight: "bold",
-  },
-  rolesList: {
-    gap: 12,
-  },
-  roleOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 14,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: Colors.gray,
-    gap: 12,
-  },
-  roleOptionSelected: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primaryDark2,
-  },
-  radioOuter: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: Colors.gray,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  radioOuterSelected: {
-    borderColor: Colors.primary,
-  },
-  radioInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: Colors.primary,
-  },
-  roleText: {
-    fontSize: Fonts.normal,
-    color: Colors.light,
-  },
-  roleTextSelected: {
-    color: Colors.primary,
-    fontWeight: "600",
   },
 });
