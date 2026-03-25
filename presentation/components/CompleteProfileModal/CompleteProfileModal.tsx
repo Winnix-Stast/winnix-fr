@@ -5,6 +5,7 @@ import { Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet
 import ModalRN from "react-native-modal";
 
 import { AuthAdapter } from "@/core/auth/auth.adapter";
+import { useRoles } from "@/presentation/hooks/roles/useRoles";
 import { CompleteProfileFormData, completeProfileSchema } from "@/presentation/schemas/completeProfileSchema";
 import { Colors } from "@/presentation/styles/colors";
 import { CustomButton, CustomDatePicker, CustomInput, CustomSelect } from "@/presentation/theme/components/";
@@ -41,19 +42,31 @@ export const CompleteProfileModal: React.FC<Props> = ({ visible, onComplete }) =
   const selectedRoleType = watch("roleType");
   const birthDate = watch("birthDate");
 
+  const { data: apiRoles = [], isLoading: isLoadingRoles } = useRoles();
+
   const roles = useMemo(() => {
-    const defaultRoles = [
-      { label: "Organizador", value: "organizer" },
-      { label: "Capitán", value: "captain" },
-      { label: "Jugador", value: "player" },
-      { label: "Árbitro", value: "referee" },
-    ];
+    if (isLoadingRoles || !apiRoles.length) return [];
+
+    const formatRoleName = (name: string) => {
+      switch (name.toLowerCase()) {
+        case "organizer": return "Organizador";
+        case "tournament manager": return "Co-Organizador";
+        case "captain": return "Capitán";
+        case "player": return "Jugador";
+        case "judge": return "Árbitro";
+        default: return name.charAt(0).toUpperCase() + name.slice(1);
+      }
+    };
+
+    const formattedRoles = apiRoles.map((role: Role) => ({
+      label: formatRoleName(role.name),
+      value: role._id as string,
+      name: role.name.toLowerCase()
+    }));
 
     if (!birthDate) {
-      return [
-        { label: "Capitán", value: "captain" },
-        { label: "Jugador", value: "player" },
-      ];
+      return formattedRoles.filter((r: any) => r.name === "captain" || r.name === "player")
+        .map(({ label, value }: any) => ({ label, value }));
     }
 
     const calculateAge = (dateString: Date) => {
@@ -70,14 +83,12 @@ export const CompleteProfileModal: React.FC<Props> = ({ visible, onComplete }) =
     const userAge = calculateAge(birthDate as Date);
 
     if (userAge >= 18) {
-      return defaultRoles;
+      return formattedRoles.map(({ label, value }: any) => ({ label, value }));
     } else {
-      return [
-        { label: "Capitán", value: "captain" },
-        { label: "Jugador", value: "player" },
-      ];
+      return formattedRoles.filter((r: any) => r.name === "captain" || r.name === "player")
+        .map(({ label, value }: any) => ({ label, value }));
     }
-  }, [birthDate]);
+  }, [apiRoles, isLoadingRoles, birthDate]);
 
   useEffect(() => {
     if (selectedRoleType) {
@@ -95,7 +106,7 @@ export const CompleteProfileModal: React.FC<Props> = ({ visible, onComplete }) =
     try {
       await AuthAdapter.completeProfile({
         phone: parseInt(data.phone, 10),
-        roleType: data.roleType,
+        role: data.roleType,
         birthDate: data.birthDate?.toISOString() as string,
       });
       onComplete();

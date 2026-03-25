@@ -18,7 +18,7 @@ type RegisterPayload = {
 
 type CompleteProfilePayload = {
   phone: number;
-  roleType: string;
+  role: string;
   birthDate: string;
 };
 

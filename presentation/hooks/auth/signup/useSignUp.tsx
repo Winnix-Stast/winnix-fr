@@ -3,7 +3,6 @@ import { router, useRouter } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Linking } from "react-native";
-
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useCustomForm } from "@/hooks/useCustomForm";

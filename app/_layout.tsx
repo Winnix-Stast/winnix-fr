@@ -6,9 +6,11 @@ import "react-native-reanimated";
 
 import "@/i18n/config/i18n.config";
 import { useColorScheme } from "@/presentation/theme/hooks//useColorScheme";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 
 export default function RootLayout() {
+  const queryClient = new QueryClient();
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
@@ -21,13 +23,15 @@ export default function RootLayout() {
 
   return (
     // <GestureHandlerRootView>
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name='auth' />
-        <Stack.Screen name='winnix' />
-      </Stack>
-      <StatusBar style='auto' />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name='auth' />
+          <Stack.Screen name='winnix' />
+        </Stack>
+        <StatusBar style='auto' />
+      </ThemeProvider>
+    </QueryClientProvider>
     // </GestureHandlerRootView>
   );
 }
