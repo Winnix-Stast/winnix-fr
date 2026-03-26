@@ -11,24 +11,27 @@ interface Props {
   styleText?: StyleProp<TextStyle>;
   disabled?: boolean;
   styleIcon?: StyleProp<TextStyle>;
+  outline?: boolean;
 }
 
-export const CustomButton = ({ label, icon, onPress, stylePressable, styleText, disabled = false, styleIcon }: Props) => {
+export const CustomButton = ({ label, icon, onPress, stylePressable, styleText, disabled = false, styleIcon, outline = false }: Props) => {
   return (
     <Pressable
       onPress={!disabled ? onPress : undefined}
       style={({ pressed }) => [
         {
-          backgroundColor: disabled ? Colors.neutral_500 : pressed ? Colors.actions_primary_bg + "90" : Colors.actions_primary_bg,
+          backgroundColor: outline ? "transparent" : disabled ? Colors.neutral_500 : pressed ? Colors.actions_primary_bg + "90" : Colors.actions_primary_bg,
           opacity: disabled ? 0.6 : 1,
+          borderWidth: outline ? 2 : 0,
+          borderColor: outline ? Colors.actions_primary_bg : "transparent",
         },
         styles.button,
         stylePressable,
       ]}
       disabled={disabled}>
-      <Text style={[styles.label, styleText]}>{label}</Text>
+      <Text style={[styles.label, { color: outline ? Colors.actions_primary_bg : Colors.surface_base }, styleText]}>{label}</Text>
 
-      {icon && <Ionicons name={icon} size={24} color={Colors.surface_base} style={[{ marginHorizontal: 5 }, styleIcon]} />}
+      {icon && <Ionicons name={icon} size={24} color={outline ? Colors.actions_primary_bg : Colors.surface_base} style={[{ marginHorizontal: 5 }, styleIcon]} />}
     </Pressable>
   );
 };

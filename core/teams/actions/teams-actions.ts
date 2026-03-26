@@ -1,4 +1,4 @@
-import { teamsAdapter } from "../teams.adapter";
+import { teamsAdapter } from "../teams-adapter";
 
 export interface CreateTeamPayload {
   name: string;

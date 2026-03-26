@@ -1,20 +1,21 @@
-import { FeaturedNews } from "@/presentation/dashboard/FeaturedNews";
-import { NextEvents } from "@/presentation/dashboard/NextEvents/NextEvents";
-import { Sponsors } from "@/presentation/dashboard/sponsor/Sponsor";
+import { CaptainDashboardView } from "@/presentation/dashboard/CaptainDashboardView";
+import { OrganizerDashboardView } from "@/presentation/dashboard/OrganizerDashboardView";
+import { PlayerDashboardView } from "@/presentation/dashboard/PlayerDashboardView";
 import { MainContainerView } from "@/presentation/theme/components/MainContainerView";
 import React from "react";
-import { ScrollView } from "react-native";
+
+import { useAuthStore } from "@/presentation/auth/store/useAuthStore";
 
 const Dashboard = () => {
-  return (
-    <MainContainerView>
-      <ScrollView>
-        <FeaturedNews />
-        <NextEvents />
-        <Sponsors />
-      </ScrollView>
-    </MainContainerView>
-  );
+  const { activeRole } = useAuthStore();
+
+  const renderDashboard = () => {
+    if (activeRole === "organizer" || activeRole === "tournament manager") return <OrganizerDashboardView />;
+    if (activeRole === "captain") return <CaptainDashboardView />;
+    return <PlayerDashboardView />;
+  };
+
+  return <MainContainerView>{renderDashboard()}</MainContainerView>;
 };
 
 export default Dashboard;

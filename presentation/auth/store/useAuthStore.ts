@@ -11,7 +11,9 @@ export interface AuthState {
   accessToken?: string;
   refreshToken?: string;
   user?: User;
+  activeRole?: string;
 
+  setActiveRole: (role: string) => void;
   login: (email: string, password: string) => Promise<boolean>;
   signup: (params: any) => Promise<boolean>;
   checkStatus: () => Promise<void>;
@@ -24,17 +26,28 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   status: "checking",
   token: undefined,
   user: undefined,
+  activeRole: undefined,
 
   //Methods (Actions)
+  setActiveRole: (role: string) => set({ activeRole: role }),
   changeStatus: async (accessToken?: string, refreshToken?: string, user?: User) => {
     if (!accessToken || !refreshToken || !user) {
-      set({ status: "unauthenticated", accessToken: undefined, refreshToken: undefined, user: undefined });
+      set({ status: "unauthenticated", accessToken: undefined, refreshToken: undefined, user: undefined, activeRole: undefined });
       await SecureStorageAdapter.deleteItem("accessToken");
       await SecureStorageAdapter.deleteItem("refreshToken");
       return false;
     }
 
-    set({ status: "authenticated", accessToken, refreshToken, user });
+    let initialRole = "player";
+    if (user.roleEntities && user.roleEntities.length > 0) {
+      const roleNames = user.roleEntities.map((r: any) => r.name);
+      if (roleNames.includes("organizer")) initialRole = "organizer";
+      else if (roleNames.includes("tournament manager")) initialRole = "tournament manager";
+      else if (roleNames.includes("captain")) initialRole = "captain";
+      else initialRole = roleNames[0];
+    }
+
+    set({ status: "authenticated", accessToken, refreshToken, user, activeRole: initialRole });
     await SecureStorageAdapter.setItem("accessToken", accessToken);
     await SecureStorageAdapter.setItem("refreshToken", refreshToken);
 
@@ -43,27 +56,37 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   login: async (email: string, password: string) => {
     const resp = await authActions.login(email, password);
-    return get().changeStatus(resp?.accessToken, resp?.refreshToken, { email: resp?.email, roles: resp?.roles });
+    return get().changeStatus(resp?.accessToken, resp?.refreshToken, { email: resp?.email, roles: resp?.roles, roleEntities: resp?.roleEntities });
   },
 
   signup: async (params: any) => {
     const resp = await authActions.signUp(params);
-    return get().changeStatus(resp?.accessToken, resp?.refreshToken, { email: resp?.email, roles: resp?.roles });
+    return get().changeStatus(resp?.accessToken, resp?.refreshToken, { email: resp?.email, roles: resp?.roles, roleEntities: resp?.roleEntities });
   },
 
   checkStatus: async () => {
     const resp = await authActions.checkStatus();
     if (!resp) {
-      // Manera de actualizar un estado en zustand
-      set({ status: "unauthenticated", accessToken: undefined, refreshToken: undefined, user: undefined });
+      set({ status: "unauthenticated", accessToken: undefined, refreshToken: undefined, user: undefined, activeRole: undefined });
       return;
     }
-    set({ status: "authenticated", accessToken: resp.accessToken, refreshToken: resp.refreshToken, user: { email: resp.email, roles: resp.roles } });
+
+    let initialRole = "player";
+    if (resp.roleEntities && resp.roleEntities.length > 0) {
+      const roleNames = resp.roleEntities.map((r: any) => r.name);
+      if (roleNames.includes("organizer")) initialRole = "organizer";
+      else if (roleNames.includes("tournament manager")) initialRole = "tournament manager";
+      else if (roleNames.includes("captain")) initialRole = "captain";
+      else initialRole = roleNames[0];
+    }
+
+    set({ status: "authenticated", accessToken: resp.accessToken, refreshToken: resp.refreshToken, user: { email: resp.email, roles: resp.roles, roleEntities: resp.roleEntities }, activeRole: initialRole });
     return;
   },
 
   logout: async () => {
-    await SecureStorageAdapter.deleteItem("token");
-    set({ status: "unauthenticated", accessToken: undefined, refreshToken: undefined, user: undefined });
+    await SecureStorageAdapter.deleteItem("accessToken");
+    await SecureStorageAdapter.deleteItem("refreshToken");
+    set({ status: "unauthenticated", accessToken: undefined, refreshToken: undefined, user: undefined, activeRole: undefined });
   },
 }));

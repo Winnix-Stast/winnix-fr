@@ -16,17 +16,15 @@ const CreateTeamScreen = () => {
     <CustomFormView>
       <ScrollView contentContainerStyle={[styles.scrollContent]} showsVerticalScrollIndicator={false}>
         {/* Header con botón de regresar */}
-        <View style={[styles.header, { paddingTop: top + 10 }]}>
+        <View style={[styles.header, { paddingTop: top - 30 }]}>
           <Pressable onPress={handleGoBack} style={styles.backButton}>
             <WinnixIcon name='chevron-back-outline' size={30} color={Colors.text_primary} />
           </Pressable>
-          <Text style={styles.headerTitle}>Forjar Equipo</Text>
+          <Text style={styles.headerTitle}>Crear Equipo</Text>
           <View style={{ width: 40 }} />
         </View>
 
         <View style={styles.formContainer}>
-          <Text style={styles.sectionTitle}>Identidad del Equipo</Text>
-
           <CustomInput name='name' control={control} label='Nombre del Equipo *' placeholder='Ej: Los Galácticos FC' iconRight='people-outline' errorMessage={errors.name?.message} />
 
           {/* TODO: Implement Image Picker for Logo like in tournament create */}
@@ -68,17 +66,6 @@ const styles = StyleSheet.create({
   formContainer: {
     paddingHorizontal: 20,
     gap: 20,
-  },
-  sectionTitle: {
-    fontSize: Fonts.normal,
-    fontWeight: "600",
-    color: Colors.text_secondary,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border_focus,
-    paddingBottom: 5,
-    marginBottom: 5,
   },
   infoBox: {
     backgroundColor: Colors.surface_elevated,

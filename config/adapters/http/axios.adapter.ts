@@ -58,4 +58,28 @@ export class AxiosAdapter implements HttpAdapter {
       throw new Error(`Error fetching PUT: ${url}`);
     }
   }
+
+  async patch<T>(url: string, body: unknown, options?: Record<string, unknown>): Promise<T> {
+    try {
+      const { data } = await this.axiosInstance.patch(url, body, options);
+      return data;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        throw error.response.data;
+      }
+      throw new Error(`Error fetching PATCH: ${url}`);
+    }
+  }
+
+  async delete<T>(url: string, options?: Record<string, unknown>): Promise<T> {
+    try {
+      const { data } = await this.axiosInstance.delete(url, options);
+      return data;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        throw error.response.data;
+      }
+      throw new Error(`Error fetching DELETE: ${url}`);
+    }
+  }
 }
