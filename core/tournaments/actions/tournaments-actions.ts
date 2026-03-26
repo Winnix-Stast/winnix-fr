@@ -2,14 +2,21 @@ import { tournamentAdapter } from "../tournaments.adapter";
 
 export interface CreateTournamentPayload {
   name: string;
-  start_date: string;
-  end_date: string;
-  max_teams: number;
-  prize: number;
+  description?: string;
   image?: string;
   logo?: string;
-  sponsors?: string[];
-  rules?: string;
+  organizer: string;
+  start_date: string;
+  end_date: string;
+  config: {
+    max_teams: number;
+    teams?: string[];
+    stages?: string[];
+  };
+  agreement: {
+    accepted: boolean;
+    acceptedAt?: string | Date;
+  };
 }
 
 export const tournamentsActions = {
@@ -23,13 +30,23 @@ export const tournamentsActions = {
     }
   },
 
+  getTournamentByIdAction: async (id: string): Promise<any | null> => {
+    try {
+      const data = await tournamentAdapter.getTournamentById(id);
+      return data.data;
+    } catch (error) {
+      console.error("getTournamentByIdAction error :>> ", error);
+      return null;
+    }
+  },
+
   createTournamentAction: async (payload: CreateTournamentPayload): Promise<any | null> => {
     try {
       const data = await tournamentAdapter.createTournament(payload);
       return data;
-    } catch (error) {
-      console.error("createTournamentAction error :>> ", error);
-      return null;
+    } catch (error: any) {
+      console.error("createTournamentAction error :>> ", error?.response?.data || error);
+      throw error;
     }
   },
 };

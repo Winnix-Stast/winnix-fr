@@ -10,7 +10,7 @@ import OurTournamentsList from "@/presentation/tournamentsView/ourTournaments/Ou
 
 export const OrganizerDashboardView = () => {
   const router = useRouter();
-  const { tournaments, loading } = useMyTournaments();
+  const { tournaments, loading, isRefreshing, refresh } = useMyTournaments();
 
   const handleCreateTournament = () => {
     router.push("/winnix/tournament/create");
@@ -32,7 +32,7 @@ export const OrganizerDashboardView = () => {
       </View>
 
       {tournaments.length > 0 ? (
-        <OurTournamentsList tournaments={tournaments} />
+        <OurTournamentsList tournaments={tournaments} refreshing={isRefreshing} onRefresh={refresh} />
       ) : (
         <View style={styles.emptyStateContainer}>
           <View style={styles.iconWrapper}>

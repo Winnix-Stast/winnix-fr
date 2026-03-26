@@ -1,13 +1,16 @@
-import { FlatList, View } from "react-native";
+import { FlatList, View, RefreshControl } from "react-native";
 import { TournamentTeamItem } from "../TournamentTeamItem";
 
 import { router } from "expo-router";
+import { Colors } from "@/presentation/styles/colors";
 
 interface Props {
   tournaments: any;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
-const OurTournamentsList = ({ tournaments }: Props) => {
+const OurTournamentsList = ({ tournaments, refreshing = false, onRefresh }: Props) => {
   // const tournaments = [
   //   {
   //     id: "1",
@@ -65,6 +68,9 @@ const OurTournamentsList = ({ tournaments }: Props) => {
       <FlatList
         data={tournaments}
         keyExtractor={(item) => item._id}
+        refreshControl={
+          onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[Colors.brand_primary]} tintColor={Colors.brand_primary} /> : undefined
+        }
         renderItem={({ item }) => (
           <TournamentTeamItem
             label={item.name}

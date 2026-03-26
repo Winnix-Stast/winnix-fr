@@ -2,7 +2,7 @@ import { Colors, Flex, Radius } from "@/presentation/styles/global-styles";
 import React from "react";
 import { ImageBackground, ImageSourcePropType, StyleSheet, Text, TextStyle, useWindowDimensions, View } from "react-native";
 
-type TournamentState = "in-progress" | "next" | "finished" | "ongoing";
+type TournamentState = "draft" | "open" | "ongoing" | "finished" | string;
 
 type Props = {
   title: string;
@@ -18,26 +18,26 @@ type Props = {
 export const OurTournamentHeaderCard = ({ title, state, dateText, image, onPressButton, titleStyle, dateStyle, statusStyle }: Props) => {
   const { height } = useWindowDimensions();
 
-  const statusConfig: Record<TournamentState, { label: string; backgroundColor: string }> = {
-    "in-progress": {
+  const statusConfig: Record<string, { label: string; backgroundColor: string }> = {
+    draft: {
+      label: "Borrador",
+      backgroundColor: "rgba(150, 150, 150, 0.8)",
+    },
+    open: {
       label: "Inscripciones Abiertas",
       backgroundColor: "rgba(0, 200, 151, 0.8)",
-    },
-    next: {
-      label: "Próximamente",
-      backgroundColor: "rgba(234, 179, 8, 0.8)",
-    },
-    finished: {
-      label: "Finalizado",
-      backgroundColor: "rgba(120, 120, 120, 0.7)",
     },
     ongoing: {
       label: "En Progreso",
       backgroundColor: "rgba(59, 130, 246, 0.7)",
     },
+    finished: {
+      label: "Finalizado",
+      backgroundColor: "rgba(120, 120, 120, 0.7)",
+    },
   };
 
-  const { label, backgroundColor } = statusConfig[state];
+  const { label, backgroundColor } = statusConfig[state] || { label: state, backgroundColor: Colors.primary };
 
   return (
     <ImageBackground source={image} style={[styles.imageBackground, { height: height * 0.3 }]} imageStyle={styles.portrait}>

@@ -17,9 +17,12 @@ interface Props {
   placeholder?: string;
   errorMessage?: string;
   modalTitle?: string;
+  allowFutureDates?: boolean;
+  minimumDate?: Date;
+  maximumDate?: Date;
 }
 
-export const CustomDatePicker = ({ name, control, iconLeft, iconRight = "calendar-outline", label = "", styleLabel, placeholder = "Selecciona una fecha", errorMessage, modalTitle = "Selecciona una fecha" }: Props) => {
+export const CustomDatePicker = ({ name, control, iconLeft, iconRight = "calendar-outline", label = "", styleLabel, placeholder = "Selecciona una fecha", errorMessage, modalTitle = "Selecciona una fecha", allowFutureDates = false, minimumDate, maximumDate }: Props) => {
   const [open, setOpen] = useState(false);
   const [tempDate, setTempDate] = useState<Date>(new Date());
 
@@ -73,7 +76,7 @@ export const CustomDatePicker = ({ name, control, iconLeft, iconRight = "calenda
               </TouchableOpacity>
 
               {/* RENDERIZADO PARA ANDROID: Se abre como un Pop-up nativo */}
-              {open && Platform.OS === "android" && <DateTimePicker mode='date' display='default' value={isValid ? dateValue : new Date()} maximumDate={new Date()} onChange={handleDateChange} />}
+              {open && Platform.OS === "android" && <DateTimePicker mode='date' display='default' value={isValid ? dateValue : new Date()} maximumDate={maximumDate || (allowFutureDates ? undefined : new Date())} minimumDate={minimumDate} onChange={handleDateChange} />}
 
               {/* RENDERIZADO PARA iOS: Lo envolvemos en un Modal para simular el comportamiento anterior */}
               {open && Platform.OS === "ios" && (
@@ -85,7 +88,7 @@ export const CustomDatePicker = ({ name, control, iconLeft, iconRight = "calenda
                       </View>
 
                       <View style={styles.pickerContainer}>
-                        <DateTimePicker mode='date' display='spinner' locale='es-ES' value={tempDate} maximumDate={new Date()} onChange={handleDateChange} textColor={Colors.text_primary} />
+                        <DateTimePicker mode='date' display='spinner' locale='es-ES' value={tempDate} maximumDate={maximumDate || (allowFutureDates ? undefined : new Date())} minimumDate={minimumDate} onChange={handleDateChange} textColor={Colors.text_primary} />
                       </View>
 
                       <View style={styles.modalFooter}>

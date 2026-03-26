@@ -9,9 +9,11 @@ import { OurTournamentHeaderCard } from "@/presentation/tournamentsView/ourTourn
 import { TournamentMenu } from "@/presentation/tournamentsView/tournamentsInfo/TournamentMenu";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View, ActivityIndicator } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQuery } from '@tanstack/react-query';
+import { tournamentsActions } from "@/core/tournaments/actions/tournaments-actions";
 
 const OurTournamentLayout = () => {
   const { id } = useLocalSearchParams();
@@ -40,13 +42,38 @@ const OurTournamentLayout = () => {
     setActiveTab(view);
   };
 
-  const fakeTournaments = {
-    id: 1,
-    title: "Copa Elite este",
-    state: "in-progress" as const,
-    dateText: "12 - 30 Diciembre 2024",
+  const { data: tournament, isLoading } = useQuery({
+    queryKey: ['tournament', id],
+    queryFn: () => tournamentsActions.getTournamentByIdAction(id as string),
+    enabled: !!id,
+  });
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: Colors.dark }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  if (!tournament) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: Colors.dark }}>
+        <CustomText label="No se encontró el torneo" color={Colors.light} />
+      </View>
+    );
+  }
+
+  const startDate = new Date(tournament.start_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  const endDate = new Date(tournament.end_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  const createdTournament = {
+    id: tournament._id,
+    title: tournament.name,
+    state: tournament.status,
+    dateText: `${startDate} - ${endDate}`,
     buttonLabel: "Inscribirse",
-    image: require("@/assets/images/imgT.jpg"),
+    image: tournament.image ? { uri: tournament.image } : require("@/assets/images/imgT.jpg"),
   };
 
   const matches = [
@@ -87,11 +114,11 @@ const OurTournamentLayout = () => {
           </Pressable>
 
           <OurTournamentHeaderCard
-            key={fakeTournaments.id}
-            title={fakeTournaments.title}
-            state={fakeTournaments.state}
-            dateText={fakeTournaments.dateText}
-            image={fakeTournaments.image}
+            key={createdTournament.id}
+            title={createdTournament.title}
+            state={createdTournament.state}
+            dateText={createdTournament.dateText}
+            image={createdTournament.image}
             onPressButton={() => console.log("Inscripción!")}
             titleStyle={{ fontSize: 32 }}
           />

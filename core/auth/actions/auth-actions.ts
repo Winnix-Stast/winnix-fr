@@ -1,6 +1,7 @@
 import { AuthAdapter } from "@/core/auth/auth.adapter";
 
 export interface AuthUser {
+  id: string;
   email: string;
   roles: string[];
   roleEntities: any[];
@@ -9,6 +10,7 @@ export interface AuthUser {
 }
 
 const mapAuthResponse = (data: any): AuthUser => ({
+  id: data.id,
   email: data.email,
   roles: data.roles || [],
   roleEntities: data.roleEntities || [],

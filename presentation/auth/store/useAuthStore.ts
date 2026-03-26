@@ -56,12 +56,12 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   login: async (email: string, password: string) => {
     const resp = await authActions.login(email, password);
-    return get().changeStatus(resp?.accessToken, resp?.refreshToken, { email: resp?.email, roles: resp?.roles, roleEntities: resp?.roleEntities });
+    return get().changeStatus(resp?.accessToken, resp?.refreshToken, { id: resp?.id, email: resp?.email, roles: resp?.roles, roleEntities: resp?.roleEntities });
   },
 
   signup: async (params: any) => {
     const resp = await authActions.signUp(params);
-    return get().changeStatus(resp?.accessToken, resp?.refreshToken, { email: resp?.email, roles: resp?.roles, roleEntities: resp?.roleEntities });
+    return get().changeStatus(resp?.accessToken, resp?.refreshToken, { id: resp?.id, email: resp?.email, roles: resp?.roles, roleEntities: resp?.roleEntities });
   },
 
   checkStatus: async () => {
@@ -80,7 +80,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       else initialRole = roleNames[0];
     }
 
-    set({ status: "authenticated", accessToken: resp.accessToken, refreshToken: resp.refreshToken, user: { email: resp.email, roles: resp.roles, roleEntities: resp.roleEntities }, activeRole: initialRole });
+    set({ status: "authenticated", accessToken: resp.accessToken, refreshToken: resp.refreshToken, user: { id: resp.id, email: resp.email, roles: resp.roles, roleEntities: resp.roleEntities }, activeRole: initialRole });
     return;
   },
 

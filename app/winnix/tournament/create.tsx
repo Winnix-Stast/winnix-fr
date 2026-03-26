@@ -3,16 +3,16 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { WinnixIcon } from "@/presentation/plugins/Icon";
 import { Colors } from "@/presentation/styles/colors";
+import { useCreateTournament } from "@/presentation/hooks/tournaments/useCreateTournament";
+import { useQueryClient } from "@tanstack/react-query";
 import { Fonts } from "@/presentation/styles/global-styles";
-
 import { CustomButton, CustomDatePicker, CustomFormView, CustomImagePicker, CustomInput, DocumentUploader, SponsorInput } from "@/presentation/theme/components/";
 import { TournamentPreviewModal } from "@/presentation/tournamentsView/tournamentsInfo/TournamentPreviewModal";
-
-import { useCreateTournament } from "@/presentation/hooks/tournaments/useCreateTournament";
 
 export default function CreateTournamentScreen() {
   const [previewVisible, setPreviewVisible] = useState(false);
   const { control, handleSubmit, errors, isSubmitting, isDisabled, getValues, watch, onSubmit, handleGoBack } = useCreateTournament();
+  const queryClient = useQueryClient();
 
   const handlePreview = () => {
     setPreviewVisible(true);
@@ -47,11 +47,11 @@ export default function CreateTournamentScreen() {
 
           <View style={styles.datesContainer}>
             <View style={{ flex: 1 }}>
-              <CustomDatePicker name='start_date' control={control} label='Inicio *' placeholder='DD/MM/YYYY' modalTitle='Día de Apertura' errorMessage={errors.start_date?.message} />
+              <CustomDatePicker name='start_date' control={control} label='Inicio *' placeholder='DD/MM/YYYY' modalTitle='Día de Apertura' errorMessage={errors.start_date?.message} allowFutureDates={true} minimumDate={new Date()} />
             </View>
             <View style={{ width: 15 }} />
             <View style={{ flex: 1 }}>
-              <CustomDatePicker name='end_date' control={control} label='Cierre *' placeholder='DD/MM/YYYY' modalTitle='Día de Clausura' errorMessage={errors.end_date?.message} />
+              <CustomDatePicker name='end_date' control={control} label='Cierre *' placeholder='DD/MM/YYYY' modalTitle='Día de Clausura' errorMessage={errors.end_date?.message} allowFutureDates={true} minimumDate={new Date()} />
             </View>
           </View>
 
