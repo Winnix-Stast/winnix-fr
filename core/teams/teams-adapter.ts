@@ -17,4 +17,8 @@ export const teamsAdapter = {
     const response = await privateFetcher.delete(`/teams/${id}`);
     return response;
   },
+  getTeamById: async (id: string) => {
+    const response = await privateFetcher.get(`/teams/${id}`);
+    return response;
+  },
 };

@@ -1,8 +1,9 @@
 import { useCustomForm } from "@/hooks/useCustomForm";
 import { TeamFormData, teamSchema } from "@/presentation/schemas/teamSchema";
 import { Colors } from "@/presentation/styles/colors";
-import { CustomButton, CustomInput } from "@/presentation/theme/components/";
-import React, { useEffect } from "react";
+import { CustomButton, CustomInput, CustomSelect } from "@/presentation/theme/components/";
+import React, { useEffect, useMemo } from "react";
+import { useSports } from "@/presentation/hooks/sports/useSports";
 import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, View } from "react-native";
 import ModalRN from "react-native-modal";
 
@@ -15,16 +16,25 @@ interface Props {
 }
 
 export const TeamEditModal: React.FC<Props> = ({ visible, team, onClose, onSubmit, isSubmitting }) => {
-  const { control, handleSubmit, errors, reset } = useCustomForm<TeamFormData>(teamSchema);
+  const { control, handleSubmit, errors, reset, watch, setValue } = useCustomForm<TeamFormData>(teamSchema);
+
+  const selectedSportId = watch("sport");
+  const { sports } = useSports();
+
+  const sportOptions = useMemo(() => 
+    sports.map((s: any) => ({ label: s.name, value: s._id })), [sports]
+  );
 
   useEffect(() => {
     if (visible && team) {
       reset({
         name: team.name,
         logo: team.logo || "",
+        sport: team.sport?._id || team.sport || "",
       });
     }
   }, [visible, team]);
+
 
   const onValidSubmit = (data: TeamFormData) => {
     onSubmit(data);
@@ -41,6 +51,9 @@ export const TeamEditModal: React.FC<Props> = ({ visible, team, onClose, onSubmi
 
               <View style={styles.form}>
                 <CustomInput name='name' control={control} placeholder='Nombre del Equipo' label='Nombre' iconRight='pencil-outline' errorMessage={errors.name?.message} />
+
+                <CustomSelect name='sport' control={control} label='Deporte' placeholder='Selecciona un deporte' iconLeft='football-outline' options={sportOptions} errorMessage={errors.sport?.message} />
+
 
                 <CustomInput name='logo' control={control} placeholder='URL del Logo (Opcional)' label='Logo' iconRight='image-outline' errorMessage={errors.logo?.message} />
 
@@ -87,7 +100,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border_focus,
     padding: 24,
     width: "90%",
-    maxWidth: 400,
+    maxWidth: "90%",
     minHeight: 400,
     shadowColor: Colors.brand_primary,
     shadowOffset: { width: 0, height: 6 },

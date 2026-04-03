@@ -46,8 +46,8 @@ const CheckAuthenticationLayout = () => {
       <Drawer.Screen
         name='profile'
         options={{
-          drawerLabel: "Profile",
-          title: "My Profile",
+          drawerLabel: "Mi perfil",
+          title: "Mi perfil",
         }}
       />
 
@@ -78,7 +78,15 @@ const CheckAuthenticationLayout = () => {
         name='team/create'
         options={{
           drawerItemStyle: { display: "none" },
-          title: "Forjar Equipo",
+          title: "Crear Equipo",
+        }}
+      />
+
+      <Drawer.Screen
+        name='team/[id]'
+        options={{
+          drawerItemStyle: { display: "none" },
+          title: "Detalle del Equipo",
         }}
       />
     </Drawer>

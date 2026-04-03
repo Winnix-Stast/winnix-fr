@@ -12,7 +12,7 @@ import { TeamEditModal } from "./components/TeamEditModal";
 
 export const CaptainDashboardView = () => {
   const router = useRouter();
-  const { teams, loading, updateTeamMutation, deleteTeamMutation, selectedTeam, isEditModalVisible, setIsEditModalVisible, isDeleteModalVisible, setIsDeleteModalVisible, openEditModal, openDeleteModal, handleEditSubmit, handleDeleteConfirm } = useMyTeams();
+  const { teams, loading, updateTeamMutation, deleteTeamMutation, selectedTeam, isEditModalVisible, setIsEditModalVisible, isDeleteModalVisible, setIsDeleteModalVisible, handleEditSubmit, handleDeleteConfirm, handleToggleFavorite } = useMyTeams();
 
   const handleCreateTeam = () => {
     router.push("/winnix/team/create");
@@ -34,7 +34,7 @@ export const CaptainDashboardView = () => {
       </View>
 
       {teams.length > 0 ? (
-        <FlatList data={teams} keyExtractor={(item) => item._id} renderItem={({ item }) => <TeamCard3D team={item} onEdit={() => openEditModal(item)} onDelete={() => openDeleteModal(item)} onPress={() => router.push(`/winnix/team/${item._id}` as any)} />} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false} />
+        <FlatList data={teams} keyExtractor={(item) => item._id} renderItem={({ item }) => <TeamCard3D team={item} onPress={() => router.push(`/winnix/team/${item._id}` as any)} onToggleFavorite={handleToggleFavorite} />} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false} />
       ) : (
         <View style={styles.emptyStateContainer}>
           <View style={styles.iconWrapper}>

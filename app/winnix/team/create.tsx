@@ -6,11 +6,11 @@ import { useCreateTeam } from "@/presentation/hooks/teams/useCreateTeam";
 import { WinnixIcon } from "@/presentation/plugins/Icon";
 import { Colors } from "@/presentation/styles/colors";
 import { Fonts } from "@/presentation/styles/global-styles";
-import { CustomButton, CustomFormView, CustomInput } from "@/presentation/theme/components";
+import { CustomButton, CustomFormView, CustomInput, CustomSelect } from "@/presentation/theme/components";
 
 const CreateTeamScreen = () => {
   const { top } = useSafeAreaInsets();
-  const { control, handleSubmit, onSubmit, isSubmitting, errors, handleGoBack } = useCreateTeam();
+  const { control, handleSubmit, onSubmit, isSubmitting, errors, handleGoBack, sportOptions } = useCreateTeam();
 
   return (
     <CustomFormView>
@@ -27,6 +27,8 @@ const CreateTeamScreen = () => {
         <View style={styles.formContainer}>
           <CustomInput name='name' control={control} label='Nombre del Equipo *' placeholder='Ej: Los Galácticos FC' iconRight='people-outline' errorMessage={errors.name?.message} />
 
+          <CustomSelect name='sport' control={control} label='Deporte *' placeholder='Selecciona un deporte' iconLeft='football-outline' options={sportOptions} errorMessage={errors.sport?.message} />
+
           {/* TODO: Implement Image Picker for Logo like in tournament create */}
           <CustomInput name='logo' control={control} label='Logo (URL)' placeholder='URL de la imagen del logo' iconRight='image-outline' errorMessage={errors.logo?.message} />
 
@@ -34,7 +36,7 @@ const CreateTeamScreen = () => {
             <Text style={styles.infoText}>Como capitán, serás responsable de inscribir a tu equipo en torneos y gestionar a tus jugadores.</Text>
           </View>
 
-          <CustomButton label={isSubmitting ? "FORJANDO..." : "CREAR EQUIPO"} onPress={handleSubmit(onSubmit)} icon='flash-outline' disabled={isSubmitting} />
+          <CustomButton label={isSubmitting ? "CREANDO..." : "CREAR EQUIPO"} onPress={handleSubmit(onSubmit)} icon='flash-outline' disabled={isSubmitting} />
         </View>
       </ScrollView>
     </CustomFormView>

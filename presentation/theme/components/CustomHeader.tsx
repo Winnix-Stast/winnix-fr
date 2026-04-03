@@ -5,14 +5,25 @@ import React from "react";
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useAuthStore } from "@/presentation/auth/store/useAuthStore";
 import { Colors } from "@/presentation/styles/colors";
 import { Fonts } from "@/presentation/styles/global-styles";
 
 export const CustomHeader = ({ navigation, options }: DrawerHeaderProps) => {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { user } = useAuthStore();
 
-  const role = "ORGANIZER";
+  const roleTranslations: Record<string, string> = {
+    captain: "Capitán",
+    player: "Jugador",
+    organizer: "Organizador",
+    "tournament manager": "Gestor de Torneos",
+    judge: "Juez",
+  };
+
+  const rawRoleName = user?.roleEntities?.[0]?.name?.toLowerCase() || "";
+  const displayRole = roleTranslations[rawRoleName] || rawRoleName || "Usuario";
 
   return (
     <View style={[styles.headerContainer, { paddingTop: Platform.OS === "ios" ? insets.top : insets.top + 10 }]}>
@@ -30,7 +41,7 @@ export const CustomHeader = ({ navigation, options }: DrawerHeaderProps) => {
       <View style={styles.rightSection}>
         {/* Role Badge */}
         <View style={styles.roleBadgeContainer}>
-          <Text style={styles.roleText}>{role}</Text>
+          <Text style={styles.roleText}>{displayRole}</Text>
         </View>
 
         {/* Profile Avatar */}
@@ -73,7 +84,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border_focus,
   },
   title: {
-    fontSize: Fonts.normal,
+    fontSize: Fonts.small,
     fontWeight: "900",
     color: Colors.text_brand,
     textTransform: "uppercase",

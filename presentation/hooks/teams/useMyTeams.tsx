@@ -69,6 +69,16 @@ export const useMyTeams = (query: any = {}) => {
     },
   });
 
+  const toggleFavoriteMutation = useMutationAdapter<any, Error, { id: string; isFavorite: boolean }>(({ id, isFavorite }) => teamsAdapter.updateTeam(id, { isFavorite }), {
+    invalidateQueries: [teamsKeys.lists()],
+    onSuccess: () => {
+      // No alert needed for favorite toggle, or a toast if available
+    },
+    onError: (err: any) => {
+      Alert.alert("Error", err?.message || "No se pudo cambiar el estado de favorito");
+    },
+  });
+
   const onSubmitCreate = form.handleSubmit((data) => {
     createTeamMutation.mutate(data);
   });
@@ -88,6 +98,7 @@ export const useMyTeams = (query: any = {}) => {
       const fullUpdatePayload = {
         name: data.name,
         logo: data.logo,
+        sport: data.sport,
         players: selectedTeam.players?.map((p: any) => ({
           player: p.player?._id || p.player,
           joinedAt: p.joinedAt,
@@ -129,6 +140,10 @@ export const useMyTeams = (query: any = {}) => {
     }
   };
 
+  const handleToggleFavorite = (id: string, currentStatus: boolean) => {
+    toggleFavoriteMutation.mutate({ id, isFavorite: !currentStatus });
+  };
+
   return {
     teams,
     loading: isLoading,
@@ -150,5 +165,7 @@ export const useMyTeams = (query: any = {}) => {
     openDeleteModal,
     handleEditSubmit,
     handleDeleteConfirm,
+    handleToggleFavorite,
+    isTogglingFavorite: toggleFavoriteMutation.isPending,
   };
 };

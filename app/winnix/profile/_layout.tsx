@@ -1,12 +1,10 @@
-import React from "react";
-import { Text, View } from "react-native";
+import { Stack } from "expo-router";
 
-const Profile = () => {
+export default function ProfileLayout() {
   return (
-    <View>
-      <Text style={{ color: "#fff" }}>Profile</Text>
-    </View>
+    <Stack>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="edit" options={{ headerShown: false, presentation: "modal" }} />
+    </Stack>
   );
-};
-
-export default Profile;
+}
