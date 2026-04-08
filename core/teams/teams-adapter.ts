@@ -21,4 +21,8 @@ export const teamsAdapter = {
     const response = await privateFetcher.get(`/teams/${id}`);
     return response;
   },
+  removeMember: async (id: string, playerId: string) => {
+    const response = await privateFetcher.delete(`/teams/${id}/members/${playerId}`);
+    return response;
+  },
 };

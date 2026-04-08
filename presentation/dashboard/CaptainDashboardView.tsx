@@ -7,8 +7,8 @@ import { Colors } from "@/presentation/styles/colors";
 import { Fonts } from "@/presentation/styles/global-styles";
 import { CustomIcon } from "@/presentation/theme/components/icons/CustomIcon";
 import { TeamCard3D } from "./components/TeamCard3D";
-import { TeamDeleteModal } from "./components/TeamDeleteModal";
-import { TeamEditModal } from "./components/TeamEditModal";
+import { TeamDeleteModal } from "@/presentation/team/components/TeamDeleteModal";
+import { TeamEditModal } from "@/presentation/team/components/TeamEditModal";
 
 export const CaptainDashboardView = () => {
   const router = useRouter();
