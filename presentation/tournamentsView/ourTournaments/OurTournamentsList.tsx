@@ -2,7 +2,7 @@ import { FlatList, View, RefreshControl } from "react-native";
 import { TournamentTeamItem } from "../TournamentTeamItem";
 
 import { router } from "expo-router";
-import { Colors } from "@/presentation/styles/colors";
+import { Colors } from "@/presentation/styles/global-styles";
 
 interface Props {
   tournaments: any;
@@ -69,14 +69,29 @@ const OurTournamentsList = ({ tournaments, refreshing = false, onRefresh }: Prop
         data={tournaments}
         keyExtractor={(item) => item._id}
         refreshControl={
-          onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[Colors.brand_primary]} tintColor={Colors.brand_primary} /> : undefined
+          onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[Colors.primary]} tintColor={Colors.primary} /> : undefined
         }
         renderItem={({ item }) => (
           <TournamentTeamItem
             label={item.name}
-            state={item.status}
-            // img={require("../../../assets/icons/tournament.png")}
-            stats={item.stats}
+            state={item.isActive ? "published" : "draft"}
+            img={item.logo || require("../../../assets/icons/tournament.png")}
+            stats={[
+              {
+                _id: `${item._id}-editions`,
+                iconName: "layers-outline",
+                title: "Ediciones",
+                value: `${item.globalStats?.totalEditions || 0}`,
+                iconColor: Colors.secondaryDark,
+              },
+              {
+                _id: `${item._id}-rating`,
+                iconName: "star-outline",
+                title: "Rating",
+                value: `${item.averageRating || 0}`,
+                iconColor: Colors.primary,
+              },
+            ]}
             onPressCard={() => handleNavigate(item)}
           />
         )}

@@ -1,226 +1,285 @@
-import { IconName, WinnixIcon } from "@/presentation/plugins/Icon";
+import React from "react";
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { brandsActions } from "@/core/brands/actions/brands-actions";
+import { tournamentsActions } from "@/core/tournaments/actions/tournaments-actions";
+import { WinnixIcon } from "@/presentation/plugins/Icon";
 import { Colors, Flex, Fonts } from "@/presentation/styles/global-styles";
 import { CustomFormView } from "@/presentation/theme/components/CustomFormView";
 import { CustomText } from "@/presentation/theme/components/CustomText";
 import { GradientContainer } from "@/presentation/theme/components/GradientCard";
-import { BracketLayout, InformationTournament, ResumeLayout, TournamentTeamsLayout } from "@/presentation/tournamentsView";
-
-import { OurTournamentHeaderCard } from "@/presentation/tournamentsView/ourTournaments";
-import { TournamentMenu } from "@/presentation/tournamentsView/tournamentsInfo/TournamentMenu";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
-import { Pressable, StyleSheet, View, ActivityIndicator } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useQuery } from '@tanstack/react-query';
-import { tournamentsActions } from "@/core/tournaments/actions/tournaments-actions";
 
-const OurTournamentLayout = () => {
+const BrandDetailScreen = () => {
   const { id } = useLocalSearchParams();
   const { top } = useSafeAreaInsets();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("summary");
 
-  const menuItems = [
-    { key: "summary", label: "Resumen", icon: "folder-open-outline" as IconName },
-    { key: "teams", label: "Equipos", icon: "people-outline" as IconName },
-    { key: "bracket", label: "Llaves", icon: "flag-outline" as IconName },
-    { key: "info", label: "Info", icon: "information-circle-outline" as IconName },
-  ];
-
-  const [favorite, setFavorite] = useState<boolean>(false);
-
-  const handleSaveFavorite = () => {
-    setFavorite(!favorite);
-  };
-
-  const handleGoBack = () => {
-    router.back();
-  };
-
-  const handleChangeView = (view: string) => {
-    setActiveTab(view);
-  };
-
-  const { data: tournament, isLoading } = useQuery({
-    queryKey: ['tournament', id],
-    queryFn: () => tournamentsActions.getTournamentByIdAction(id as string),
+  const { data: brand, isLoading: loadingBrand } = useQuery({
+    queryKey: ["brand", id],
+    queryFn: () => brandsActions.getBrandByIdAction(id as string),
     enabled: !!id,
   });
 
-  if (isLoading) {
+  const { data: editions, isLoading: loadingEditions } = useQuery({
+    queryKey: ["editions-by-brand", id],
+    queryFn: () => tournamentsActions.getEditionsByBrandAction(id as string),
+    enabled: !!id,
+  });
+
+  if (loadingBrand) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: Colors.dark }}>
+      <View style={styles.centered}>
         <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
 
-  if (!tournament) {
+  if (!brand) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: Colors.dark }}>
-        <CustomText label="No se encontró el torneo" color={Colors.light} />
+      <View style={styles.centered}>
+        <CustomText label="No se encontró la marca" color={Colors.light} />
       </View>
     );
   }
 
-  const startDate = new Date(tournament.start_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
-  const endDate = new Date(tournament.end_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
-
-  const createdTournament = {
-    id: tournament._id,
-    title: tournament.name,
-    state: tournament.status,
-    dateText: `${startDate} - ${endDate}`,
-    buttonLabel: "Inscribirse",
-    image: tournament.image ? { uri: tournament.image } : require("@/assets/images/imgT.jpg"),
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "—";
+    return new Date(dateStr).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" });
   };
 
-  const matches = [
-    { id: 1, teamA: "Storm Raiders", teamB: "Crimson Wolves", scoreA: 2, scoreB: 1, status: "Finalizado" },
-    { id: 2, teamA: "Blue Hawks", teamB: "Iron Titans", scoreA: 1, scoreB: 3, status: "En curso" },
-    { id: 3, teamA: "Shadow Lynx", teamB: "Golden Bulls", scoreA: 0, scoreB: 0, status: "Pendiente" },
-  ];
-  const upcomingMatches = [
-    { id: 1, teamA: "Storm Raiders", teamB: "Ice Breakers", date: "Hoy 16:00", stage: "Semifinal" },
-    { id: 2, teamA: "Thunder Wolves", teamB: "Crimson Hawks", date: "Hoy 18:00", stage: "Semifinal" },
-    { id: 3, teamA: "Shadow Titans", teamB: "Golden Foxes", date: "Mañana 14:30", stage: "Final" },
-  ];
+  const statusLabel = (status: string) => {
+    const map: Record<string, { label: string; color: string }> = {
+      draft: { label: "Borrador", color: "#f59e0b" },
+      published: { label: "Publicado", color: "#3b82f6" },
+      in_progress: { label: "En curso", color: "#10b981" },
+      finished: { label: "Finalizado", color: "#6b7280" },
+      cancelled: { label: "Cancelado", color: "#ef4444" },
+    };
+    return map[status] || { label: status, color: Colors.gray };
+  };
 
   return (
     <CustomFormView>
-      <ScrollView>
-        <View style={{ ...Flex.columnCenter, gap: 12, padding: 15 }}>
-          <Pressable
-            onPress={handleGoBack}
-            style={[
-              styles.back,
-              {
-                top: top - 30,
-              },
-            ]}>
-            <WinnixIcon name={"chevron-back-outline"} size={30} color={Colors.light} />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={{ padding: 15, gap: 16 }}>
+          {/* Back button */}
+          <Pressable onPress={() => router.back()} style={[styles.back, { top: top - 30 }]}>
+            <WinnixIcon name="chevron-back-outline" size={30} color={Colors.light} />
           </Pressable>
 
-          <Pressable
-            onPress={handleSaveFavorite}
-            style={[
-              styles.like,
-              {
-                top: top - 30,
-              },
-            ]}>
-            <WinnixIcon name={favorite ? "heart" : "heart-outline"} size={30} color={favorite ? Colors.primary : Colors.light} />
-          </Pressable>
+          {/* Brand Header */}
+          <View style={styles.brandHeader}>
+            <View style={styles.brandLogoContainer}>
+              {brand.logo ? (
+                <View style={styles.brandLogo}>
+                  <WinnixIcon name="trophy-outline" size={50} color={Colors.primary} />
+                </View>
+              ) : (
+                <View style={styles.brandLogo}>
+                  <WinnixIcon name="trophy-outline" size={50} color={Colors.primary} />
+                </View>
+              )}
+            </View>
+            <Text style={styles.brandName}>{brand.name}</Text>
+            <Text style={styles.brandMeta}>Marca de torneo · ID #{brand.incremental || "—"}</Text>
+          </View>
 
-          <OurTournamentHeaderCard
-            key={createdTournament.id}
-            title={createdTournament.title}
-            state={createdTournament.state}
-            dateText={createdTournament.dateText}
-            image={createdTournament.image}
-            onPressButton={() => console.log("Inscripción!")}
-            titleStyle={{ fontSize: 32 }}
-          />
-
-          {/* Cards teams and reward */}
-          <View style={{ marginVertical: 20, ...Flex.rowCenter, gap: 24 }}>
+          {/* Stats */}
+          <View style={{ ...Flex.rowCenter, gap: 16 }}>
             <GradientContainer colors={["rgba(30,62,166,0.9)", "rgba(77,33,133,0.9)"]} borderColor={Colors.secondaryDark}>
-              {<WinnixIcon name='people-outline' style={[styles.icon, { backgroundColor: Colors.secondaryDark }]} />}
+              <WinnixIcon name="layers-outline" style={[styles.icon, { backgroundColor: Colors.secondaryDark }]} />
               <View style={{ gap: 4 }}>
-                <CustomText label='Equipos' size={16} color={Colors.light} />
-                <CustomText label='28' size={22} color={Colors.light} weight={"bold"} />
+                <CustomText label="Ediciones" size={14} color={Colors.light} />
+                <CustomText label={String(editions?.length || 0)} size={22} color={Colors.light} weight="bold" />
               </View>
             </GradientContainer>
 
-            <GradientContainer colors={["rgba(234, 132, 10, .6)", "rgba(124, 43, 19, .8)"]} borderColor='#ddd'>
-              {<WinnixIcon name='people-outline' style={[styles.icon, { backgroundColor: "#00c897" }]} />}
+            <GradientContainer colors={["rgba(16,185,129,0.6)", "rgba(5,100,70,0.8)"]} borderColor="#10b981">
+              <WinnixIcon name="checkmark-circle-outline" style={[styles.icon, { backgroundColor: "#10b981" }]} />
               <View style={{ gap: 4 }}>
-                <CustomText label='Premio' size={16} color={Colors.primary} />
-                <CustomText label='100.000' size={22} color={Colors.light} weight={"bold"} />
+                <CustomText label="Estado" size={14} color={Colors.light} />
+                <CustomText label={brand.isActive ? "Activa" : "Inactiva"} size={18} color={Colors.light} weight="bold" />
               </View>
             </GradientContainer>
           </View>
 
-          <TournamentMenu activeKey={activeTab} onSelect={(key) => handleChangeView(key)} items={menuItems} />
+          {/* Editions Section */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Ediciones del Torneo</Text>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => router.push({ pathname: "/winnix/tournament/create", params: { brandId: id as string } })}
+            >
+              <WinnixIcon name="add-circle-outline" size={20} color={Colors.primary} />
+              <Text style={styles.addButtonText}>Nueva Edición</Text>
+            </TouchableOpacity>
+          </View>
 
-          {/* Section View Summary */}
-          {activeTab === "summary" && <ResumeLayout />}
-
-          {/* Section teams */}
-          {activeTab === "teams" && <TournamentTeamsLayout />}
-
-          {/* Section Bracket */}
-          {/* {activeTab === "bracket" && <BracketLayout />} */}
-          {activeTab === "bracket" && (
-            <BracketLayout
-              matches={matches}
-              upcomingMatches={upcomingMatches}
-              // onNavigateToDetails={(id) => navigation.navigate("MatchDetails", { id })}
-            />
+          {loadingEditions ? (
+            <ActivityIndicator size="small" color={Colors.primary} />
+          ) : editions && editions.length > 0 ? (
+            <View style={{ gap: 12 }}>
+              {editions.map((edition: any) => {
+                const st = statusLabel(edition.status);
+                return (
+                  <TouchableOpacity key={edition._id} style={styles.editionCard} activeOpacity={0.8} onPress={() => router.push(`/winnix/tabs/(tournamentStack)/tournament/${edition._id}`)}>
+                    <View style={styles.editionTop}>
+                      <Text style={styles.editionName}>{edition.seasonName}</Text>
+                      <View style={[styles.statusBadge, { backgroundColor: st.color + "22", borderColor: st.color }]}>
+                        <Text style={[styles.statusText, { color: st.color }]}>{st.label}</Text>
+                      </View>
+                    </View>
+                    <View style={styles.editionMeta}>
+                      <WinnixIcon name="calendar-outline" size={16} color={Colors.gray} />
+                      <Text style={styles.editionDate}>
+                        {formatDate(edition.startDate)} — {edition.endDate ? formatDate(edition.endDate) : "Sin definir"}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          ) : (
+            <View style={styles.emptyEditions}>
+              <WinnixIcon name="calendar-outline" size={50} color={Colors.gray} />
+              <Text style={styles.emptyText}>Aún no hay ediciones</Text>
+              <Text style={styles.emptySubtext}>Crea la primera edición de esta marca</Text>
+            </View>
           )}
-
-          {activeTab === "info" && <InformationTournament />}
         </View>
       </ScrollView>
     </CustomFormView>
   );
 };
 
-export default OurTournamentLayout;
+export default BrandDetailScreen;
 
 const styles = StyleSheet.create({
-  like: {
-    position: "absolute",
-    right: 25,
-    zIndex: 10,
-    elevation: 10,
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: Colors.dark,
   },
-
   back: {
     position: "absolute",
     left: 20,
     zIndex: 10,
     elevation: 10,
   },
-
-  shadow: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    borderEndStartRadius: 80,
-    borderEndEndRadius: 80,
+  brandHeader: {
+    alignItems: "center",
+    gap: 8,
+    paddingTop: 30,
+    paddingBottom: 10,
   },
-
-  nameTournament: {
-    fontSize: 40,
+  brandLogoContainer: {
+    marginBottom: 10,
+  },
+  brandLogo: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  brandName: {
+    fontSize: 28,
     fontWeight: "bold",
     color: Colors.light,
     textAlign: "center",
-    top: -30,
   },
-
-  contentOptions: {
-    width: "90%",
-    marginHorizontal: "auto",
-    top: -15,
+  brandMeta: {
+    fontSize: Fonts.small,
+    color: Colors.gray,
   },
-
-  optionsTitle: {
-    fontSize: Fonts.large,
-    marginRight: 20,
-  },
-
-  contentView: {
-    width: "90%",
-    marginHorizontal: "auto",
-    marginVertical: 10,
-  },
-
   icon: {
     padding: 10,
     borderRadius: 12,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.1)",
+    paddingBottom: 8,
+  },
+  sectionTitle: {
+    fontSize: Fonts.normal,
+    fontWeight: "bold",
+    color: Colors.light,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  addButtonText: {
+    fontSize: Fonts.small,
+    color: Colors.primary,
+    fontWeight: "600",
+  },
+  editionCard: {
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    gap: 10,
+  },
+  editionTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  editionName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: Colors.light,
+    flex: 1,
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  editionMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  editionDate: {
+    fontSize: Fonts.small,
+    color: Colors.gray,
+  },
+  emptyEditions: {
+    alignItems: "center",
+    paddingVertical: 40,
+    gap: 8,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: Colors.gray,
+    marginTop: 8,
+  },
+  emptySubtext: {
+    fontSize: Fonts.small,
+    color: Colors.gray,
   },
 });

@@ -1,52 +1,52 @@
 import { tournamentAdapter } from "../tournaments.adapter";
 
-export interface CreateTournamentPayload {
-  name: string;
-  description?: string;
-  image?: string;
-  logo?: string;
-  organizer: string;
-  start_date: string;
-  end_date: string;
-  config: {
-    max_teams: number;
-    teams?: string[];
-    stages?: string[];
-  };
-  agreement: {
-    accepted: boolean;
-    acceptedAt?: string | Date;
-  };
+export interface CreateEditionPayload {
+  tournament: string;
+  seasonName: string;
+  startDate: string;
+  endDate?: string;
+  sport: string;
+  sportCategory?: string;
 }
 
 export const tournamentsActions = {
-  getOwnTournamentsAction: async (query: any): Promise<any | null> => {
+  getAllEditionsAction: async (): Promise<any[]> => {
     try {
-      const data = await tournamentAdapter.getOwnTournaments(query);
-      return data.data;
+      const data = await tournamentAdapter.getAllEditions();
+      return data?.data || [];
     } catch (error) {
-      console.error("getOwnTournamentsAction error :>> ", error);
-      return null;
+      console.error("getAllEditionsAction error :>> ", error);
+      return [];
     }
   },
 
-  getTournamentByIdAction: async (id: string): Promise<any | null> => {
+  createEditionAction: async (payload: CreateEditionPayload): Promise<any> => {
     try {
-      const data = await tournamentAdapter.getTournamentById(id);
-      return data.data;
-    } catch (error) {
-      console.error("getTournamentByIdAction error :>> ", error);
-      return null;
-    }
-  },
-
-  createTournamentAction: async (payload: CreateTournamentPayload): Promise<any | null> => {
-    try {
-      const data = await tournamentAdapter.createTournament(payload);
+      const data = await tournamentAdapter.createEdition(payload);
       return data;
     } catch (error: any) {
-      console.error("createTournamentAction error :>> ", error?.response?.data || error);
+      console.error("createEditionAction error :>> ", error?.response?.data || error);
       throw error;
+    }
+  },
+
+  getEditionsByBrandAction: async (brandId: string): Promise<any[]> => {
+    try {
+      const data = await tournamentAdapter.getEditionsByBrand(brandId);
+      return data?.data || [];
+    } catch (error) {
+      console.error("getEditionsByBrandAction error :>> ", error);
+      return [];
+    }
+  },
+
+  getEditionByIdAction: async (id: string): Promise<any | null> => {
+    try {
+      const data = await tournamentAdapter.getEditionById(id);
+      return data?.data || null;
+    } catch (error) {
+      console.error("getEditionByIdAction error :>> ", error);
+      return null;
     }
   },
 };

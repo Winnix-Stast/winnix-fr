@@ -1,73 +1,88 @@
-import { FlatList, View } from "react-native";
+import { ActivityIndicator, FlatList, View } from "react-native";
 
-// import logo from "../../../assets/icons/tournament.png";
-// import logo from "../../assets/icons/tournament.png";
 import { IconName } from "@/presentation/plugins/Icon";
 import { Colors } from "@/presentation/styles/global-styles";
 import { TournamentTeamItem } from "./TournamentTeamItem";
+import { CustomText } from "@/presentation/theme/components/CustomText";
 
 import { router } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
+import { tournamentsActions } from "@/core/tournaments/actions/tournaments-actions";
 
 const TournamentsList = () => {
-  const tournaments = [
-    {
-      id: "1",
-      label: "Copa Elite Gaming",
-      state: "in-progress",
-      img: require("../../assets/icons/tournament.png"),
-      stats: [
-        {
-          _id: "s1",
-          iconName: "people-outline" as IconName,
-          title: "Participantes",
-          value: "32 equipos",
-          iconColor: Colors.secondaryDark,
-        },
-        {
-          _id: "s2",
-          iconName: "trophy-outline" as IconName,
-          title: "Torneos",
-          value: "5 activos",
-          iconColor: Colors.primary,
-        },
-      ],
-    },
-    {
-      id: "2",
-      label: "Liga Pro Champions",
-      state: "next",
-      img: require("../../assets/icons/tournament.png"),
-      stats: [
-        {
-          _id: "s3",
-          iconName: "people-outline" as IconName,
-          title: "Participantes",
-          value: "20 equipos",
-          iconColor: Colors.secondaryDark,
-        },
-        {
-          _id: "s4",
-          iconName: "pricetag-outline" as IconName,
-          title: "Premio",
-          value: "$3,000",
-          iconColor: Colors.primary,
-        },
-      ],
-    },
-  ];
+  const { data: editions = [], isLoading } = useQuery({
+    queryKey: ["all-editions"],
+    queryFn: () => tournamentsActions.getAllEditionsAction(),
+  });
 
   const handleNavigate = (item: any) => {
-    console.log("clic");
-    console.log("item :>> ", item);
-    router.push(`/winnix/tabs/(tournamentStack)/tournament/${item.id}`);
+    router.push(`/winnix/tabs/(tournamentStack)/tournament/${item._id}`);
   };
+
+  const statusMap: Record<string, string> = {
+    draft: "Borrador",
+    published: "Publicado",
+    in_progress: "En curso",
+    finished: "Finalizado",
+    cancelled: "Cancelado",
+  };
+
+  const mapEditionToItem = (edition: any) => ({
+    ...edition,
+    label: edition.seasonName || "Edición",
+    state: edition.status || "draft",
+    img: edition.image || require("../../assets/icons/tournament.png"),
+    stats: [
+      {
+        _id: `${edition._id}-status`,
+        iconName: "flag-outline" as IconName,
+        title: "Estado",
+        value: statusMap[edition.status] || edition.status,
+        iconColor: Colors.primary,
+      },
+      {
+        _id: `${edition._id}-date`,
+        iconName: "calendar-outline" as IconName,
+        title: "Inicio",
+        value: edition.startDate
+          ? new Date(edition.startDate).toLocaleDateString("es-ES", { day: "numeric", month: "short" })
+          : "Sin definir",
+        iconColor: Colors.secondaryDark,
+      },
+    ],
+  });
+
+  if (isLoading) {
+    return (
+      <View style={{ paddingVertical: 40, alignItems: "center" }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  if (editions.length === 0) {
+    return (
+      <View style={{ paddingVertical: 60, alignItems: "center", gap: 8 }}>
+        <CustomText label="No hay torneos disponibles" color={Colors.gray} size={16} weight="bold" />
+        <CustomText label="Las ediciones creadas aparecerán aquí" color={Colors.gray} size={14} />
+      </View>
+    );
+  }
 
   return (
     <View style={{ paddingBottom: 150 }}>
       <FlatList
-        data={tournaments}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <TournamentTeamItem label={item.label} state={item.state} img={item.img} stats={item.stats} onPressCard={() => handleNavigate(item)} />}
+        data={editions.map(mapEditionToItem)}
+        keyExtractor={(item) => item._id}
+        renderItem={({ item }) => (
+          <TournamentTeamItem
+            label={item.label}
+            state={item.state}
+            img={item.img}
+            stats={item.stats}
+            onPressCard={() => handleNavigate(item)}
+          />
+        )}
         contentContainerStyle={{
           gap: 20,
           paddingBottom: 70,

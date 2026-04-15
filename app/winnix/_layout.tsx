@@ -68,6 +68,13 @@ const CheckAuthenticationLayout = () => {
       />
 
       <Drawer.Screen
+        name='brand/create'
+        options={{
+          drawerItemStyle: { display: "none" },
+          title: "Nueva Marca",
+        }}
+      />
+      <Drawer.Screen
         name='tournament/create'
         options={{
           drawerItemStyle: { display: "none" },

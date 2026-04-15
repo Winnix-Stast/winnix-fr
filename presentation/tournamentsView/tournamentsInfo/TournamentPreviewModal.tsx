@@ -9,7 +9,7 @@ import { CustomFormView } from "@/presentation/theme/components/CustomFormView";
 import { CustomText } from "@/presentation/theme/components/CustomText";
 import { GradientContainer } from "@/presentation/theme/components/GradientCard";
 
-import { CreateTournamentFormData } from "@/presentation/schemas/tournamentSchema";
+import { CreateEditionFormData } from "@/presentation/schemas/tournamentSchema";
 import { InformationTournament, ResumeLayout, TournamentTeamsLayout } from "@/presentation/tournamentsView";
 import { TournamentHeaderCard } from "@/presentation/tournamentsView/tournamentsInfo/TournamentHeaderCard";
 import { TournamentMenu } from "@/presentation/tournamentsView/tournamentsInfo/TournamentMenu";
@@ -17,7 +17,7 @@ import { TournamentMenu } from "@/presentation/tournamentsView/tournamentsInfo/T
 interface PreviewProps {
   visible: boolean;
   onClose: () => void;
-  formData: CreateTournamentFormData;
+  formData: CreateEditionFormData;
 }
 
 export const TournamentPreviewModal = ({ visible, onClose, formData }: PreviewProps) => {
@@ -33,9 +33,9 @@ export const TournamentPreviewModal = ({ visible, onClose, formData }: PreviewPr
   ];
 
   const formatDateText = () => {
-    if (!formData.start_date && !formData.end_date) return "Fecha por definir";
-    const startObj = formData.start_date ? new Date(formData.start_date) : null;
-    const endObj = formData.end_date ? new Date(formData.end_date) : null;
+    if (!formData.startDate && !formData.endDate) return "Fecha por definir";
+    const startObj = formData.startDate ? new Date(formData.startDate) : null;
+    const endObj = formData.endDate ? new Date(formData.endDate) : null;
     const startStr = startObj ? `${startObj.getDate()} ${startObj.toLocaleString("es", { month: "short" })} ` : "?";
     const endStr = endObj ? `${endObj.getDate()} ${endObj.toLocaleString("es", { month: "short" })} ${endObj.getFullYear()} ` : "?";
     return `${startStr} - ${endStr} `;
@@ -58,38 +58,17 @@ export const TournamentPreviewModal = ({ visible, onClose, formData }: PreviewPr
               <WinnixIcon name={favorite ? "heart" : "heart-outline"} size={30} color={favorite ? Colors.primary : Colors.light} />
             </Pressable>
 
-            <TournamentHeaderCard title={formData.name || "Torneo Sin Título"} state={stateMock} dateText={formatDateText()} buttonLabel='Inscribirse' image={formData.image ? { uri: formData.image } : require("@/assets/images/imgT.jpg")} onPressButton={() => {}} titleStyle={{ fontSize: 32 }} />
+            <TournamentHeaderCard title={formData.seasonName || "Torneo Sin Título"} state={stateMock} dateText={formatDateText()} buttonLabel='Inscribirse' image={formData.image ? { uri: formData.image } : require("@/assets/images/imgT.jpg")} onPressButton={() => {}} titleStyle={{ fontSize: 32 }} />
 
             <View style={{ marginVertical: 20, ...Flex.rowCenter, gap: 24 }}>
               <GradientContainer colors={["rgba(30,62,166,0.9)", "rgba(77,33,133,0.9)"]} borderColor={Colors.secondaryDark}>
-                <WinnixIcon name='people-outline' style={[styles.icon, { backgroundColor: Colors.secondaryDark }]} />
+                <WinnixIcon name='football-outline' style={[styles.icon, { backgroundColor: Colors.secondaryDark }]} />
                 <View style={{ gap: 4 }}>
-                  <CustomText label='Equipos (Máx)' size={16} color={Colors.light} />
-                  <CustomText label={formData.max_teams ? formData.max_teams.toString() : "0"} size={22} color={Colors.light} weight={"bold"} />
-                </View>
-              </GradientContainer>
-
-              <GradientContainer colors={["rgba(234, 132, 10, .6)", "rgba(124, 43, 19, .8)"]} borderColor='#ddd'>
-                <WinnixIcon name='cash-outline' style={[styles.icon, { backgroundColor: "#00c897" }]} />
-                <View style={{ gap: 4 }}>
-                  <CustomText label='Premio/Costo' size={16} color={Colors.primary} />
-                  <CustomText label={formData.incremental ? formData.incremental.toString() : "0"} size={22} color={Colors.light} weight={"bold"} />
+                  <CustomText label='Deporte' size={16} color={Colors.light} />
+                  <CustomText label={formData.sport || "—"} size={22} color={Colors.light} weight={"bold"} />
                 </View>
               </GradientContainer>
             </View>
-
-            {formData.sponsors && formData.sponsors.length > 0 && (
-              <View style={styles.sponsorsContainer}>
-                <CustomText label='Patrocinadores Oficiales' size={18} color={ThemeColors.brand_primary} weight='bold' />
-                <View style={styles.sponsorsList}>
-                  {formData.sponsors.map((sponsor, index) => (
-                    <View key={index} style={styles.sponsorChip}>
-                      <CustomText label={sponsor} size={14} color={Colors.light} />
-                    </View>
-                  ))}
-                </View>
-              </View>
-            )}
 
             <TournamentMenu activeKey={activeTab} onSelect={setActiveTab} items={menuItems} />
 

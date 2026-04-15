@@ -3,7 +3,7 @@ import { CustomButton } from "@/presentation/theme/components/CustomButton";
 import React from "react";
 import { ImageBackground, ImageSourcePropType, StyleSheet, Text, TextStyle, useWindowDimensions, View } from "react-native";
 
-type TournamentState = "in-progress" | "next" | "finished" | "ongoing";
+type TournamentState = string;
 
 type Props = {
   title: string;
@@ -21,7 +21,7 @@ export const TournamentHeaderCard = ({ title, state, dateText, buttonLabel, imag
   const { height } = useWindowDimensions();
 
   // Configuración de estados
-  const statusConfig: Record<TournamentState, { label: string; backgroundColor: string }> = {
+  const statusConfig: Record<string, { label: string; backgroundColor: string }> = {
     "in-progress": {
       label: "Inscripciones Abiertas",
       backgroundColor: "rgba(0, 200, 151, 0.8)",
@@ -38,9 +38,25 @@ export const TournamentHeaderCard = ({ title, state, dateText, buttonLabel, imag
       label: "En Progreso",
       backgroundColor: "rgba(59, 130, 246, 0.7)",
     },
+    draft: {
+      label: "Borrador",
+      backgroundColor: "rgba(120, 120, 120, 0.7)",
+    },
+    published: {
+      label: "Publicado",
+      backgroundColor: "rgba(0, 200, 151, 0.8)",
+    },
+    in_progress: {
+      label: "En Progreso",
+      backgroundColor: "rgba(59, 130, 246, 0.7)",
+    },
+    cancelled: {
+      label: "Cancelado",
+      backgroundColor: "rgba(255, 0, 0, 0.7)",
+    },
   };
 
-  const { label, backgroundColor } = statusConfig[state];
+  const { label, backgroundColor } = statusConfig[state] || { label: state, backgroundColor: "rgba(120, 120, 120, 0.7)" };
 
   return (
     <ImageBackground source={image} style={[styles.imageBackground, { height: height * 0.3 }]} imageStyle={styles.portrait}>
@@ -64,7 +80,7 @@ export const TournamentHeaderCard = ({ title, state, dateText, buttonLabel, imag
           {/* Fecha */}
           <Text style={[styles.date, dateStyle]}>{dateText}</Text>
 
-          {state === "in-progress" && (
+          {(state === "in-progress" || state === "published" || state === "draft") && (
             <CustomButton
               stylePressable={{
                 flex: 1,

@@ -1,16 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { brandsActions } from "@/core/brands/actions/brands-actions";
 
-export const useMyTournaments = () => {
-  const { data: tournaments, isLoading, error, refetch, isRefetching } = useQuery({
+export const useMyBrands = () => {
+  const { data: brands, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ['my-brands'],
     queryFn: () => brandsActions.getMyBrandsAction(),
   });
 
   return {
-    tournaments: tournaments || [],
+    brands: brands || [],
     loading: isLoading,
-    error: error ? "No se pudieron cargar los torneos" : null,
+    error: error ? "No se pudieron cargar las marcas" : null,
     refresh: refetch,
     isRefreshing: isRefetching,
   };

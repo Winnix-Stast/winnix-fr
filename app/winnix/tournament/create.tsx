@@ -1,27 +1,98 @@
-import React, { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useEffect } from "react";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { WinnixIcon } from "@/presentation/plugins/Icon";
 import { Colors } from "@/presentation/styles/colors";
-import { useCreateTournament } from "@/presentation/hooks/tournaments/useCreateTournament";
-import { useQueryClient } from "@tanstack/react-query";
 import { Fonts } from "@/presentation/styles/global-styles";
-import { CustomButton, CustomDatePicker, CustomFormView, CustomImagePicker, CustomInput, DocumentUploader, SponsorInput } from "@/presentation/theme/components/";
-import { TournamentPreviewModal } from "@/presentation/tournamentsView/tournamentsInfo/TournamentPreviewModal";
+import { useCreateTournament } from "@/presentation/hooks/tournaments/useCreateTournament";
+import { useMyBrands } from "@/presentation/hooks/brands/useMyBrands";
+import { useSports, useSportCategories } from "@/presentation/hooks/sports/useSports";
+import { CustomButton, CustomDatePicker, CustomFormView, CustomImagePicker, CustomInput, CustomSelect } from "@/presentation/theme/components/";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 export default function CreateTournamentScreen() {
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const { control, handleSubmit, errors, isSubmitting, isDisabled, getValues, watch, onSubmit, handleGoBack } = useCreateTournament();
-  const queryClient = useQueryClient();
+  const router = useRouter();
+  const { brandId } = useLocalSearchParams<{ brandId?: string }>();
+  const { control, handleSubmit, errors, isSubmitting, isDisabled, watch, setValue, onSubmit, handleGoBack } = useCreateTournament();
+  const { brands, loading: loadingBrands } = useMyBrands();
+  const { sports, loading: loadingSports } = useSports();
 
-  const handlePreview = () => {
-    setPreviewVisible(true);
-  };
+  const selectedSport = watch("sport");
+  const { categories, loadingCategories } = useSportCategories(selectedSport);
+
+  // Preselect brand if coming from brand detail
+  useEffect(() => {
+    if (brandId && !watch("tournament")) {
+      setValue("tournament", brandId);
+    }
+  }, [brandId]);
+
+  // Reset sportCategory when sport changes
+  useEffect(() => {
+    setValue("sportCategory", "");
+  }, [selectedSport]);
+
+  const brandOptions = brands.map((b: any) => ({
+    label: b.name,
+    value: b._id,
+  }));
+
+  const sportOptions = sports.map((s: any) => ({
+    label: s.name,
+    value: s._id,
+  }));
+
+  const categoryOptions = categories.map((c: any) => ({
+    label: c.name,
+    value: c._id,
+  }));
+
+  // No brands — show empty state
+  if (!loadingBrands && brands.length === 0) {
+    return (
+      <CustomFormView>
+        <View style={styles.emptyContainer}>
+          <View style={[styles.header, { paddingTop: 20 }]}>
+            <Pressable onPress={handleGoBack} style={styles.backButton}>
+              <WinnixIcon name='chevron-back-outline' size={30} color={Colors.text_primary} />
+            </Pressable>
+            <Text style={styles.headerTitle}>Crear Torneo</Text>
+            <View style={{ width: 40 }} />
+          </View>
+
+          <View style={styles.emptyStateContent}>
+            <WinnixIcon name='trophy-outline' size={80} color={Colors.brand_primary} />
+            <Text style={styles.emptyTitle}>Primero necesitas una marca</Text>
+            <Text style={styles.emptySubtitle}>
+              Una marca es la identidad de tus torneos (ej: "Liga Capitalina"). Crea tu primera marca para empezar a organizar ediciones.
+            </Text>
+            <TouchableOpacity
+              style={styles.createBrandButton}
+              activeOpacity={0.8}
+              onPress={() => router.push("/winnix/brand/create")}
+            >
+              <WinnixIcon name='add-outline' size={22} color={Colors.on_brand} />
+              <Text style={styles.createBrandButtonText}>CREAR MI PRIMERA MARCA</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </CustomFormView>
+    );
+  }
+
+  if (loadingBrands || loadingSports) {
+    return (
+      <CustomFormView>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size='large' color={Colors.brand_primary} />
+        </View>
+      </CustomFormView>
+    );
+  }
 
   return (
     <CustomFormView>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Header con botón de regresar */}
         <View style={[styles.header, { paddingTop: 20 }]}>
           <Pressable onPress={handleGoBack} style={styles.backButton}>
             <WinnixIcon name='chevron-back-outline' size={30} color={Colors.text_primary} />
@@ -31,7 +102,94 @@ export default function CreateTournamentScreen() {
         </View>
 
         <View style={styles.formContainer}>
-          <Text style={styles.sectionTitle}>Ajustes Generales</Text>
+          {/* Brand Selection */}
+          <Text style={styles.sectionTitle}>Marca del Torneo</Text>
+
+          <CustomSelect
+            name='tournament'
+            control={control}
+            options={brandOptions}
+            label='Selecciona tu marca *'
+            placeholder='Elige una marca...'
+            iconLeft='shield-outline'
+            errorMessage={errors.tournament?.message}
+          />
+
+          <TouchableOpacity
+            style={styles.newBrandLink}
+            onPress={() => router.push("/winnix/brand/create")}
+          >
+            <WinnixIcon name='add-circle-outline' size={18} color={Colors.brand_primary} />
+            <Text style={styles.newBrandLinkText}>Crear nueva marca</Text>
+          </TouchableOpacity>
+
+          {/* Sport Selection */}
+          <Text style={[styles.sectionTitle, { marginTop: 10 }]}>Deporte</Text>
+
+          <CustomSelect
+            name='sport'
+            control={control}
+            options={sportOptions}
+            label='Deporte *'
+            placeholder='Elige un deporte...'
+            iconLeft='football-outline'
+            errorMessage={errors.sport?.message}
+          />
+
+          {selectedSport && categoryOptions.length > 0 && (
+            <CustomSelect
+              name='sportCategory'
+              control={control}
+              options={categoryOptions}
+              label='Modalidad (opcional)'
+              placeholder={loadingCategories ? 'Cargando...' : 'Elige modalidad...'}
+              iconLeft='layers-outline'
+              disabled={loadingCategories}
+            />
+          )}
+
+          {/* Edition Details */}
+          <Text style={[styles.sectionTitle, { marginTop: 10 }]}>Detalles de la Edición</Text>
+
+          <CustomInput
+            name='seasonName'
+            control={control}
+            placeholder='Ej. Apertura 2026'
+            label='Nombre de la Temporada *'
+            iconRight='calendar-outline'
+            errorMessage={errors.seasonName?.message}
+          />
+
+          <View style={styles.datesContainer}>
+            <View style={{ flex: 1 }}>
+              <CustomDatePicker
+                name='startDate'
+                control={control}
+                label='Inicio *'
+                placeholder='DD/MM/YYYY'
+                modalTitle='Día de Apertura'
+                errorMessage={errors.startDate?.message}
+                allowFutureDates={true}
+                minimumDate={new Date()}
+              />
+            </View>
+            <View style={{ width: 15 }} />
+            <View style={{ flex: 1 }}>
+              <CustomDatePicker
+                name='endDate'
+                control={control}
+                label='Cierre (opcional)'
+                placeholder='DD/MM/YYYY'
+                modalTitle='Día de Clausura'
+                errorMessage={errors.endDate?.message}
+                allowFutureDates={true}
+                minimumDate={new Date()}
+              />
+            </View>
+          </View>
+
+          {/* Images */}
+          <Text style={[styles.sectionTitle, { marginTop: 10 }]}>Personalización</Text>
 
           <View style={styles.datesContainer}>
             <View style={{ flex: 1 }}>
@@ -43,52 +201,17 @@ export default function CreateTournamentScreen() {
             </View>
           </View>
 
-          <CustomInput name='name' control={control} placeholder='Ej. Copa Élite Nacional' label='Nombre del Evento *' iconRight='trophy-outline' errorMessage={errors.name?.message} />
-
-          <View style={styles.datesContainer}>
-            <View style={{ flex: 1 }}>
-              <CustomDatePicker name='start_date' control={control} label='Inicio *' placeholder='DD/MM/YYYY' modalTitle='Día de Apertura' errorMessage={errors.start_date?.message} allowFutureDates={true} minimumDate={new Date()} />
-            </View>
-            <View style={{ width: 15 }} />
-            <View style={{ flex: 1 }}>
-              <CustomDatePicker name='end_date' control={control} label='Cierre *' placeholder='DD/MM/YYYY' modalTitle='Día de Clausura' errorMessage={errors.end_date?.message} allowFutureDates={true} minimumDate={new Date()} />
-            </View>
-          </View>
-
-          <Text style={[styles.sectionTitle, { marginTop: 15 }]}>Reglas y Participación</Text>
-
-          <SponsorInput name='sponsors' control={control} label='Patrocinadores' errorMessage={errors.sponsors?.message} />
-
-          <View style={styles.datesContainer}>
-            <View style={{ flex: 1 }}>
-              <CustomInput name='max_teams' control={control} placeholder='Ej. 16' label='Límite Equipos *' keyboardType='numeric' iconRight='people-outline' errorMessage={errors.max_teams?.message} />
-            </View>
-            <View style={{ width: 15 }} />
-            <View style={{ flex: 1 }}>
-              <CustomInput name='incremental' control={control} placeholder='Ej. 5000' label='Premio/Costo *' keyboardType='numeric' iconRight='cash-outline' errorMessage={errors.incremental?.message} />
-            </View>
-          </View>
-
-          <View style={styles.rulesToggleContainer}>
-            <Pressable style={[styles.rulesToggleBtn, watch("rulesType") === "text" && styles.rulesToggleActive]} onPress={() => control._defaultValues.rulesType !== "text" && control._formValues.rulesType !== "text" && (control._formValues.rulesType = "text")}>
-              <Text style={[styles.rulesToggleText, watch("rulesType") === "text" && styles.rulesToggleTextActive]}>Escribir</Text>
-            </Pressable>
-            <Pressable style={[styles.rulesToggleBtn, watch("rulesType") === "document" && styles.rulesToggleActive]} onPress={() => control._defaultValues.rulesType !== "document" && control._formValues.rulesType !== "document" && (control._formValues.rulesType = "document")}>
-              <Text style={[styles.rulesToggleText, watch("rulesType") === "document" && styles.rulesToggleTextActive]}>Subir PDF</Text>
-            </Pressable>
-          </View>
-
-          {watch("rulesType") === "text" ? <CustomInput name='rules' control={control} placeholder='Define las reglas, links o información extra...' label='Reglamento (Opcional)' multiline iconRight='document-text-outline' errorMessage={errors.rules?.message} /> : <DocumentUploader name='rulesDocument' control={control} label='Archivo de Reglas Oficiales' errorMessage={errors.rulesDocument?.message} />}
-
+          {/* Submit */}
           <View style={styles.submitContainer}>
-            <CustomButton label='VISTA PREVIA PÚBLICO' onPress={handlePreview} icon='eye-outline' stylePressable={{ backgroundColor: Colors.surface_pressed, borderWidth: 1, borderColor: Colors.border_focus }} styleText={{ color: Colors.text_primary }} styleIcon={{ color: Colors.text_primary }} />
-            <View style={{ height: 15 }} />
-            <CustomButton label={isSubmitting ? "Creando..." : "CREAR TORNEO"} onPress={handleSubmit(onSubmit)} icon='flash-outline' disabled={isDisabled || isSubmitting} />
+            <CustomButton
+              label={isSubmitting ? "Creando..." : "CREAR TORNEO"}
+              onPress={handleSubmit(onSubmit)}
+              icon='flash-outline'
+              disabled={isDisabled || isSubmitting}
+            />
           </View>
         </View>
       </ScrollView>
-
-      <TournamentPreviewModal visible={previewVisible} onClose={() => setPreviewVisible(false)} formData={getValues()} />
     </CustomFormView>
   );
 }
@@ -117,7 +240,7 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     paddingHorizontal: 20,
-    gap: 18,
+    gap: 14,
   },
   sectionTitle: {
     fontSize: Fonts.normal,
@@ -137,29 +260,66 @@ const styles = StyleSheet.create({
   submitContainer: {
     marginTop: 20,
   },
-  rulesToggleContainer: {
+  newBrandLink: {
     flexDirection: "row",
-    backgroundColor: Colors.surface_base,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.border_focus,
-    overflow: "hidden",
-    marginBottom: 5,
-  },
-  rulesToggleBtn: {
-    flex: 1,
-    paddingVertical: 10,
     alignItems: "center",
+    gap: 6,
+    marginTop: -4,
   },
-  rulesToggleActive: {
-    backgroundColor: Colors.surface_pressed,
-  },
-  rulesToggleText: {
-    color: Colors.neutral_500,
-    fontWeight: "bold",
+  newBrandLinkText: {
     fontSize: Fonts.small,
+    color: Colors.brand_primary,
+    fontWeight: "600",
   },
-  rulesToggleTextActive: {
+  // Empty state
+  emptyContainer: {
+    flex: 1,
+  },
+  emptyStateContent: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 30,
+    marginTop: -40,
+  },
+  emptyTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
     color: Colors.text_brand,
+    marginTop: 20,
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  emptySubtitle: {
+    fontSize: Fonts.normal,
+    color: Colors.text_tertiary,
+    textAlign: "center",
+    lineHeight: 24,
+    marginBottom: 30,
+  },
+  createBrandButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: Colors.actions_primary_bg,
+    paddingVertical: 16,
+    paddingHorizontal: 30,
+    borderRadius: 12,
+    shadowColor: Colors.brand_primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  createBrandButtonText: {
+    color: Colors.on_brand,
+    fontSize: Fonts.normal,
+    fontWeight: "bold",
+    letterSpacing: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
