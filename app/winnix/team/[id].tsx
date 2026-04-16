@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -14,15 +14,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useTeam } from '@/presentation/hooks/teams/useTeam';
 import { Colors } from '@/presentation/styles/colors';
-// Modular Components
 import { TeamContent } from '@/presentation/team/components/TeamContent';
+import { TeamDeleteModal } from '@/presentation/team/components/TeamDeleteModal';
+import { TeamEditModal } from '@/presentation/team/components/TeamEditModal';
 import { TeamHUDTabs } from '@/presentation/team/components/TeamHUDTabs';
 import { TeamHero } from '@/presentation/team/components/TeamHero';
-import { TeamEditModal } from '@/presentation/team/components/TeamEditModal';
-import { TeamDeleteModal } from '@/presentation/team/components/TeamDeleteModal';
 
 export default function TeamDetailScreen() {
   const router = useRouter();
@@ -43,9 +42,33 @@ export default function TeamDetailScreen() {
     handleToggleFavorite,
     isUpdating,
     isDeleting,
+
+    // Members Pagination
+    members,
+    loadingMembers,
+    fetchNextMembersPage,
+    hasNextMembersPage,
+    isFetchingNextMembersPage,
+    toggleMemberStatus,
+    isTogglingMember,
   } = useTeam(id as string);
   const [activeTab, setActiveTab] = useState('stats');
   const [isEditing, setIsEditing] = useState(false);
+
+  // Reset states when team ID changes (manual navigation)
+  useEffect(() => {
+    setIsEditing(false);
+    setActiveTab('stats');
+  }, [id]);
+
+  // Reset edit mode when leaving the screen (navigation blur)
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setIsEditing(false);
+      };
+    }, []),
+  );
 
   const scrollY = useSharedValue(0);
 
@@ -88,7 +111,6 @@ export default function TeamDetailScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Permanent Top Actions (Always Visible) */}
       <View style={styles.permanentHeader}>
         <TouchableOpacity
           style={styles.simpleBackBtn}
@@ -162,6 +184,14 @@ export default function TeamDetailScreen() {
           router={router}
           isEditing={isEditing}
           refresh={refresh}
+          // Members Props
+          members={members}
+          loadingMembers={loadingMembers}
+          fetchNextMembersPage={fetchNextMembersPage}
+          hasNextMembersPage={hasNextMembersPage}
+          isFetchingNextMembersPage={isFetchingNextMembersPage}
+          toggleMemberStatus={toggleMemberStatus}
+          isTogglingMember={isTogglingMember}
         />
 
         <View style={{ height: 100 }} />
@@ -228,7 +258,6 @@ const styles = StyleSheet.create({
     right: 0,
     height: 90,
     zIndex: 100,
-    paddingTop: 35,
     backgroundColor: 'rgba(3, 8, 25, 0.98)',
     borderBottomWidth: 2,
     borderBottomColor: Colors.brand_primary,

@@ -1,30 +1,49 @@
-import { teamsAdapter } from "@/core/teams/teams-adapter";
-import { createQueryKeyFactory, QUERY_PRESETS, useMutationAdapter, useQueryAdapter } from "@/helpers/adapters/queryAdapter";
-import { useCustomForm } from "@/hooks/useCustomForm";
-import { TeamFormData, teamSchema } from "@/presentation/schemas/teamSchema";
-import { useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
-import { Alert } from "react-native";
+import { useCallback, useState } from 'react';
+import { Alert } from 'react-native';
+import { useFocusEffect } from 'expo-router';
+import { teamsAdapter } from '@/core/teams/teams-adapter';
+import {
+  QUERY_PRESETS,
+  createQueryKeyFactory,
+  useInfiniteQueryAdapter,
+  useMutationAdapter,
+} from '@/helpers/adapters/queryAdapter';
+import { useCustomForm } from '@/hooks/useCustomForm';
+import { TeamFormData, teamSchema } from '@/presentation/schemas/teamSchema';
 
-export const teamsKeys = createQueryKeyFactory("teams");
+export const teamsKeys = createQueryKeyFactory('teams');
 
 export const useMyTeams = (query: any = {}) => {
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
-  // Query for fetching teams
+  // Infinite Query for fetching teams
   const {
     data: responseData,
     isLoading,
     isError,
     error,
     refetch,
-  } = useQueryAdapter<any, Error>(teamsKeys.list(query), () => teamsAdapter.getOwnTeams(query), {
-    ...QUERY_PRESETS.SEMI_STATIC,
-  });
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQueryAdapter(
+    teamsKeys.list(query),
+    (pageParam) => teamsAdapter.getOwnTeams({ ...query, page: pageParam, limit: 20 }),
+    {
+      ...QUERY_PRESETS.SEMI_STATIC,
+    },
+  );
 
-  const teams = responseData?.data || [];
+  console.log('responseData here :>> ', responseData);
+
+  const teams =
+    responseData?.pages
+      .flatMap((page: any) => page.teams || page.data?.teams || [])
+      .filter(Boolean) || [];
+
+  console.log('teams :>> ', teams);
 
   // Force refetch on screen focus
   useFocusEffect(
@@ -37,45 +56,59 @@ export const useMyTeams = (query: any = {}) => {
   const form = useCustomForm<TeamFormData>(teamSchema);
 
   // Mutation for creating a team
-  const createTeamMutation = useMutationAdapter<any, Error, TeamFormData>(teamsAdapter.createTeam, {
+  const createTeamMutation = useMutationAdapter<any, Error, TeamFormData>(
+    teamsAdapter.createTeam,
+    {
+      invalidateQueries: [teamsKeys.lists()],
+      onSuccess: () => {
+        Alert.alert('Éxito', 'El equipo ha sido creado correctamente');
+        form.reset();
+      },
+      onError: (err) => {
+        Alert.alert('Error', err?.message || 'Ocurrió un error al crear el equipo');
+      },
+    },
+  );
+
+  const updateTeamMutation = useMutationAdapter<
+    any,
+    Error,
+    { id: string; payload: TeamFormData }
+  >(({ id, payload }) => teamsAdapter.updateTeam(id, payload), {
     invalidateQueries: [teamsKeys.lists()],
     onSuccess: () => {
-      Alert.alert("Éxito", "El equipo ha sido creado correctamente");
+      Alert.alert('Éxito', 'El equipo ha sido actualizado correctamente');
       form.reset();
     },
     onError: (err) => {
-      Alert.alert("Error", err?.message || "Ocurrió un error al crear el equipo");
+      Alert.alert('Error', err?.message || 'Ocurrió un error al actualizar el equipo');
     },
   });
 
-  const updateTeamMutation = useMutationAdapter<any, Error, { id: string; payload: TeamFormData }>(({ id, payload }) => teamsAdapter.updateTeam(id, payload), {
-    invalidateQueries: [teamsKeys.lists()],
-    onSuccess: () => {
-      Alert.alert("Éxito", "El equipo ha sido actualizado correctamente");
-      form.reset();
+  const deleteTeamMutation = useMutationAdapter<any, Error, string>(
+    teamsAdapter.deleteTeam,
+    {
+      invalidateQueries: [teamsKeys.lists()],
+      onSuccess: () => {
+        Alert.alert('Equipo Eliminado', 'El equipo ha sido eliminado correctamente');
+      },
+      onError: (err) => {
+        Alert.alert('Error', err?.message || 'Ocurrió un error al eliminar el equipo');
+      },
     },
-    onError: (err) => {
-      Alert.alert("Error", err?.message || "Ocurrió un error al actualizar el equipo");
-    },
-  });
+  );
 
-  const deleteTeamMutation = useMutationAdapter<any, Error, string>(teamsAdapter.deleteTeam, {
-    invalidateQueries: [teamsKeys.lists()],
-    onSuccess: () => {
-      Alert.alert("Equipo Eliminado", "El equipo ha sido eliminado correctamente");
-    },
-    onError: (err) => {
-      Alert.alert("Error", err?.message || "Ocurrió un error al eliminar el equipo");
-    },
-  });
-
-  const toggleFavoriteMutation = useMutationAdapter<any, Error, { id: string; isFavorite: boolean }>(({ id, isFavorite }) => teamsAdapter.updateTeam(id, { isFavorite }), {
+  const toggleFavoriteMutation = useMutationAdapter<
+    any,
+    Error,
+    { id: string; isFavorite: boolean }
+  >(({ id, isFavorite }) => teamsAdapter.updateTeam(id, { isFavorite }), {
     invalidateQueries: [teamsKeys.lists()],
     onSuccess: () => {
       // No alert needed for favorite toggle, or a toast if available
     },
     onError: (err: any) => {
-      Alert.alert("Error", err?.message || "No se pudo cambiar el estado de favorito");
+      Alert.alert('Error', err?.message || 'No se pudo cambiar el estado de favorito');
     },
   });
 
@@ -149,6 +182,9 @@ export const useMyTeams = (query: any = {}) => {
     loading: isLoading,
     error: isError ? error?.message : null,
     refresh: refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     form,
     isCreating: createTeamMutation.isPending,
     createError: createTeamMutation.error,

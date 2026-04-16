@@ -14,11 +14,7 @@ import { useCustomForm } from '@/hooks/useCustomForm';
 import { useSports } from '@/presentation/hooks/sports/useSports';
 import { TeamFormData, teamSchema } from '@/presentation/schemas/teamSchema';
 import { Colors } from '@/presentation/styles/colors';
-import {
-  CustomButton,
-  CustomInput,
-  CustomSelect,
-} from '@/presentation/theme/components/';
+import { CustomButton, CustomInput } from '@/presentation/theme/components/';
 
 interface Props {
   visible: boolean;
@@ -35,10 +31,9 @@ export const TeamEditModal: React.FC<Props> = ({
   onSubmit,
   isSubmitting,
 }) => {
-  const { control, handleSubmit, errors, reset, watch, setValue } =
+  const { control, handleSubmit, errors, reset } =
     useCustomForm<TeamFormData>(teamSchema);
 
-  const selectedSportId = watch('sport');
   const { sports } = useSports();
 
   const sportOptions = useMemo(
@@ -90,16 +85,6 @@ export const TeamEditModal: React.FC<Props> = ({
                   label='Nombre'
                   iconRight='pencil-outline'
                   errorMessage={errors.name?.message}
-                />
-
-                <CustomSelect
-                  name='sport'
-                  control={control}
-                  label='Deporte'
-                  placeholder='Selecciona un deporte'
-                  iconLeft='football-outline'
-                  options={sportOptions}
-                  errorMessage={errors.sport?.message}
                 />
 
                 <CustomInput

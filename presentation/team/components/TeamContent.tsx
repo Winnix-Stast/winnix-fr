@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Alert,
+  ActivityIndicator,
   Dimensions,
   Image,
   Pressable,
@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { teamsAdapter } from '@/core/teams/teams-adapter';
 import { Colors } from '@/presentation/styles/colors';
+import { CustomPaginationInfinityScroll } from '../../components/CustomPaginationInfinityScroll';
 
 const { width } = Dimensions.get('window');
 
@@ -22,6 +22,14 @@ interface TeamContentProps {
   router: any;
   isEditing?: boolean;
   refresh?: () => void;
+  // Members Pagination
+  members: any[];
+  loadingMembers?: boolean;
+  fetchNextMembersPage: () => void;
+  hasNextMembersPage: boolean;
+  isFetchingNextMembersPage: boolean;
+  toggleMemberStatus: (playerId: string, isActive: boolean) => void;
+  isTogglingMember: boolean;
 }
 
 export const TeamContent = ({
@@ -30,6 +38,13 @@ export const TeamContent = ({
   router,
   isEditing,
   refresh,
+  members,
+  loadingMembers,
+  fetchNextMembersPage,
+  hasNextMembersPage,
+  isFetchingNextMembersPage,
+  toggleMemberStatus,
+  isTogglingMember,
 }: TeamContentProps) => {
   console.log('team aqui :>> ', team);
   return (
@@ -41,10 +56,17 @@ export const TeamContent = ({
       {activeTab === 'stats' && <TeamStats team={team} />}
       {activeTab === 'players' && (
         <TeamPlayers
-          team={team}
+          members={members}
+          activeTab={activeTab}
           router={router}
           isEditing={isEditing}
           refresh={refresh}
+          loadingMembers={loadingMembers}
+          fetchNextMembersPage={fetchNextMembersPage}
+          hasNextMembersPage={hasNextMembersPage}
+          isFetchingNextMembersPage={isFetchingNextMembersPage}
+          toggleMemberStatus={toggleMemberStatus}
+          isTogglingMember={isTogglingMember}
         />
       )}
       {activeTab === 'tournaments' && <TeamTournaments team={team} />}
@@ -113,47 +135,51 @@ const TeamStats = ({ team }: { team: any }) => (
   </View>
 );
 
-const TeamPlayers = ({ team, router, isEditing, refresh }: any) => {
-  const handleRemoveMember = (playerId: string) => {
-    Alert.alert(
-      'Remover Jugador',
-      '¿Estás seguro de que deseas eliminar a este jugador del equipo?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await teamsAdapter.removeMember(team._id, playerId);
-              refresh?.();
-            } catch (error) {
-              Alert.alert('Error', 'No se pudo eliminar el jugador');
-            }
-          },
-        },
-      ],
-    );
-  };
-
+const TeamPlayers = ({
+  members,
+  router,
+  isEditing,
+  refresh,
+  loadingMembers,
+  fetchNextMembersPage,
+  hasNextMembersPage,
+  isFetchingNextMembersPage,
+  toggleMemberStatus,
+  isTogglingMember,
+}: any) => {
   return (
     <View style={styles.contentPadding}>
       <SectionTitle title='PLANTILLA DE JUGADORES' icon='people' />
       <View style={styles.playersList}>
-        {team.members?.length > 0 ? (
-          team.members.map((member: any, index: number) => (
-            <PlayerCard
-              key={member.player?._id || index}
-              player={member.player}
-              stats={member.playerGlobalStats}
-              index={index}
-              isEditing={isEditing}
-              onRemove={() => handleRemoveMember(member.player?._id)}
-              onPress={() => router.push(`/winnix/profile/${member.player?._id}`)}
-            />
-          ))
+        {loadingMembers && members.length === 0 ? (
+          <ActivityIndicator
+            size='large'
+            color={Colors.brand_primary}
+            style={{ marginTop: 20 }}
+          />
         ) : (
-          <EmptySection message='No hay jugadores registrados' />
+          <CustomPaginationInfinityScroll
+            data={members}
+            fetchNextPage={fetchNextMembersPage}
+            hasNextPage={hasNextMembersPage}
+            isFetchingNextPage={isFetchingNextMembersPage}
+            isLoading={loadingMembers}
+            scrollEnabled={false} // Since it's inside parent scroll
+            emptyMessage='No hay jugadores registrados'
+            renderItem={({ item: member, index }: any) => (
+              <PlayerCard
+                key={member.player?._id || index}
+                player={member.player}
+                stats={member.playerGlobalStats}
+                index={index}
+                isActive={member.isActive}
+                isEditing={isEditing}
+                isToggling={isTogglingMember}
+                onToggle={() => toggleMemberStatus(member.player?._id, member.isActive)}
+                onPress={() => router.push(`/winnix/profile/${member.player?._id}`)}
+              />
+            )}
+          />
         )}
       </View>
     </View>
@@ -241,7 +267,16 @@ const StatCard = ({ label, value, icon, color, delay, fullWidth, isHighlight }: 
   </Animated.View>
 );
 
-const PlayerCard = ({ player, stats, index, onPress, isEditing, onRemove }: any) => (
+const PlayerCard = ({
+  player,
+  stats,
+  index,
+  onPress,
+  isEditing,
+  isActive,
+  onToggle,
+  isToggling,
+}: any) => (
   <Animated.View entering={FadeInDown.delay(index * 50)}>
     <Pressable
       onPress={isEditing ? undefined : onPress}
@@ -249,10 +284,11 @@ const PlayerCard = ({ player, stats, index, onPress, isEditing, onRemove }: any)
         styles.cardContainer,
         pressed && !isEditing && { opacity: 0.8, transform: [{ scale: 0.98 }] },
         isEditing && styles.cardContainerEditing,
+        !isActive && styles.cardContainerInactive,
       ]}
     >
       {/* Avatar */}
-      <View style={styles.avatarWrapper}>
+      <View style={[styles.avatarWrapper, !isActive && { opacity: 0.5 }]}>
         <Image
           source={
             player?.avatar
@@ -266,7 +302,10 @@ const PlayerCard = ({ player, stats, index, onPress, isEditing, onRemove }: any)
       {/* Información Principal */}
       <View style={styles.infoContainer}>
         {/* Nombre real o Username */}
-        <Text style={styles.playerName} numberOfLines={1}>
+        <Text
+          style={[styles.playerName, !isActive && { color: Colors.text_tertiary }]}
+          numberOfLines={1}
+        >
           {player?.username
             ? player?.username?.toUpperCase()
             : player?.nickname?.toUpperCase()}
@@ -279,18 +318,29 @@ const PlayerCard = ({ player, stats, index, onPress, isEditing, onRemove }: any)
         <View style={styles.statsRow}>
           <PlayerMiniStat label='PJ' value={stats?.matchesPlayed || 0} />
           <PlayerMiniStat label='GOLES' value={stats?.goals || 0} />
-          {/* agregar más aquí como ASISTENCIAS o TARJETAS */}
         </View>
       </View>
 
       {isEditing ? (
-        <TouchableOpacity onPress={onRemove} style={styles.removeBtn}>
-          <Ionicons name='trash-outline' size={24} color={Colors.red_400} />
+        <TouchableOpacity
+          onPress={onToggle}
+          disabled={isToggling}
+          style={[styles.toggleBtn, isActive ? styles.activeBtn : styles.inactiveBtn]}
+        >
+          {isToggling ? (
+            <ActivityIndicator size='small' color='#fff' />
+          ) : (
+            <Ionicons
+              name={isActive ? 'eye-outline' : 'eye-off-outline'}
+              size={20}
+              color='#fff'
+            />
+          )}
         </TouchableOpacity>
       ) : (
         <>
           {/* Dorsal del Jugador */}
-          <View style={styles.dorsalBadge}>
+          <View style={[styles.dorsalBadge, !isActive && { opacity: 0.5 }]}>
             <Text style={styles.dorsalText}>{player?.jerseyNumber || '0'}</Text>
           </View>
           <Ionicons name='chevron-forward' size={20} color={Colors.text_tertiary} />
@@ -642,9 +692,14 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   cardContainerEditing: {
-    borderColor: Colors.red_400 + '40',
+    borderColor: Colors.brand_primary + '40',
     borderLeftWidth: 4,
-    borderLeftColor: Colors.red_400,
+    borderLeftColor: Colors.brand_primary,
+  },
+  cardContainerInactive: {
+    opacity: 0.6,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    borderColor: 'rgba(255,255,255,0.05)',
   },
   removeBtn: {
     width: 44,
@@ -653,5 +708,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
     borderRadius: 22,
+  },
+  toggleBtn: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 22,
+  },
+  activeBtn: {
+    backgroundColor: Colors.brand_primary + '30',
+  },
+  inactiveBtn: {
+    backgroundColor: Colors.red_400 + '30',
   },
 });

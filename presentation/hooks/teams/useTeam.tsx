@@ -4,6 +4,7 @@ import { teamsAdapter } from '@/core/teams/teams-adapter';
 import {
   QUERY_PRESETS,
   createQueryKeyFactory,
+  useInfiniteQueryAdapter,
   useMutationAdapter,
   useQueryAdapter,
 } from '@/helpers/adapters/queryAdapter';
@@ -11,7 +12,10 @@ import { useCustomForm } from '@/hooks/useCustomForm';
 import { TeamFormData, teamSchema } from '@/presentation/schemas/teamSchema';
 import { teamsKeys } from './useMyTeams';
 
-export const teamKeys = createQueryKeyFactory('team');
+export const teamKeys = {
+  ...createQueryKeyFactory('team'),
+  members: (id: string) => [...createQueryKeyFactory('team').detail(id), 'members'],
+};
 
 export const useTeam = (id: string) => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -32,7 +36,29 @@ export const useTeam = (id: string) => {
     },
   );
 
-  const team = responseData?.data || null;
+  const team = responseData?.data || responseData || null;
+
+  // Infinite Query for Team Members
+  const {
+    data: membersData,
+    fetchNextPage: fetchNextMembersPage,
+    hasNextPage: hasNextMembersPage,
+    isFetchingNextPage: isFetchingNextMembersPage,
+    isLoading: isLoadingMembers,
+    refetch: refetchMembers,
+  } = useInfiniteQueryAdapter(
+    teamKeys.members(id),
+    (pageParam) => teamsAdapter.getTeamMembers(id, { page: pageParam, limit: 20 }),
+    {
+      enabled: !!id,
+      ...QUERY_PRESETS.SEMI_STATIC,
+    },
+  );
+
+  const members =
+    membersData?.pages.flatMap(
+      (page: any) => page.memberships || page.data?.memberships || [],
+    ) || [];
 
   // Custom Form for editing the team
   const form = useCustomForm<TeamFormData>(teamSchema);
@@ -76,6 +102,26 @@ export const useTeam = (id: string) => {
     },
   });
 
+  const deactivateMemberMutation = useMutationAdapter<any, Error, string>(
+    (playerId) => teamsAdapter.deactivateMember(id, playerId),
+    {
+      invalidateQueries: [teamKeys.members(id)],
+      onError: (err: any) => {
+        Alert.alert('Error', err?.message || 'No se pudo desactivar el jugador');
+      },
+    },
+  );
+
+  const activateMemberMutation = useMutationAdapter<any, Error, string>(
+    (playerId) => teamsAdapter.activateMember(id, playerId),
+    {
+      invalidateQueries: [teamKeys.members(id)],
+      onError: (err: any) => {
+        Alert.alert('Error', err?.message || 'No se pudo activar el jugador');
+      },
+    },
+  );
+
   // Handlers
   const openEditModal = () => setIsEditModalVisible(true);
   const openDeleteModal = () => setIsDeleteModalVisible(true);
@@ -118,11 +164,30 @@ export const useTeam = (id: string) => {
     toggleFavoriteMutation.mutate({ id, isFavorite: !currentStatus });
   };
 
+  const toggleMemberStatus = (playerId: string, isActive: boolean) => {
+    if (isActive) {
+      deactivateMemberMutation.mutate(playerId);
+    } else {
+      activateMemberMutation.mutate(playerId);
+    }
+  };
+
   return {
     team,
     loading: isLoading,
     error: isError ? error?.message : null,
-    refresh: refetch,
+    refresh: () => {
+      refetch();
+      refetchMembers();
+    },
+
+    // Members
+    members,
+    loadingMembers: isLoadingMembers,
+    fetchNextMembersPage,
+    hasNextMembersPage,
+    isFetchingNextMembersPage,
+    toggleMemberStatus,
 
     // Management State/Actions
     isEditModalVisible,
@@ -137,5 +202,7 @@ export const useTeam = (id: string) => {
     isUpdating: updateTeamMutation.isPending,
     isDeleting: deleteTeamMutation.isPending,
     isTogglingFavorite: toggleFavoriteMutation.isPending,
+    isTogglingMember:
+      deactivateMemberMutation.isPending || activateMemberMutation.isPending,
   };
 };

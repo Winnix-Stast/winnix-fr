@@ -1,10 +1,15 @@
-import { Colors } from "@/presentation/styles/colors";
-import { spacing } from "@/presentation/styles/theme";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
-import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import Animated, { FadeInDown, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import React from 'react';
+import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, {
+  FadeInDown,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors } from '@/presentation/styles/colors';
+import { spacing } from '@/presentation/styles/theme';
 
 interface TeamCard3DProps {
   team: any;
@@ -28,22 +33,42 @@ export const TeamCard3D = ({ team, onPress, onToggleFavorite }: TeamCard3DProps)
   };
 
   const name = () => {
-    return team?.captain.nickname || team?.captain.username || "";
+    return team?.captain.nickname || team?.captain.username || '';
   };
 
   return (
-    <Animated.View entering={FadeInDown.duration(600).springify()} style={[styles.cardContainer, animatedStyle]}>
-      <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut} style={({ pressed }) => [styles.pressable, pressed ? { opacity: 0.9 } : {}]}>
-        <LinearGradient colors={[Colors.surface_elevated, Colors.surface_base]} style={styles.cardInner}>
+    <Animated.View
+      entering={FadeInDown.duration(600).springify()}
+      style={[styles.cardContainer, animatedStyle]}
+    >
+      <Pressable
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={({ pressed }) => [styles.pressable, pressed ? { opacity: 0.9 } : {}]}
+      >
+        <LinearGradient
+          colors={[Colors.surface_elevated, Colors.surface_base]}
+          style={styles.cardInner}
+        >
           {/* Header Ribbon / Rank */}
           <View style={styles.cardRibbon}>
-            <Text style={styles.ribbonText}>{team.sport?.name?.toUpperCase() || "RANK S"}</Text>
+            <Text style={styles.ribbonText}>
+              {team.sport?.name?.toUpperCase() || 'RANK S'}
+            </Text>
           </View>
 
           {/* Favorite Toggle (Star) */}
           <View style={styles.favoriteContainer}>
-            <TouchableOpacity onPress={() => onToggleFavorite(team._id, !!team.isFavorite)} style={styles.favoriteBtn}>
-              <Ionicons name={team.isFavorite ? "star" : "star-outline"} size={22} color={team.isFavorite ? Colors.orange_400 : Colors.text_tertiary} />
+            <TouchableOpacity
+              onPress={() => onToggleFavorite(team._id, !!team.isFavorite)}
+              style={styles.favoriteBtn}
+            >
+              <Ionicons
+                name={team.isFavorite ? 'star' : 'star-outline'}
+                size={22}
+                color={team.isFavorite ? Colors.orange_400 : Colors.text_tertiary}
+              />
             </TouchableOpacity>
           </View>
 
@@ -52,7 +77,11 @@ export const TeamCard3D = ({ team, onPress, onToggleFavorite }: TeamCard3DProps)
             <View style={styles.logoWrapper}>
               <View style={styles.logoGlow} />
               <View style={styles.logoBg}>
-                <Image source={team.logo ? { uri: team.logo } : require("./tournament.png")} style={styles.logoImage} resizeMode='cover' />
+                <Image
+                  source={team.logo ? { uri: team.logo } : require('./tournament.png')}
+                  style={styles.logoImage}
+                  resizeMode='cover'
+                />
               </View>
             </View>
 
@@ -66,7 +95,11 @@ export const TeamCard3D = ({ team, onPress, onToggleFavorite }: TeamCard3DProps)
                 {team.name}
               </Text>
               <View style={styles.captainInfo}>
-                <Ionicons name='person-circle-outline' size={14} color={Colors.text_tertiary} />
+                <Ionicons
+                  name='person-circle-outline'
+                  size={14}
+                  color={Colors.text_tertiary}
+                />
                 <Text style={styles.captainText}>{name()}</Text>
               </View>
             </View>
@@ -76,17 +109,23 @@ export const TeamCard3D = ({ team, onPress, onToggleFavorite }: TeamCard3DProps)
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
               <Text style={styles.statLabel}>Jugadores</Text>
-              <Text style={styles.statValue}>{team.members?.length || 0}</Text>
+              <Text style={styles.statValue}>{team.playersCount || 0}</Text>
             </View>
 
             <View style={[styles.statBox, styles.statBoxCenter]}>
               <Text style={styles.statLabel}>Goles</Text>
-              <Text style={[styles.statValue, { color: Colors.brand_primary }]}>{team.globalStats?.totalGoals || 0}</Text>
+              <Text style={[styles.statValue, { color: Colors.brand_primary }]}>
+                {team.globalStats?.totalGoals || 0}
+              </Text>
             </View>
 
             <View style={styles.statBox}>
               <Text style={styles.statLabel}>WIN RATE</Text>
-              <Text style={[styles.statValue, { color: Colors.green_400 }]}>{team.globalStats?.matchesPlayed > 0 ? `${Math.round((team.globalStats?.matchesWon / team.globalStats?.matchesPlayed) * 100)}%` : "0%"}</Text>
+              <Text style={[styles.statValue, { color: Colors.green_400 }]}>
+                {team.globalStats?.matchesPlayed > 0
+                  ? `${Math.round((team.globalStats?.matchesWon / team.globalStats?.matchesPlayed) * 100)}%`
+                  : '0%'}
+              </Text>
             </View>
           </View>
 
@@ -102,7 +141,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     marginBottom: parseInt(spacing.spacing_l),
     borderRadius: 20,
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
     shadowColor: Colors.brand_primary,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.2,
@@ -111,26 +150,26 @@ const styles = StyleSheet.create({
   },
   pressable: {
     borderRadius: 20,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   cardInner: {
     padding: parseInt(spacing.spacing_m),
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: "rgba(40, 209, 195, 0.15)",
-    borderTopColor: "rgba(40, 209, 195, 0.4)",
-    borderLeftColor: "rgba(40, 209, 195, 0.4)",
+    borderColor: 'rgba(40, 209, 195, 0.15)',
+    borderTopColor: 'rgba(40, 209, 195, 0.4)',
+    borderLeftColor: 'rgba(40, 209, 195, 0.4)',
   },
   cardRibbon: {
-    position: "absolute",
+    position: 'absolute',
     top: 15,
     left: -35,
     backgroundColor: Colors.brand_primary,
     paddingVertical: 2,
     paddingHorizontal: 40,
-    transform: [{ rotate: "-45deg" }],
+    transform: [{ rotate: '-45deg' }],
     zIndex: 10,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5,
@@ -138,11 +177,11 @@ const styles = StyleSheet.create({
   ribbonText: {
     color: Colors.on_brand,
     fontSize: 9,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     letterSpacing: 1,
   },
   favoriteContainer: {
-    position: "absolute",
+    position: 'absolute',
     top: 10,
     right: 10,
     zIndex: 20,
@@ -150,22 +189,22 @@ const styles = StyleSheet.create({
   favoriteBtn: {
     padding: 8,
     borderRadius: 12,
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor: 'rgba(0,0,0,0.3)',
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   cardContent: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 10,
     marginBottom: 20,
   },
   logoWrapper: {
-    position: "relative",
+    position: 'relative',
     marginRight: parseInt(spacing.spacing_m),
   },
   logoGlow: {
-    position: "absolute",
+    position: 'absolute',
     width: 70,
     height: 70,
     borderRadius: 15,
@@ -178,87 +217,87 @@ const styles = StyleSheet.create({
     height: 70,
     borderRadius: 15,
     backgroundColor: Colors.surface_elevated,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 2,
-    borderColor: "rgba(40, 209, 195, 0.3)",
-    overflow: "hidden",
+    borderColor: 'rgba(40, 209, 195, 0.3)',
+    overflow: 'hidden',
   },
   logoImage: {
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
   },
   infoContainer: {
     flex: 1,
   },
   idBadgeMini: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(40, 209, 195, 0.1)",
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(40, 209, 195, 0.1)',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
     marginBottom: 4,
   },
   incrementalText: {
     color: Colors.brand_primary,
     fontSize: 14,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginLeft: 4,
   },
   teamName: {
     fontSize: 22,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: Colors.text_primary,
     letterSpacing: 0.5,
   },
   captainInfo: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 4,
   },
   captainText: {
     fontSize: 16,
     color: Colors.text_tertiary,
     marginLeft: 4,
-    textTransform: "capitalize",
+    textTransform: 'capitalize',
   },
   statsRow: {
-    flexDirection: "row",
-    backgroundColor: "rgba(0,0,0,0.2)",
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0,0,0,0.2)',
     borderRadius: 12,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: 'rgba(255,255,255,0.05)',
   },
   statBox: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   statBoxCenter: {
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: 'rgba(255,255,255,0.05)',
   },
   statValue: {
     color: Colors.text_primary,
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   statLabel: {
     color: Colors.text_tertiary,
     fontSize: 14,
-    fontWeight: "800",
+    fontWeight: '800',
     letterSpacing: 1.5,
     marginBottom: 4,
   },
   bottomBorder: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 0,
-    left: "10%",
-    right: "10%",
+    left: '10%',
+    right: '10%',
     height: 3,
     backgroundColor: Colors.brand_primary,
     borderTopLeftRadius: 10,
