@@ -184,11 +184,9 @@ const styles = StyleSheet.create({
     bottom: 10,
     width: 44,
     height: 44,
-    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(40, 209, 195, 0.4)',
   },
   logoEditOverlay: {
     ...StyleSheet.absoluteFillObject,

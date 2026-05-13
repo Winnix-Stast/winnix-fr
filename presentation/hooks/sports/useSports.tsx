@@ -1,13 +1,17 @@
-import { sportsAdapter } from "@/core/sports/sports-adapter";
-import { QUERY_PRESETS, useQueryAdapter } from "@/helpers/adapters/queryAdapter";
+import { sportsAdapter } from '@/core/sports/sports-adapter';
+import { QUERY_PRESETS, useQueryAdapter } from '@/helpers/adapters/queryAdapter';
 
 export const useSports = () => {
-  const { data, isLoading, isError, error, refetch } = useQueryAdapter<any, Error>(["sports", "list"], () => sportsAdapter.getSports(), {
-    ...QUERY_PRESETS.SEMI_STATIC,
-  });
+  const { data, isLoading, isError, error, refetch } = useQueryAdapter<any, Error>(
+    ['sports', 'list'],
+    () => sportsAdapter.getSports(),
+    {
+      ...QUERY_PRESETS.SEMI_STATIC,
+    },
+  );
 
   return {
-    sports: data?.data || [],
+    sports: data || [],
     loading: isLoading,
     error: isError ? error?.message : null,
     refresh: refetch,
@@ -16,7 +20,7 @@ export const useSports = () => {
 
 export const useSportCategories = (sportId: string | undefined) => {
   const { data, isLoading, isError, error } = useQueryAdapter<any, Error>(
-    ["sport-categories", sportId || ""],
+    ['sport-categories', sportId || ''],
     () => sportsAdapter.getCategoriesBySport(sportId!),
     {
       ...QUERY_PRESETS.SEMI_STATIC,
@@ -25,8 +29,25 @@ export const useSportCategories = (sportId: string | undefined) => {
   );
 
   return {
-    categories: data?.data || [],
+    categories: data || [],
     loadingCategories: isLoading,
     errorCategories: isError ? error?.message : null,
+  };
+};
+
+export const useSportTemplates = (sportId: string | undefined) => {
+  const { data, isLoading, isError, error } = useQueryAdapter<any, Error>(
+    ['sport-templates', sportId || ''],
+    () => sportsAdapter.getSportTemplatesBySport(sportId!),
+    {
+      ...QUERY_PRESETS.SEMI_STATIC,
+      enabled: !!sportId,
+    },
+  );
+
+  return {
+    templates: data || [],
+    loadingTemplates: isLoading,
+    errorTemplates: isError ? error?.message : null,
   };
 };

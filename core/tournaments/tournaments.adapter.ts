@@ -1,18 +1,20 @@
-import { privateFetcher } from "../api/api.config";
+import { privateFetcher } from '../api/api.config';
 
 export const tournamentAdapter = {
   createEdition: async (payload: any) => {
-    const response = await privateFetcher.instance.post("/tournament-editions", payload);
+    const response = await privateFetcher.instance.post('/tournament-editions', payload);
     return response.data;
   },
 
   getAllEditions: async () => {
-    const response = await privateFetcher.instance.get("/tournament-editions");
+    const response = await privateFetcher.instance.get('/tournament-editions');
     return response.data;
   },
 
   getEditionsByBrand: async (brandId: string) => {
-    const response = await privateFetcher.instance.get(`/tournament-editions/tournament/${brandId}`);
+    const response = await privateFetcher.instance.get(
+      `/tournament-editions/tournament/${brandId}`,
+    );
     return response.data;
   },
 

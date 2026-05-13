@@ -14,3 +14,4 @@ export { DocumentUploader } from "./DocumentUploader";
 export { GradientContainer } from "./GradientCard";
 export { MainContainerView } from "./MainContainerView";
 export { SponsorInput } from "./SponsorInput";
+export { AppModal as CustomModal } from "./CustomModal";

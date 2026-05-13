@@ -1,36 +1,67 @@
-import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-
-import { WinnixIcon } from "@/presentation/plugins/Icon";
-import { Colors } from "@/presentation/styles/colors";
-import { Fonts } from "@/presentation/styles/global-styles";
-import { useCreateBrand } from "@/presentation/hooks/brands/useCreateBrand";
-import { CustomButton, CustomFormView, CustomImagePicker, CustomInput } from "@/presentation/theme/components/";
+import React from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCreateBrand } from '@/presentation/hooks/brands/useCreateBrand';
+import { WinnixIcon } from '@/presentation/plugins/Icon';
+import { Colors } from '@/presentation/styles/colors';
+import { Fonts } from '@/presentation/styles/global-styles';
+import {
+  CustomButton,
+  CustomFormView,
+  CustomImagePicker,
+  CustomInput,
+} from '@/presentation/theme/components/';
 
 export default function CreateBrandScreen() {
-  const { control, handleSubmit, errors, isSubmitting, isDisabled, onSubmit, handleGoBack } = useCreateBrand();
+  const {
+    control,
+    handleSubmit,
+    errors,
+    isSubmitting,
+    isDisabled,
+    onSubmit,
+    handleGoBack,
+  } = useCreateBrand();
 
   return (
     <CustomFormView>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={[styles.header, { paddingTop: 20 }]}>
           <Pressable onPress={handleGoBack} style={styles.backButton}>
-            <WinnixIcon name='chevron-back-outline' size={30} color={Colors.text_primary} />
+            <WinnixIcon
+              name='chevron-back-outline'
+              size={30}
+              color={Colors.text_primary}
+            />
           </Pressable>
-          <Text style={styles.headerTitle}>Nueva Marca</Text>
+          <Text style={styles.headerTitle}>Nueva Marca </Text>
           <View style={{ width: 40 }} />
         </View>
 
         <View style={styles.formContainer}>
           <View style={styles.infoCard}>
-            <WinnixIcon name='information-circle-outline' size={24} color={Colors.brand_primary} />
+            <WinnixIcon
+              name='information-circle-outline'
+              size={24}
+              color={Colors.brand_primary}
+            />
             <Text style={styles.infoText}>
-              Una marca es la identidad de tus torneos. Crea tu marca primero y luego podrás organizar ediciones bajo ella.
+              Una marca es la identidad de tus torneos. Crea tu marca primero y luego
+              podrás organizar ediciones bajo ella.
             </Text>
           </View>
 
           <View style={styles.logoContainer}>
-            <CustomImagePicker name='logo' control={control} label='Logo de la Marca' errorMessage={errors.logo?.message} isRound={true} aspect={[1, 1]} />
+            <CustomImagePicker
+              name='logo'
+              control={control}
+              label='Logo de la Marca'
+              errorMessage={errors.logo?.message}
+              isRound={true}
+              aspect={[1, 1]}
+            />
           </View>
 
           <CustomInput
@@ -44,7 +75,7 @@ export default function CreateBrandScreen() {
 
           <View style={styles.submitContainer}>
             <CustomButton
-              label={isSubmitting ? "Creando..." : "CREAR MARCA"}
+              label={isSubmitting ? 'Creando...' : 'CREAR MARCA'}
               onPress={handleSubmit(onSubmit)}
               icon='flash-outline'
               disabled={isDisabled || isSubmitting}
@@ -61,30 +92,28 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     marginBottom: 20,
   },
   backButton: {
     padding: 5,
-    borderRadius: 12,
-    backgroundColor: Colors.surface_pressed,
   },
   headerTitle: {
     fontSize: Fonts.large,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: Colors.text_brand,
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
   },
   formContainer: {
     paddingHorizontal: 20,
     gap: 18,
   },
   infoCard: {
-    flexDirection: "row",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     gap: 12,
     backgroundColor: Colors.surface_pressed,
     borderRadius: 12,
@@ -99,7 +128,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   logoContainer: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   submitContainer: {
     marginTop: 20,

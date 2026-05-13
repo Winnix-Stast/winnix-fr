@@ -1,19 +1,24 @@
-import { useRouter } from "expo-router";
-import React from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-
-import { useMyTournaments } from "@/presentation/hooks/tournaments/useMyTournaments";
-import { Colors } from "@/presentation/styles";
-import { Fonts } from "@/presentation/styles/global-styles";
-import { CustomIcon } from "@/presentation/theme/components/icons/CustomIcon";
-import OurTournamentsList from "@/presentation/tournamentsView/ourTournaments/OurTournamentsList";
+import React from 'react';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { useMyTournaments } from '@/presentation/hooks/tournaments/useMyTournaments';
+import { Colors } from '@/presentation/styles';
+import { Fonts } from '@/presentation/styles/global-styles';
+import { CustomIcon } from '@/presentation/theme/components/icons/CustomIcon';
+import OurTournamentsList from '@/presentation/tournamentsView/ourTournaments/OurTournamentsList';
 
 export const OrganizerDashboardView = () => {
   const router = useRouter();
   const { tournaments, loading, isRefreshing, refresh } = useMyTournaments();
 
   const handleCreateTournament = () => {
-    router.push("/winnix/tournament/create");
+    router.push('/winnix/brand/create');
   };
 
   if (loading) {
@@ -27,29 +32,44 @@ export const OrganizerDashboardView = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Tus Torneos</Text>
+        <Text style={styles.title}>Tus Torneos ihia</Text>
         <Text style={styles.subtitle}>Gestiona tus competiciones activas</Text>
       </View>
 
       {tournaments.length > 0 ? (
-        <OurTournamentsList tournaments={tournaments} refreshing={isRefreshing} onRefresh={refresh} />
+        <OurTournamentsList
+          tournaments={tournaments}
+          refreshing={isRefreshing}
+          onRefresh={refresh}
+        />
       ) : (
         <View style={styles.emptyStateContainer}>
           <View style={styles.iconWrapper}>
             <CustomIcon name='empty-tournament' size={300} />
           </View>
           <Text style={styles.emptyTitle}>Ningún torneo activo</Text>
-          <Text style={styles.emptySubtitle}>La arena está vacía. Es hora de organizar el próximo gran evento y convocar a los mejores equipos.</Text>
+          <Text style={styles.emptySubtitle}>
+            La arena está vacía. Es hora de organizar el próximo gran evento y convocar a
+            los mejores equipos.
+          </Text>
 
-          <TouchableOpacity style={styles.createButton} activeOpacity={0.8} onPress={handleCreateTournament}>
-            <Text style={styles.createButtonText}>CREAR TORNEO</Text>
+          <TouchableOpacity
+            style={styles.createButton}
+            activeOpacity={0.8}
+            onPress={handleCreateTournament}
+          >
+            <Text style={styles.createButtonText}>CREAR MARCA</Text>
           </TouchableOpacity>
         </View>
       )}
 
       {/* Botón flotante siempre visible si hay torneos */}
       {tournaments.length > 0 && (
-        <TouchableOpacity style={styles.floatingButton} onPress={handleCreateTournament} activeOpacity={0.9}>
+        <TouchableOpacity
+          style={styles.floatingButton}
+          onPress={handleCreateTournament}
+          activeOpacity={0.9}
+        >
           <CustomIcon name='plus' size={30} color={Colors.on_brand} />
         </TouchableOpacity>
       )}
@@ -61,15 +81,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.surface_base,
-    padding: 20,
+    paddingVertical: 20,
   },
   header: {
     marginTop: 10,
     marginBottom: 30,
+    paddingHorizontal: 20,
   },
   title: {
     fontSize: 28,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: Colors.text_primary,
     marginBottom: 5,
   },
@@ -79,26 +100,26 @@ const styles = StyleSheet.create({
   },
   emptyStateContainer: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     marginTop: -40,
   },
   iconWrapper: {
     marginBottom: 20,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyTitle: {
     fontSize: 22,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: Colors.text_brand,
     marginBottom: 10,
-    textAlign: "center",
+    textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: Fonts.normal,
     color: Colors.text_tertiary,
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: 24,
     marginBottom: 40,
     paddingHorizontal: 20,
@@ -117,25 +138,25 @@ const styles = StyleSheet.create({
   createButtonText: {
     color: Colors.on_brand,
     fontSize: Fonts.normal,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     letterSpacing: 1.5,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: Colors.surface_base,
   },
   floatingButton: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 30,
-    right: 20,
+    right: 25,
     width: 60,
     height: 60,
     borderRadius: 30,
     backgroundColor: Colors.actions_primary_bg,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     elevation: 10,
     shadowColor: Colors.brand_primary,
     shadowOffset: { width: 0, height: 4 },

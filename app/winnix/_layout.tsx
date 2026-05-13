@@ -63,7 +63,7 @@ const CheckAuthenticationLayout = () => {
         name='ourTournaments'
         options={{
           drawerLabel: "Mis torneos",
-          title: "Test",
+          title: "Mis Torneos",
         }}
       />
 

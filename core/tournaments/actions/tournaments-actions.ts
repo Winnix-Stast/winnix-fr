@@ -1,4 +1,4 @@
-import { tournamentAdapter } from "../tournaments.adapter";
+import { tournamentAdapter } from '../tournaments.adapter';
 
 export interface CreateEditionPayload {
   tournament: string;
@@ -7,6 +7,13 @@ export interface CreateEditionPayload {
   endDate?: string;
   sport: string;
   sportCategory?: string;
+  sportTemplate: string;
+  playersPerTeam?: number;
+  matchDuration?: number;
+  scoring?: { win: number; draw: number; loss: number };
+  config?: Record<string, any>;
+  image?: string;
+  logo?: string;
 }
 
 export const tournamentsActions = {
@@ -15,7 +22,7 @@ export const tournamentsActions = {
       const data = await tournamentAdapter.getAllEditions();
       return data?.data || [];
     } catch (error) {
-      console.error("getAllEditionsAction error :>> ", error);
+      console.error('getAllEditionsAction error :>> ', error);
       return [];
     }
   },
@@ -25,7 +32,7 @@ export const tournamentsActions = {
       const data = await tournamentAdapter.createEdition(payload);
       return data;
     } catch (error: any) {
-      console.error("createEditionAction error :>> ", error?.response?.data || error);
+      console.error('createEditionAction error :>> ', error?.response?.data || error);
       throw error;
     }
   },
@@ -35,7 +42,7 @@ export const tournamentsActions = {
       const data = await tournamentAdapter.getEditionsByBrand(brandId);
       return data?.data || [];
     } catch (error) {
-      console.error("getEditionsByBrandAction error :>> ", error);
+      console.error('getEditionsByBrandAction error :>> ', error);
       return [];
     }
   },
@@ -45,7 +52,7 @@ export const tournamentsActions = {
       const data = await tournamentAdapter.getEditionById(id);
       return data?.data || null;
     } catch (error) {
-      console.error("getEditionByIdAction error :>> ", error);
+      console.error('getEditionByIdAction error :>> ', error);
       return null;
     }
   },

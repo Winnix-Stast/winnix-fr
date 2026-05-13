@@ -1,7 +1,7 @@
-import { ReactNode } from "react";
-import { Keyboard, StyleProp, TouchableWithoutFeedback, ViewStyle } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { Colors } from "../../styles/global-styles";
+import { ReactNode } from 'react';
+import { Keyboard, StyleProp, TouchableWithoutFeedback, ViewStyle } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { Colors } from '../../styles/global-styles';
 
 interface Props {
   children: ReactNode;
@@ -17,17 +17,23 @@ export const CustomFormView = ({ children, contentStyle }: Props) => {
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
       <KeyboardAwareScrollView
         keyboardShouldPersistTaps='handled'
+        enableOnAndroid={true}
+        enableAutomaticScroll={true}
+        extraScrollHeight={80}
+        extraHeight={120}
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           flexGrow: 1,
-          // paddingBottom: 60,
+          // paddingBottom: 80,
         }}
         style={[
           {
             backgroundColor: Colors.dark,
-            minHeight: "100%",
+            minHeight: '100%',
           },
           contentStyle,
-        ]}>
+        ]}
+      >
         {children}
       </KeyboardAwareScrollView>
     </TouchableWithoutFeedback>

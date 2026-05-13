@@ -20,6 +20,12 @@ const OurTournaments = () => (
         headerShown: false,
       }}
     />
+    <Stack.Screen
+      name='tournament/[id]'
+      options={{
+        headerShown: false,
+      }}
+    />
     {/* <Stack.Screen
         name='player/[id]'
         options={{
