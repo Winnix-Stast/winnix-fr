@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -37,7 +37,7 @@ const BrandDetailScreen = () => {
     enabled: !!id,
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (brand?.name) {
       navigation.setOptions({ title: brand.name });
     }

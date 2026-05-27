@@ -41,7 +41,7 @@ export const TournamentPreviewModal = ({ visible, onClose, formData }: PreviewPr
     return `${startStr} - ${endStr} `;
   };
 
-  const stateMock = "in-progress" as any;
+  const stateMock = "REGISTRATION_OPEN" as any;
 
   return (
     <Modal visible={visible} animationType='slide' presentationStyle='fullScreen' onRequestClose={onClose}>
@@ -58,7 +58,7 @@ export const TournamentPreviewModal = ({ visible, onClose, formData }: PreviewPr
               <WinnixIcon name={favorite ? "heart" : "heart-outline"} size={30} color={favorite ? Colors.primary : Colors.light} />
             </Pressable>
 
-            <TournamentHeaderCard title={formData.seasonName || "Torneo Sin Título"} state={stateMock} dateText={formatDateText()} buttonLabel='Inscribirse' image={formData.image ? { uri: formData.image } : require("@/assets/images/imgT.jpg")} onPressButton={() => {}} titleStyle={{ fontSize: 32 }} />
+            <TournamentHeaderCard title={formData.seasonName || "Torneo Sin Título"} state={stateMock} dateText={formatDateText()} image={formData.image ? { uri: formData.image } : require("@/assets/images/imgT.jpg")} titleStyle={{ fontSize: 32 }} />
 
             <View style={{ marginVertical: 20, ...Flex.rowCenter, gap: 24 }}>
               <GradientContainer colors={["rgba(30,62,166,0.9)", "rgba(77,33,133,0.9)"]} borderColor={Colors.secondaryDark}>
@@ -73,7 +73,19 @@ export const TournamentPreviewModal = ({ visible, onClose, formData }: PreviewPr
             <TournamentMenu activeKey={activeTab} onSelect={setActiveTab} items={menuItems} />
 
             {/* Render mock information to simulate the view */}
-            {activeTab === "summary" && <ResumeLayout />}
+            {activeTab === "summary" && (
+              <ResumeLayout
+                stats={[
+                  { label: "Encuentros jugados", value: "0 / 0" },
+                  { label: "Goles anotados", value: 0 },
+                  { label: "Jugador destacado", value: "—" },
+                  { label: "Avance del torneo", value: "0%" },
+                ]}
+                activities={[
+                  { id: "1", type: "match" as const, title: "Torneo en fase de creación", subtitle: "Próximamente" },
+                ]}
+              />
+            )}
             {activeTab === "teams" && <TournamentTeamsLayout />}
             {activeTab === "info" && <InformationTournament />}
           </View>

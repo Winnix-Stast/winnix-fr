@@ -1,7 +1,16 @@
-import { Colors, Flex, Radius } from "@/presentation/styles/global-styles";
-import { CustomButton } from "@/presentation/theme/components/CustomButton";
-import React from "react";
-import { ImageBackground, ImageSourcePropType, StyleSheet, Text, TextStyle, useWindowDimensions, View } from "react-native";
+import React from 'react';
+import {
+  ImageBackground,
+  ImageSourcePropType,
+  StyleSheet,
+  Text,
+  TextStyle,
+  View,
+  useWindowDimensions,
+} from 'react-native';
+import { WinnixIcon } from '@/presentation/plugins/Icon';
+import { Colors } from '@/presentation/styles/colors';
+import { borderRadius } from '@/presentation/styles/theme';
 
 type TournamentState = string;
 
@@ -9,133 +18,226 @@ type Props = {
   title: string;
   state: TournamentState;
   dateText: string;
-  buttonLabel: string;
   image: ImageSourcePropType;
-  onPressButton: () => void;
   titleStyle?: TextStyle;
   dateStyle?: TextStyle;
   statusStyle?: TextStyle;
 };
 
-export const TournamentHeaderCard = ({ title, state, dateText, buttonLabel, image, onPressButton, titleStyle, dateStyle, statusStyle }: Props) => {
+export const TournamentHeaderCard = ({
+  title,
+  state,
+  dateText,
+  image,
+  titleStyle,
+  dateStyle,
+  statusStyle,
+}: Props) => {
   const { height } = useWindowDimensions();
 
-  // Configuración de estados
-  const statusConfig: Record<string, { label: string; backgroundColor: string }> = {
-    "in-progress": {
-      label: "Inscripciones Abiertas",
-      backgroundColor: "rgba(0, 200, 151, 0.8)",
+  // Configuración de estados al estilo videojuego (Alineados con el backend: TournamentEditionStatus)
+  const statusConfig: Record<
+    string,
+    { label: string; color: string; bgColor: string; borderColor: string }
+  > = {
+    DRAFT: {
+      label: 'Borrador',
+      color: Colors.text_primary,
+      bgColor: Colors.text_tertiary,
+      borderColor: Colors.text_tertiary,
     },
-    next: {
-      label: "Próximamente",
-      backgroundColor: "rgba(234, 179, 8, 0.8)",
+    REGISTRATION_OPEN: {
+      label: 'Inscripciones Abiertas',
+      color: Colors.on_brand,
+      bgColor: Colors.brand_primary,
+      borderColor: Colors.brand_primary,
     },
-    finished: {
-      label: "Finalizado",
-      backgroundColor: "rgba(120, 120, 120, 0.7)",
+    ACTIVE: {
+      label: 'En curso',
+      color: Colors.text_primary,
+      bgColor: Colors.brand_secondary,
+      borderColor: Colors.brand_secondary,
     },
-    ongoing: {
-      label: "En Progreso",
-      backgroundColor: "rgba(59, 130, 246, 0.7)",
-    },
-    draft: {
-      label: "Borrador",
-      backgroundColor: "rgba(120, 120, 120, 0.7)",
-    },
-    published: {
-      label: "Publicado",
-      backgroundColor: "rgba(0, 200, 151, 0.8)",
-    },
-    in_progress: {
-      label: "En Progreso",
-      backgroundColor: "rgba(59, 130, 246, 0.7)",
-    },
-    cancelled: {
-      label: "Cancelado",
-      backgroundColor: "rgba(255, 0, 0, 0.7)",
+    FINISHED: {
+      label: 'Finalizado',
+      color: Colors.text_primary,
+      bgColor: Colors.text_tertiary,
+      borderColor: Colors.text_tertiary,
     },
   };
 
-  const { label, backgroundColor } = statusConfig[state] || { label: state, backgroundColor: "rgba(120, 120, 120, 0.7)" };
+  const { label, color, bgColor, borderColor } = statusConfig[state] || {
+    label: state,
+    color: Colors.text_primary,
+    bgColor: Colors.text_tertiary,
+    borderColor: Colors.text_tertiary,
+  };
 
   return (
-    <ImageBackground source={image} style={[styles.imageBackground, { height: height * 0.3 }]} imageStyle={styles.portrait}>
-      <View style={styles.overlay}>
-        {/* Título */}
-        <Text style={[styles.title, titleStyle]}>{title}</Text>
+    <View style={[styles.container, { borderRadius: parseInt(borderRadius.border_m) }]}>
+      <ImageBackground
+        source={image}
+        style={[styles.imageBackground, { height: height * 0.28 }]}
+        imageStyle={styles.portrait}
+        resizeMode='cover'
+      >
+        <View style={styles.overlay}>
+          {/* Fila Superior con Estado */}
+          <View style={styles.topRow}>
+            <View style={styles.liveCapsule}>
+              <View style={styles.liveDot} />
+              <Text style={styles.liveText}>WINNIX ARENA</Text>
+            </View>
 
-        {/* Contenido */}
-        <View
-          style={{
-            ...Flex.rowCenter,
-            justifyContent: "space-between",
-            width: "100%",
-            gap: 10,
-          }}>
-          {/* Estado */}
-          <Text style={[styles.status, { backgroundColor }, statusStyle]} adjustsFontSizeToFit>
-            {label}
-          </Text>
+            <Text
+              style={[
+                styles.statusTag,
+                { color, backgroundColor: bgColor, borderColor },
+                statusStyle,
+              ]}
+              adjustsFontSizeToFit
+            >
+              {label}
+            </Text>
+          </View>
 
-          {/* Fecha */}
-          <Text style={[styles.date, dateStyle]}>{dateText}</Text>
+          {/* Sección Media con Título */}
+          <View style={styles.middleSection}>
+            <View style={styles.titleBadge}>
+              <Text style={[styles.title, titleStyle]} numberOfLines={2}>
+                {title}
+              </Text>
+            </View>
+          </View>
 
-          {(state === "in-progress" || state === "published" || state === "draft") && (
-            <CustomButton
-              stylePressable={{
-                flex: 1,
-                backgroundColor: "rgba(255, 210, 60, .8)",
-              }}
-              styleText={{ color: Colors.light, fontSize: 16 }}
-              label={buttonLabel}
-              onPress={onPressButton}
-            />
-          )}
+          {/* Fila Inferior con Fecha */}
+          <View style={styles.bottomRow}>
+            <View style={styles.dateContainer}>
+              <WinnixIcon
+                name='calendar-outline'
+                size={16}
+                color={Colors.brand_primary}
+              />
+              <View style={{ gap: 2 }}>
+                <Text style={styles.dateLabel}>Temporada</Text>
+                <Text style={[styles.dateValue, dateStyle]}>{dateText}</Text>
+              </View>
+            </View>
+          </View>
         </View>
-      </View>
-    </ImageBackground>
+      </ImageBackground>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: Colors.border_subtitle,
+    shadowColor: Colors.brand_primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 8,
+  },
   imageBackground: {
-    width: "100%",
-    borderRadius: 16,
-    overflow: "hidden",
+    width: '100%',
   },
   portrait: {
-    width: "100%",
-    borderRadius: 16,
+    borderRadius: 8,
   },
   overlay: {
-    width: "100%",
-    height: "100%",
-    justifyContent: "flex-end",
-    gap: 10,
-    backgroundColor: "rgba(0,0,0,0.55)",
-    borderRadius: 12,
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(3, 8, 25, 0.45)',
     padding: 12,
+    justifyContent: 'space-between',
+  },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+  },
+  liveCapsule: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(3, 8, 25, 0.75)',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(40, 209, 195, 0.3)',
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.brand_primary,
+  },
+  liveText: {
+    color: Colors.brand_primary,
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+  statusTag: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 4,
+    borderWidth: 1,
+    textTransform: 'uppercase',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+    overflow: 'hidden',
+  },
+  middleSection: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    marginVertical: 12,
+  },
+  titleBadge: {
+    backgroundColor: 'rgba(3, 8, 25, 0.8)',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
   },
   title: {
-    fontSize: 28,
-    color: Colors.light,
-    fontWeight: "bold",
-    marginBottom: 20,
+    fontSize: 22,
+    color: Colors.text_primary,
+    fontWeight: 'bold',
   },
-  status: {
-    flex: 1,
-    textAlign: "center",
-    paddingVertical: 5,
-    paddingHorizontal: 8,
-    borderRadius: Radius.big,
-    fontSize: 16,
-    fontWeight: "bold",
-    color: Colors.light,
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    backgroundColor: 'rgba(14, 21, 41, 0.95)',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(40, 209, 195, 0.2)',
   },
-  date: {
+  dateContainer: {
     flex: 1,
-    textAlign: "center",
-    color: Colors.light,
-    fontSize: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  dateLabel: {
+    color: Colors.text_tertiary,
+    fontSize: 8,
+    textTransform: 'uppercase',
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  dateValue: {
+    color: Colors.text_primary,
+    fontSize: 11,
+    fontWeight: '700',
   },
 });

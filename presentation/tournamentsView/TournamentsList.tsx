@@ -76,8 +76,9 @@ const TournamentsList = () => {
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           <TournamentTeamItem
+            id={item._id}
             label={item.label}
-            state={item.state}
+            isActive={item.state === "published" || item.state === "in_progress"}
             img={item.img}
             stats={item.stats}
             onPressCard={() => handleNavigate(item)}

@@ -1,31 +1,38 @@
-import React from "react";
-import { ParticipationCard } from "./ParticipationCard";
-import { Activity, RecentActivityCard } from "./RecentActivityCard";
-import { TournamentStatsCard } from "./TournamentStatsCard";
+import React from 'react';
+import { ParticipationCard } from './ParticipationCard';
+import { Activity, RecentActivityCard } from './RecentActivityCard';
+import { TournamentStatsCard } from './TournamentStatsCard';
 
-export const ResumeLayout = () => {
-  const statsData = [
-    { label: "Encuentros jugados", value: "12 / 63" },
-    { label: "Goles anotados", value: 120 },
-    { label: "Jugador destacado", value: "Juan Pérez" },
-    { label: "Avance del torneo", value: "20%" },
-  ];
+interface Stat {
+  label: string;
+  value: string | number;
+}
 
-  const recentActivities: Activity[] = [
-    { id: "1", type: "match", title: "Thunder vs Ciber", subtitle: "Partida finalizada" },
-    { id: "2", type: "team", title: "Nuevo equipo registrado: Phoenix Rising hola", subtitle: "Hace 1 hora" },
-    { id: "3", type: "player", title: "Jugador agregado: Juan Pérez", subtitle: "Hace 30 min" },
-  ];
+interface Props {
+  stats: Stat[];
+  activities: Activity[];
+  showParticipation?: boolean;
+  onInscribe?: () => void;
+}
+
+export const ResumeLayout = ({
+  stats,
+  activities,
+  showParticipation = false,
+  onInscribe,
+}: Props) => {
   return (
     <>
-      {/* Join to tournament */}
-      <ParticipationCard onPressButton={() => console.log("clic en participacion")} />
+      {/* Join to tournament (Only visible to Captains or Players who are not the organizer) */}
+      {showParticipation && onInscribe && (
+        <ParticipationCard onPressButton={onInscribe} />
+      )}
 
       {/* Statistics */}
-      <TournamentStatsCard stats={statsData} />
+      <TournamentStatsCard stats={stats} />
 
       {/* Recently Activity */}
-      <RecentActivityCard activities={recentActivities} />
+      <RecentActivityCard activities={activities} />
     </>
   );
 };
