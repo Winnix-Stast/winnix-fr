@@ -6,8 +6,8 @@ export const tournamentAdapter = {
     return response.data;
   },
 
-  getAllEditions: async () => {
-    const response = await privateFetcher.instance.get('/tournament-editions');
+  getAllEditions: async (params?: Record<string, any>) => {
+    const response = await privateFetcher.instance.get('/tournament-editions', { params });
     return response.data;
   },
 

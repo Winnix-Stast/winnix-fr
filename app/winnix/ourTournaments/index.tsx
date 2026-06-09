@@ -8,9 +8,12 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRouter } from 'expo-router';
+import { usePermission } from '@/presentation/hooks/auth/usePermission';
 import { useMyBrands } from '@/presentation/hooks/brands/useMyBrands';
+import { useMyInscriptions } from '@/presentation/hooks/inscriptions/useMyInscriptions';
 import { WinnixIcon } from '@/presentation/plugins/Icon';
 import { Colors, Fonts } from '@/presentation/styles/global-styles';
+import { PermissionGate } from '@/presentation/theme/components';
 import { MainContainerView } from '@/presentation/theme/components/MainContainerView';
 import { CustomIcon } from '@/presentation/theme/components/icons/CustomIcon';
 import OurTournamentsList from '@/presentation/tournamentsView/ourTournaments/OurTournamentsList';
@@ -18,14 +21,61 @@ import OurTournamentsList from '@/presentation/tournamentsView/ourTournaments/Ou
 const OurTournaments = () => {
   const router = useRouter();
   const navigation = useNavigation();
-  const { brands, loading, isRefreshing, refresh } = useMyBrands();
+  const { can } = usePermission();
+  
+  const { brands, loading: loadingBrands, isRefreshing: refreshingBrands, refresh: refreshBrands } = useMyBrands();
+  const { inscriptions, loading: loadingInscriptions, isRefreshing: refreshingInscriptions, refresh: refreshInscriptions } = useMyInscriptions();
+
+  const isOrganizer = can('create:tournament');
+
+  const loading = isOrganizer ? loadingBrands : loadingInscriptions;
+  const isRefreshing = isOrganizer ? refreshingBrands : refreshingInscriptions;
+  const refresh = isOrganizer ? refreshBrands : refreshInscriptions;
 
   React.useEffect(() => {
-    navigation.setOptions({ title: 'Mis Marcas' });
-  }, [navigation]);
+    navigation.setOptions({ title: isOrganizer ? 'Mis Marcas 2' : 'Mis Torneos' });
+  }, [navigation, isOrganizer]);
 
   const handleCreateTournament = () => {
     router.push('/winnix/tournament/create');
+  };
+
+  const listItems = isOrganizer
+    ? brands
+    : inscriptions.map((ins: any) => ({
+        _id: ins._id,
+        name: `${ins.tournamentEdition?.tournament?.name || 'Torneo'} — ${ins.tournamentEdition?.seasonName || 'Edición'}`,
+        logo: ins.tournamentEdition?.tournament?.logo || ins.team?.logo,
+        isActive: ins.tournamentEdition?.status === 'ACTIVE' || ins.isActive,
+        stats: [
+          {
+            _id: `${ins._id}-team`,
+            iconName: 'people-outline' as const,
+            title: 'Equipo',
+            value: ins.team?.name || '—',
+            iconColor: Colors.primary,
+            flexText: true,
+          },
+          {
+            _id: `${ins._id}-won`,
+            iconName: 'trophy-outline' as const,
+            title: 'Ganados',
+            value: String(ins.stats?.matchesWon || 0),
+            iconColor: '#FBBF24',
+          },
+        ],
+        styleText: { fontSize: 16 },
+        editionId: ins.tournamentEdition?._id,
+      }));
+
+  const handlePressItem = (item: any) => {
+    if (isOrganizer) {
+      router.push(`/winnix/ourTournaments/${item._id}`);
+    } else {
+      if (item.editionId) {
+        router.push(`/winnix/ourTournaments/tournament/${item.editionId}`);
+      }
+    }
   };
 
   if (loading) {
@@ -41,47 +91,59 @@ const OurTournaments = () => {
   return (
     <MainContainerView>
       {/* FAB - Create Tournament */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={handleCreateTournament}
-        activeOpacity={0.9}
-      >
-        <WinnixIcon name='add-outline' size={35} />
-      </TouchableOpacity>
+      <PermissionGate permission='create:tournament'>
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={handleCreateTournament}
+          activeOpacity={0.9}
+        >
+          <WinnixIcon name='add-outline' size={35} />
+        </TouchableOpacity>
+      </PermissionGate>
 
       <View style={styles.tournaments}>
         <View style={styles.header}>
-          <Text style={styles.title}>Mis Marcas</Text>
-          <Text style={styles.subtitle}>Gestiona tus marcas y ediciones</Text>
+          <Text style={styles.title}>{isOrganizer ? 'Mis Marcas 2' : 'Mis Torneos'}</Text>
+          <Text style={styles.subtitle}>
+            {isOrganizer
+              ? 'Gestiona tus marcas y ediciones'
+              : 'Visualiza tus torneos y competiciones'}
+          </Text>
         </View>
 
-        {brands.length > 0 ? (
+        {listItems.length > 0 ? (
           <OurTournamentsList
-            tournaments={brands}
+            tournaments={listItems}
             refreshing={isRefreshing}
             onRefresh={refresh}
+            onPressItem={handlePressItem}
           />
         ) : (
           <View style={styles.emptyStateContainer}>
             <CustomIcon name='empty-tournament' size={250} />
-            <Text style={styles.emptyTitle}>Aún no tienes marcas</Text>
-            <Text style={styles.emptySubtitle}>
-              Crea tu primera marca de torneo para empezar a organizar ediciones y
-              competiciones.
+            <Text style={styles.emptyTitle}>
+              {isOrganizer ? 'Aún no tienes marcas' : 'No tienes torneos registrados'}
             </Text>
-            <TouchableOpacity
-              style={styles.createButton}
-              activeOpacity={0.8}
-              onPress={() => router.push('/winnix/brand/create')}
-            >
-              <Ionicons
-                name='trophy-outline'
-                size={20}
-                color={Colors.light}
-                style={{ marginRight: 8 }}
-              />
-              <Text style={styles.createButtonText}>CREAR MI PRIMERA MARCA</Text>
-            </TouchableOpacity>
+            <Text style={styles.emptySubtitle}>
+              {isOrganizer
+                ? 'Crea tu primera marca de torneo para empezar a organizar ediciones y competiciones.'
+                : 'Aún no estás participando en ningún torneo actualmente 2.'}
+            </Text>
+            <PermissionGate permission='brand:create'>
+              <TouchableOpacity
+                style={styles.createButton}
+                activeOpacity={0.8}
+                onPress={() => router.push('/winnix/brand/create')}
+              >
+                <Ionicons
+                  name='trophy-outline'
+                  size={20}
+                  color={Colors.light}
+                  style={{ marginRight: 8 }}
+                />
+                <Text style={styles.createButtonText}>CREAR MI PRIMERA MARCA</Text>
+              </TouchableOpacity>
+            </PermissionGate>
           </View>
         )}
       </View>
@@ -95,10 +157,10 @@ const styles = StyleSheet.create({
   tournaments: {
     flex: 1,
     paddingVertical: 20,
-    paddingHorizontal: 20,
   },
   header: {
     marginBottom: 20,
+    paddingHorizontal: 20,
   },
   title: {
     fontSize: 24,
@@ -135,6 +197,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 20,
+    paddingHorizontal: 20,
   },
   emptyTitle: {
     fontSize: 22,

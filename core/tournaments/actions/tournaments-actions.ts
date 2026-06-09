@@ -27,6 +27,22 @@ export const tournamentsActions = {
     }
   },
 
+  getEditionsPaginatedAction: async (params?: Record<string, any>): Promise<any> => {
+    try {
+      const response = await tournamentAdapter.getAllEditions(params);
+      return {
+        success: response.success,
+        data: {
+          editions: response.data || [],
+          total: response.meta?.totalItems || 0,
+        },
+      };
+    } catch (error) {
+      console.error('getEditionsPaginatedAction error :>> ', error);
+      return { success: false, data: { editions: [], total: 0 } };
+    }
+  },
+
   createEditionAction: async (payload: CreateEditionPayload): Promise<any> => {
     try {
       const data = await tournamentAdapter.createEdition(payload);

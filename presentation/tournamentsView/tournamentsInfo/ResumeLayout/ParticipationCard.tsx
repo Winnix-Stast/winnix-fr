@@ -1,56 +1,98 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { WinnixIcon } from '@/presentation/plugins/Icon';
+import { IconName, WinnixIcon } from '@/presentation/plugins/Icon';
 import { Colors } from '@/presentation/styles/colors';
 
 type Props = {
   onPressButton: () => void;
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+  iconName?: IconName;
+  headerIconName?: IconName;
+  headerText?: string;
+  gradientColors?: [string, string];
+  accentColor?: string;
 };
 
-export const ParticipationCard = ({ onPressButton }: Props) => {
+export const ParticipationCard = ({
+  onPressButton,
+  title = '¡ÚNETE AL TORNEO!',
+  subtitle = 'Las inscripciones se encuentran abiertas por tiempo limitado.',
+  buttonText = 'INSCRIBIRSE AHORA',
+  iconName = 'person-add-outline',
+  headerIconName = 'person-circle-outline',
+  headerText = 'MI PARTICIPACIÓN',
+  gradientColors = ['#0D2825', '#071221'],
+  accentColor = Colors.brand_primary,
+}: Props) => {
   return (
-    <Pressable onPress={onPressButton} style={styles.outerContainer}>
+    <Pressable
+      onPress={onPressButton}
+      style={[
+        styles.outerContainer,
+        {
+          borderColor: `${accentColor}33`,
+          shadowColor: accentColor,
+        },
+      ]}
+    >
       <LinearGradient
-        colors={['#0D2825', '#071221']}
+        colors={gradientColors}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
         {/* Slanted energy border decoration */}
-        <View style={styles.topAccentBar} />
+        <View style={[styles.topAccentBar, { backgroundColor: accentColor }]} />
 
         <View style={styles.header}>
-          <View style={styles.iconBadge}>
-            <WinnixIcon
-              name='person-circle-outline'
-              size={16}
-              color={Colors.brand_primary}
-            />
+          <View
+            style={[
+              styles.iconBadge,
+              {
+                backgroundColor: `${accentColor}0D`,
+                borderColor: `${accentColor}1A`,
+              },
+            ]}
+          >
+            <WinnixIcon name={headerIconName} size={16} color={accentColor} />
           </View>
-          <Text style={styles.headerText}>MI PARTICIPACIÓN</Text>
+          <Text style={styles.headerText}>{headerText}</Text>
         </View>
 
         <View style={styles.body}>
-          <View style={styles.mainIconWrapper}>
-            <WinnixIcon
-              name='person-add-outline'
-              size={32}
-              color={Colors.brand_primary}
-            />
+          <View
+            style={[
+              styles.mainIconWrapper,
+              {
+                backgroundColor: `${accentColor}08`,
+                borderColor: `${accentColor}14`,
+              },
+            ]}
+          >
+            <WinnixIcon name={iconName} size={32} color={accentColor} />
           </View>
 
           <View style={styles.textContainer}>
-            <Text style={styles.title}>¡ÚNETE AL TORNEO!</Text>
-            <Text style={styles.subtitle}>
-              Las inscripciones se encuentran abiertas por tiempo limitado.
-            </Text>
+            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.subtitle}>{subtitle}</Text>
           </View>
         </View>
 
         {/* Tactical Skewed Action Button */}
         <View style={styles.buttonWrapper}>
-          <Pressable onPress={onPressButton} style={styles.button}>
-            <Text style={styles.buttonText}>INSCRIBIRSE AHORA</Text>
+          <Pressable
+            onPress={onPressButton}
+            style={[
+              styles.button,
+              {
+                backgroundColor: accentColor,
+                borderColor: accentColor,
+              },
+            ]}
+          >
+            <Text style={styles.buttonText}>{buttonText}</Text>
             <WinnixIcon
               name='chevron-forward-outline'
               size={14}

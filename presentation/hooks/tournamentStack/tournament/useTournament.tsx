@@ -1,19 +1,18 @@
-import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
-
-import { useCustomForm } from "@/hooks/useCustomForm";
-import { useEffect } from "react";
+import { useEffect } from 'react';
+import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
+import { useCustomForm } from '@/hooks/useCustomForm';
 
 export const useTournament = (tap: string) => {
   const navigate = useRouter();
 
-  const { control, handleSubmit, isSubmitting, isDisabled } = useCustomForm();
+  const { control, handleSubmit, watch, isSubmitting, isDisabled } = useCustomForm();
 
   const handleSearch = async (payload: string) => {
     try {
       const filter = {};
     } catch (error) {
-      console.log("error :>> ", error);
+      console.log('error :>> ', error);
     }
   };
 
@@ -29,7 +28,7 @@ export const useTournament = (tap: string) => {
   // };
 
   useEffect(() => {
-    console.log("tap", tap);
+    console.log('tap', tap);
   }, [tap]);
 
   return {
@@ -37,6 +36,7 @@ export const useTournament = (tap: string) => {
 
     //Methods
     control,
+    watch,
     handleSubmit,
     isSubmitting,
     isDisabled,

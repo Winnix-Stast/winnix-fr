@@ -1,6 +1,5 @@
 import { useCallback, useRef } from 'react';
 import { FlatList, RefreshControl, View } from 'react-native';
-import { router } from 'expo-router';
 import { Colors } from '@/presentation/styles/global-styles';
 import { TournamentTeamItem } from '../TournamentTeamItem';
 
@@ -8,24 +7,31 @@ interface Props {
   tournaments: any;
   refreshing?: boolean;
   onRefresh?: () => void;
+  onPressItem: (item: any) => void;
 }
 
-const OurTournamentsList = ({ tournaments, refreshing = false, onRefresh }: Props) => {
+const OurTournamentsList = ({
+  tournaments,
+  refreshing = false,
+  onRefresh,
+  onPressItem,
+}: Props) => {
   const isNavigating = useRef(false);
 
-  const handleNavigate = useCallback((item: any) => {
-    if (isNavigating.current) return;
+  const handlePress = useCallback(
+    (item: any) => {
+      if (isNavigating.current) return;
 
-    isNavigating.current = true;
+      isNavigating.current = true;
+      onPressItem(item);
 
-    // Using navigate for idempotency
-    router.navigate(`/winnix/ourTournaments/${item._id}`);
-
-    // Safety release after 1 second to account for slow transitions
-    setTimeout(() => {
-      isNavigating.current = false;
-    }, 1000);
-  }, []);
+      // Safety release after 1 second to account for slow transitions
+      setTimeout(() => {
+        isNavigating.current = false;
+      }, 1000);
+    },
+    [onPressItem],
+  );
 
   return (
     <View style={{ flex: 1 }}>
@@ -49,30 +55,33 @@ const OurTournamentsList = ({ tournaments, refreshing = false, onRefresh }: Prop
             isActive={item.isActive}
             isFavorite={false}
             img={item.logo || require('../../../assets/icons/brand/default/escudo2.png')}
-            stats={[
-              {
-                _id: `${item._id}-editions`,
-                iconName: 'layers-outline',
-                title: 'Ediciones',
-                value: `${item.globalStats?.totalEditions || 0}`,
-                iconColor: Colors.primary,
-              },
-              {
-                _id: `${item._id}-matches`,
-                iconName: 'football-outline',
-                title: 'Partidos',
-                value: `${item.globalStats?.totalMatchesPlayed || 0}`,
-                iconColor: '#22C55E',
-              },
-              {
-                _id: `${item._id}-rating`,
-                iconName: 'star-outline',
-                title: 'Rating',
-                value: `${item.averageRating || 0}`,
-                iconColor: '#FBBF24',
-              },
-            ]}
-            onPressCard={() => handleNavigate(item)}
+            stats={
+              item.stats || [
+                {
+                  _id: `${item._id}-editions`,
+                  iconName: 'layers-outline',
+                  title: 'Ediciones',
+                  value: `${item.globalStats?.totalEditions || 0}`,
+                  iconColor: Colors.primary,
+                },
+                {
+                  _id: `${item._id}-matches`,
+                  iconName: 'football-outline',
+                  title: 'Partidos',
+                  value: `${item.globalStats?.totalMatchesPlayed || 0}`,
+                  iconColor: '#22C55E',
+                },
+                {
+                  _id: `${item._id}-rating`,
+                  iconName: 'star-outline',
+                  title: 'Rating',
+                  value: `${item.averageRating || 0}`,
+                  iconColor: '#FBBF24',
+                },
+              ]
+            }
+            styleText={item.styleText}
+            onPressCard={() => handlePress(item)}
           />
         )}
         contentContainerStyle={{

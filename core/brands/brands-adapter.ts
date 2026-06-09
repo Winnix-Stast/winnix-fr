@@ -1,8 +1,8 @@
-import { privateFetcher } from "../api/api.config";
+import { privateFetcher } from '../api/api.config';
 
 export const brandsAdapter = {
   getMyBrands: async () => {
-    const response = await privateFetcher.instance.get("/tournaments/my-brands");
+    const response = await privateFetcher.instance.get('/tournaments/my-brands');
     return response.data;
   },
 
@@ -12,7 +12,12 @@ export const brandsAdapter = {
   },
 
   createBrand: async (payload: { name: string; logo?: string }) => {
-    const response = await privateFetcher.instance.post("/tournaments", payload);
+    const response = await privateFetcher.instance.post('/tournaments', payload);
+    return response.data;
+  },
+
+  toggleFavorite: async (id: string) => {
+    const response = await privateFetcher.instance.patch(`/user/favorites/${id}`);
     return response.data;
   },
 };

@@ -21,6 +21,10 @@ export const OrganizerDashboardView = () => {
     router.push('/winnix/brand/create');
   };
 
+  const handlePressTournament = (item: any) => {
+    router.push(`/winnix/ourTournaments/${item._id}`);
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -41,6 +45,7 @@ export const OrganizerDashboardView = () => {
           tournaments={tournaments}
           refreshing={isRefreshing}
           onRefresh={refresh}
+          onPressItem={handlePressTournament}
         />
       ) : (
         <View style={styles.emptyStateContainer}>

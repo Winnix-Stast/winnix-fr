@@ -15,4 +15,9 @@ export const inscriptionsAdapter = {
     const response = await privateFetcher.get("/tournament-inscriptions/my-inscriptions");
     return response;
   },
+
+  updateInscription: async (id: string, payload: { players: string[] }) => {
+    const response = await privateFetcher.patch(`/tournament-inscriptions/${id}`, payload);
+    return response;
+  },
 };

@@ -30,4 +30,14 @@ export const inscriptionsActions = {
       return [];
     }
   },
+
+  updateInscriptionAction: async (id: string, payload: { players: string[] }): Promise<any> => {
+    try {
+      const data = await inscriptionsAdapter.updateInscription(id, payload);
+      return data;
+    } catch (error: any) {
+      console.error("updateInscriptionAction error :>> ", error?.message || error);
+      throw error;
+    }
+  },
 };

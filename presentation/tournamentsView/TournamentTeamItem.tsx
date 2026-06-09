@@ -36,6 +36,7 @@ interface Props {
     title: string;
     value: string;
     iconColor?: string;
+    flexText?: boolean;
   }[];
   onPressCard: () => void;
   stylePressable?: StyleProp<ViewStyle>;
@@ -56,6 +57,7 @@ export const TournamentTeamItem = ({
   const [isToggling, setIsToggling] = useState(false);
 
   // Reanimated values for 3D Tilt & Parallax
+
   const tiltX = useSharedValue(0);
   const tiltY = useSharedValue(0);
   const scale = useSharedValue(1);
@@ -256,19 +258,24 @@ export const TournamentTeamItem = ({
                       color={stat.iconColor || Colors.primary}
                     />
                   </View>
-                  <View style={styles.statContent}>
+                  <View style={[styles.statContent, stat.flexText ? { flex: 1 } : null]}>
                     <CustomText
                       label={stat.value}
-                      size={16}
+                      size={stat.flexText ? 13 : 16}
                       weight='900'
                       color={Colors.light}
+                      singleLine={stat.flexText}
+                      style={{ textAlign: stat.flexText ? 'left' : 'center' }}
                     />
                     <CustomText
                       label={stat.title.toUpperCase()}
                       size={9}
                       weight='bold'
                       color={Colors.gray}
-                      style={{ letterSpacing: 1 }}
+                      style={{
+                        letterSpacing: 1,
+                        textAlign: stat.flexText ? 'left' : 'center',
+                      }}
                     />
                   </View>
                 </View>

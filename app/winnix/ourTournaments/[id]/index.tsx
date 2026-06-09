@@ -18,6 +18,8 @@ import { Colors, Flex, Fonts } from '@/presentation/styles/global-styles';
 import { CustomFormView } from '@/presentation/theme/components/CustomFormView';
 import { CustomText } from '@/presentation/theme/components/CustomText';
 import { GradientContainer } from '@/presentation/theme/components/GradientCard';
+import { PermissionGate } from '@/presentation/theme/components';
+
 
 const BrandDetailScreen = () => {
   const { id } = useLocalSearchParams();
@@ -154,18 +156,20 @@ const BrandDetailScreen = () => {
           {/* Editions Section */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Ediciones del Torneo</Text>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() =>
-                router.push({
-                  pathname: '/winnix/tournament/create',
-                  params: { brandId: id as string },
-                })
-              }
-            >
-              <WinnixIcon name='add-circle-outline' size={20} color={Colors.primary} />
-              <Text style={styles.addButtonText}>Nueva Edición</Text>
-            </TouchableOpacity>
+            <PermissionGate permission="create:tournament-edition">
+              <TouchableOpacity
+                style={styles.addButton}
+                onPress={() =>
+                  router.push({
+                    pathname: '/winnix/tournament/create',
+                    params: { brandId: id as string },
+                  })
+                }
+              >
+                <WinnixIcon name='add-circle-outline' size={20} color={Colors.primary} />
+                <Text style={styles.addButtonText}>Nueva Edición</Text>
+              </TouchableOpacity>
+            </PermissionGate>
           </View>
 
           {loadingEditions ? (
