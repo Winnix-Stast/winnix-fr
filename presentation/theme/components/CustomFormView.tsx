@@ -19,6 +19,7 @@ export const CustomFormView = ({ children, contentStyle }: Props) => {
         keyboardShouldPersistTaps='handled'
         enableOnAndroid={true}
         enableAutomaticScroll={true}
+        enableResetScrollToCoords={false}
         extraScrollHeight={80}
         extraHeight={120}
         showsVerticalScrollIndicator={false}

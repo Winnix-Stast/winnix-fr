@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { ScreenHeader } from '@/presentation/components/customs';
 import { useCreateBrand } from '@/presentation/hooks/brands/useCreateBrand';
 import { WinnixIcon } from '@/presentation/plugins/Icon';
 import { Colors } from '@/presentation/styles/colors';
@@ -24,21 +25,8 @@ export default function CreateBrandScreen() {
 
   return (
     <CustomFormView>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <View style={[styles.header, { paddingTop: 20 }]}>
-          <Pressable onPress={handleGoBack} style={styles.backButton}>
-            <WinnixIcon
-              name='chevron-back-outline'
-              size={30}
-              color={Colors.text_primary}
-            />
-          </Pressable>
-          <Text style={styles.headerTitle}>Nueva Marca </Text>
-          <View style={{ width: 40 }} />
-        </View>
+      <View style={styles.scrollContent}>
+        <ScreenHeader title='Nueva Marca' onBack={handleGoBack} />
 
         <View style={styles.formContainer}>
           <View style={styles.infoCard}>
@@ -48,8 +36,9 @@ export default function CreateBrandScreen() {
               color={Colors.brand_primary}
             />
             <Text style={styles.infoText}>
-              Una marca es la identidad de tus torneos. Crea tu marca primero y luego
-              podrás organizar ediciones bajo ella.
+              {
+                "Una Marca es la dueña de tu liga (como la 'Dimayor'). Una vez que la crees, podrás armar todos los torneos y temporadas (como la Liga BetPlay) que quieras bajo su nombre. ¡Empieza a armar tu propia liga!"
+              }
             </Text>
           </View>
 
@@ -82,7 +71,7 @@ export default function CreateBrandScreen() {
             />
           </View>
         </View>
-      </ScrollView>
+      </View>
     </CustomFormView>
   );
 }
@@ -91,22 +80,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 40,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  backButton: {
-    padding: 5,
-  },
-  headerTitle: {
-    fontSize: Fonts.large,
-    fontWeight: 'bold',
-    color: Colors.text_brand,
-    textTransform: 'uppercase',
-  },
+
   formContainer: {
     paddingHorizontal: 20,
     gap: 18,

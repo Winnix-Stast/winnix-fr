@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -7,22 +7,25 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { BrandTutorialOverlay } from '@/presentation/components/tutorials';
 import { useMyTournaments } from '@/presentation/hooks/tournaments/useMyTournaments';
+import { WinnixIcon } from '@/presentation/plugins/Icon';
 import { Colors } from '@/presentation/styles';
 import { Fonts } from '@/presentation/styles/global-styles';
 import { CustomIcon } from '@/presentation/theme/components/icons/CustomIcon';
-import OurTournamentsList from '@/presentation/tournamentsView/ourTournaments/OurTournamentsList';
+import OurTournamentsList from '@/presentation/tournamentsView/shared/OurTournamentsList';
 
 export const OrganizerDashboardView = () => {
   const router = useRouter();
-  const { tournaments, loading, isRefreshing, refresh } = useMyTournaments();
+  const { tournaments: brands, loading, isRefreshing, refresh } = useMyTournaments();
+  const [forceShowTutorial, setForceShowTutorial] = useState(false);
 
   const handleCreateTournament = () => {
     router.push('/winnix/brand/create');
   };
 
   const handlePressTournament = (item: any) => {
-    router.push(`/winnix/ourTournaments/${item._id}`);
+    router.push(`/winnix/myZone/organizer/brands/${item._id}`);
   };
 
   if (loading) {
@@ -36,26 +39,40 @@ export const OrganizerDashboardView = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Tus Torneos ihia</Text>
+        <View style={styles.headerTitleRow}>
+          <Text style={styles.title}>Mis Marcas</Text>
+          <TouchableOpacity
+            style={styles.helpButton}
+            onPress={() => setForceShowTutorial(true)}
+            activeOpacity={0.7}
+          >
+            <WinnixIcon
+              name='help-circle-outline'
+              size={22}
+              color={Colors.brand_primary}
+            />
+          </TouchableOpacity>
+        </View>
         <Text style={styles.subtitle}>Gestiona tus competiciones activas</Text>
       </View>
 
-      {tournaments.length > 0 ? (
+      {brands.length > 0 ? (
         <OurTournamentsList
-          tournaments={tournaments}
+          tournaments={brands}
           refreshing={isRefreshing}
           onRefresh={refresh}
           onPressItem={handlePressTournament}
+          isBrandList={true}
         />
       ) : (
         <View style={styles.emptyStateContainer}>
           <View style={styles.iconWrapper}>
             <CustomIcon name='empty-tournament' size={300} />
           </View>
-          <Text style={styles.emptyTitle}>Ningún torneo activo</Text>
+          <Text style={styles.emptyTitle}>Ninguna marca activa</Text>
           <Text style={styles.emptySubtitle}>
-            La arena está vacía. Es hora de organizar el próximo gran evento y convocar a
-            los mejores equipos.
+            La arena está vacía. Es hora de crear tu marca y empezar a armar tus propios
+            torneos y temporadas.
           </Text>
 
           <TouchableOpacity
@@ -68,8 +85,8 @@ export const OrganizerDashboardView = () => {
         </View>
       )}
 
-      {/* Botón flotante siempre visible si hay torneos */}
-      {tournaments.length > 0 && (
+      {/* Botón flotante siempre visible si hay marcas */}
+      {brands.length > 0 && (
         <TouchableOpacity
           style={styles.floatingButton}
           onPress={handleCreateTournament}
@@ -78,6 +95,12 @@ export const OrganizerDashboardView = () => {
           <CustomIcon name='plus' size={30} color={Colors.on_brand} />
         </TouchableOpacity>
       )}
+
+      {/* Tutorial contextual de Marcas */}
+      <BrandTutorialOverlay
+        forceShow={forceShowTutorial}
+        onClose={() => setForceShowTutorial(false)}
+      />
     </View>
   );
 };
@@ -93,11 +116,23 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     paddingHorizontal: 20,
   },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 5,
+  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: Colors.text_primary,
-    marginBottom: 5,
+  },
+  helpButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(40, 209, 195, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(40, 209, 195, 0.15)',
   },
   subtitle: {
     fontSize: Fonts.normal,

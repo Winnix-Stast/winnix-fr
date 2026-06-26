@@ -1,8 +1,17 @@
-import { Colors } from "@/presentation/styles";
-import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useRef, useState } from "react";
-import { Controller } from "react-hook-form";
-import { Animated, Keyboard, StyleSheet, Text, TextInput, TextStyle, TouchableWithoutFeedback, View } from "react-native";
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Animated,
+  Keyboard,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextStyle,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Controller } from 'react-hook-form';
+import { Colors } from '@/presentation/styles';
 
 interface CustomSearchProps {
   name: string;
@@ -15,7 +24,16 @@ interface CustomSearchProps {
   errorMessage?: string;
 }
 
-export const CustomSearch = ({ name, control, label, placeholder = "Buscar...", iconLeft, iconRight, styleLabel, errorMessage }: CustomSearchProps) => {
+export const CustomSearch = ({
+  name,
+  control,
+  label,
+  placeholder = 'Buscar...',
+  iconLeft,
+  iconRight,
+  styleLabel,
+  errorMessage,
+}: CustomSearchProps) => {
   const [isActive, setIsActive] = useState(false);
 
   const shadowAnim = useRef(new Animated.Value(0)).current;
@@ -56,16 +74,24 @@ export const CustomSearch = ({ name, control, label, placeholder = "Buscar...", 
               style={[
                 styles.inputContainer,
                 {
-                  borderColor: Colors.secondary_600,
-                  shadowColor: Colors.secondary_600,
+                  borderColor: isActive ? Colors.brand_primary : '#192147',
+                  shadowColor: Colors.brand_primary,
                 },
                 animatedStyle,
-              ]}>
-              {iconLeft && <Ionicons name={iconLeft} size={22} color={Colors.secondary_600} style={{ marginRight: 6 }} />}
+              ]}
+            >
+              {iconLeft && (
+                <Ionicons
+                  name={iconLeft}
+                  size={20}
+                  color={isActive ? Colors.brand_primary : Colors.text_tertiary}
+                  style={{ marginRight: 8 }}
+                />
+              )}
               <TextInput
                 style={styles.input}
                 placeholder={placeholder}
-                placeholderTextColor={Colors.neutral_500}
+                placeholderTextColor={Colors.text_tertiary}
                 value={value}
                 onChangeText={onChange}
                 onFocus={() => setIsActive(true)}
@@ -74,12 +100,22 @@ export const CustomSearch = ({ name, control, label, placeholder = "Buscar...", 
                   onBlur();
                 }}
               />
-              {iconRight && <Ionicons name={iconRight} size={22} color={Colors.secondary_600} />}
+              {iconRight && (
+                <Ionicons
+                  name={iconRight}
+                  size={20}
+                  color={isActive ? Colors.brand_primary : Colors.text_tertiary}
+                />
+              )}
             </Animated.View>
           )}
         />
 
-        {errorMessage && <Text style={{ color: Colors.text_error, marginTop: 4, fontSize: 12 }}>{errorMessage}</Text>}
+        {errorMessage && (
+          <Text style={{ color: Colors.text_error, marginTop: 4, fontSize: 12 }}>
+            {errorMessage}
+          </Text>
+        )}
       </View>
     </TouchableWithoutFeedback>
   );
@@ -87,29 +123,31 @@ export const CustomSearch = ({ name, control, label, placeholder = "Buscar...", 
 
 const styles = StyleSheet.create({
   container: {
-    width: "100%",
+    width: '100%',
     paddingVertical: 8,
   },
   inputContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     borderWidth: 1.5,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    alignItems: "center",
-    backgroundColor: Colors.surface_base,
-    shadowOffset: { width: 0, height: 6 },
+    borderRadius: 14,
+    paddingHorizontal: 15,
+    alignItems: 'center',
+    backgroundColor: '#070a1e',
+    shadowOffset: { width: 0, height: 0 },
   },
   input: {
     flex: 1,
-    fontSize: 16,
-    height: 50,
+    fontSize: 15,
+    height: 48,
     paddingHorizontal: 8,
     color: Colors.text_primary,
+    fontWeight: '600',
   },
   label: {
-    fontSize: 16,
-    marginBottom: 6,
-    fontWeight: "600",
-    color: Colors.text_primary,
+    fontSize: 15,
+    marginBottom: 8,
+    fontWeight: 'bold',
+    color: Colors.text_secondary,
+    letterSpacing: 1,
   },
 });

@@ -14,8 +14,8 @@ import { useTournamentsInfinite } from '@/presentation/hooks/tournaments/useTour
 import { Colors, Fonts } from '@/presentation/styles/global-styles';
 import { CustomSearch } from '@/presentation/theme/components/CustomSearch';
 import { MainContainerView } from '@/presentation/theme/components/MainContainerView';
-import TeamsList from '@/presentation/tournamentsView/TeamsList';
-import TournamentsList from '@/presentation/tournamentsView/TournamentsList';
+import TeamsList from '@/presentation/tournamentsView/shared/TeamsList';
+import TournamentsList from '@/presentation/tournamentsView/shared/TournamentsList';
 
 const OurTournaments = () => {
   const [viewSelected, setViewSelected] = useState('viewTournaments');

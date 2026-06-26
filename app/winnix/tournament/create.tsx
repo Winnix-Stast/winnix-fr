@@ -1,13 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { ScreenHeader } from '@/presentation/components/customs';
 import { useMyBrands } from '@/presentation/hooks/brands/useMyBrands';
 import {
   useSportCategories,
@@ -19,7 +13,6 @@ import { WinnixIcon } from '@/presentation/plugins/Icon';
 import { Colors } from '@/presentation/styles/colors';
 import { Fonts } from '@/presentation/styles/global-styles';
 import { CustomButton, CustomFormView } from '@/presentation/theme/components/';
-import { BrandSection } from '@/presentation/tournamentsView/create/BrandSection';
 import { ConfigSection } from '@/presentation/tournamentsView/create/ConfigSection';
 import { EditionDetailsSection } from '@/presentation/tournamentsView/create/EditionDetailsSection';
 import { PersonalizationSection } from '@/presentation/tournamentsView/create/PersonalizationSection';
@@ -27,7 +20,6 @@ import { SportSection } from '@/presentation/tournamentsView/create/SportSection
 import { TemplateDetailsModal } from '@/presentation/tournamentsView/create/TemplateDetailsModal';
 
 export default function CreateTournamentScreen() {
-  const router = useRouter();
   const { brandId } = useLocalSearchParams<{ brandId?: string }>();
 
   const {
@@ -79,17 +71,7 @@ export default function CreateTournamentScreen() {
     return (
       <CustomFormView>
         <View style={styles.emptyContainer}>
-          <View style={[styles.header, { paddingTop: 20 }]}>
-            <Pressable onPress={handleGoBack} style={styles.backButton}>
-              <WinnixIcon
-                name='chevron-back-outline'
-                size={30}
-                color={Colors.text_primary}
-              />
-            </Pressable>
-            <Text style={styles.headerTitle}>Crear Torneo</Text>
-            <View style={{ width: 40 }} />
-          </View>
+          <ScreenHeader title='Armar Torneo' onBack={handleGoBack} />
           <View style={styles.emptyStateContent}>
             <WinnixIcon name='trophy-outline' size={80} color={Colors.brand_primary} />
             <Text style={styles.emptyTitle}>Primero necesitas una marca</Text>
@@ -97,13 +79,6 @@ export default function CreateTournamentScreen() {
               Una marca es la identidad de tus torneos (ej: Liga Capitalina). Crea tu
               primera marca para empezar a organizar ediciones.
             </Text>
-            <TouchableOpacity
-              style={styles.createBrandButton}
-              onPress={() => router.push('/winnix/brand/create')}
-            >
-              <WinnixIcon name='add-outline' size={22} color={Colors.on_brand} />
-              <Text style={styles.createBrandButtonText}>CREAR MI PRIMERA MARCA</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </CustomFormView>
@@ -122,22 +97,10 @@ export default function CreateTournamentScreen() {
 
   return (
     <CustomFormView>
-      <View style={[styles.header, { paddingTop: 20 }]}>
-        <Pressable onPress={handleGoBack} style={styles.backButton}>
-          <WinnixIcon name='chevron-back-outline' size={30} color={Colors.text_primary} />
-        </Pressable>
-        <Text style={styles.headerTitle}>Crear Torneo</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <ScreenHeader title='Armar Torneo' onBack={handleGoBack} />
 
       <View style={styles.formContainer}>
         <PersonalizationSection control={control} errors={errors} />
-
-        <BrandSection
-          control={control}
-          brands={brands}
-          error={errors.tournament?.message}
-        />
 
         <SportSection
           control={control}

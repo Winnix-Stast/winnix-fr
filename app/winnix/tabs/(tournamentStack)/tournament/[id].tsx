@@ -17,8 +17,8 @@ import {
 import { TournamentHeaderCard } from '@/presentation/tournamentsView/tournamentsInfo/TournamentHeaderCard';
 import { TournamentMenu } from '@/presentation/tournamentsView/tournamentsInfo/TournamentMenu';
 import { TournamentStatsCards } from '@/presentation/tournamentsView/tournamentsInfo/TournamentStatsCards';
-import { TournamentStagesLayout } from '@/presentation/tournamentsView/tournamentsInfo/stagesLayout';
-import { RosterLayout } from '@/presentation/tournamentsView/tournamentsInfo/rosterLayout/RosterLayout';
+import { TournamentCaptainSection } from '@/presentation/tournamentsView/tournamentsInfo/views/TournamentCaptainSection';
+import { TournamentOrganizerSection } from '@/presentation/tournamentsView/tournamentsInfo/views/TournamentOrganizerSection';
 
 const TournamentDetails = () => {
   const { id } = useLocalSearchParams();
@@ -66,9 +66,9 @@ const TournamentDetails = () => {
   }
 
   const filteredMenuItems = menuItems.filter(
-    (item) => item.key !== 'stages' || details.isOrganizer
+    (item) => item.key !== 'stages' || details.isOrganizer,
   );
-  
+
   if (details.isCaptain && details.isAlreadyInscribed) {
     if (!filteredMenuItems.some((item) => item.key === 'my_team')) {
       filteredMenuItems.unshift({
@@ -98,6 +98,22 @@ const TournamentDetails = () => {
               color={Colors.text_primary}
             />
           </Pressable>
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: '/winnix/tabs/tournament/edit',
+                params: { id: id as string },
+              })
+            }
+            style={[
+              styles.editButton,
+              {
+                top: top - 30,
+              },
+            ]}
+          >
+            <WinnixIcon name={'pencil-outline'} size={24} color={Colors.brand_primary} />
+          </Pressable>
 
           {details.tournamentData && (
             <TournamentHeaderCard
@@ -114,7 +130,9 @@ const TournamentDetails = () => {
           <TournamentStatsCards
             inscriptionsCount={details.edition.inscriptions?.length || 0}
             status={details.edition.status}
-            statusLabel={details.statusMap[details.edition.status] || details.edition.status}
+            statusLabel={
+              details.statusMap[details.edition.status] || details.edition.status
+            }
           />
 
           <TournamentMenu
@@ -125,7 +143,7 @@ const TournamentDetails = () => {
 
           {/* Section Mi Equipo */}
           {details.activeTab === 'my_team' && (
-            <RosterLayout
+            <TournamentCaptainSection
               members={details.members}
               loadingMembers={details.loadingMembers}
               selectedPlayers={details.selectedPlayers}
@@ -151,7 +169,7 @@ const TournamentDetails = () => {
 
           {/* Section Stages */}
           {details.activeTab === 'stages' && (
-            <TournamentStagesLayout
+            <TournamentOrganizerSection
               editionId={id as string}
               isOrganizer={!!details.isOrganizer}
             />
@@ -167,7 +185,10 @@ const TournamentDetails = () => {
 
           {/* Section Bracket */}
           {details.activeTab === 'bracket' && (
-            <BracketLayout matches={details.matches} upcomingMatches={details.upcomingMatches} />
+            <BracketLayout
+              matches={details.matches}
+              upcomingMatches={details.upcomingMatches}
+            />
           )}
 
           {details.activeTab === 'info' && <InformationTournament />}
@@ -185,6 +206,16 @@ const styles = StyleSheet.create({
     left: 20,
     zIndex: 10,
     elevation: 10,
+  },
+
+  editButton: {
+    position: 'absolute',
+    right: 20,
+    zIndex: 10,
+    elevation: 10,
+    padding: 6,
+    backgroundColor: 'rgba(40, 209, 195, 0.15)',
+    borderRadius: 8,
   },
 
   nameTournament: {

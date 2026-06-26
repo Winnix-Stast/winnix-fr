@@ -17,6 +17,8 @@ const queryClient = new QueryClient({
   },
 });
 
+import { CustomAlert } from "@/presentation/components/customs/CustomAlert";
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
@@ -37,6 +39,7 @@ export default function RootLayout() {
           <Stack.Screen name='winnix' />
         </Stack>
         <StatusBar style='auto' />
+        <CustomAlert />
       </ThemeProvider>
     </QueryClientProvider>
     // </GestureHandlerRootView>

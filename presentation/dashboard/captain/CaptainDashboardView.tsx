@@ -13,8 +13,8 @@ import { Fonts } from '@/presentation/styles/global-styles';
 import { TeamDeleteModal } from '@/presentation/team/components/TeamDeleteModal';
 import { TeamEditModal } from '@/presentation/team/components/TeamEditModal';
 import { CustomIcon } from '@/presentation/theme/components/icons/CustomIcon';
-import { CustomPaginationInfinityScroll } from '../components/CustomPaginationInfinityScroll';
-import { TeamCard3D } from './components/TeamCard3D';
+import { CustomPaginationInfinityScroll } from '../../components/CustomPaginationInfinityScroll';
+import { TeamCard3D } from '../components/TeamCard3D';
 
 export const CaptainDashboardView = () => {
   const router = useRouter();
@@ -64,7 +64,7 @@ export const CaptainDashboardView = () => {
           hasNextPage={hasNextPage}
           isFetchingNextPage={isFetchingNextPage}
           isLoading={loading}
-          renderItem={({ item }) => (
+          renderItem={({ item }: { item: any }) => (
             <TeamCard3D
               team={item}
               onPress={() => router.push(`/winnix/team/${item._id}` as any)}

@@ -42,69 +42,56 @@ export const ConfigSection = ({
         este torneo específico.
       </Text>
 
-      <View style={styles.row}>
-        <View style={{ flex: 1 }}>
-          <CustomInput
-            name='playersPerTeam'
-            control={control}
-            label='Jugadores por equipo'
-            styleLabel={{ minHeight: 35 }}
-            placeholder='Ej: 5'
-            keyboardType='numeric'
-            iconRight='people-outline'
-            errorMessage={errors.playersPerTeam?.message}
-          />
-        </View>
-        <View style={{ width: 15 }} />
-        <View style={{ flex: 1 }}>
-          <CustomInput
-            name='matchDuration'
-            control={control}
-            label='Duración (min)'
-            styleLabel={{ minHeight: 35 }}
-            placeholder='Ej: 40'
-            keyboardType='numeric'
-            iconRight='time-outline'
-            errorMessage={errors.matchDuration?.message}
-          />
-        </View>
-      </View>
+      <CustomInput
+        name='playersPerTeam'
+        control={control}
+        label='Jugadores por equipo'
+        styleLabel={{ minHeight: 20 }}
+        placeholder='Ej: 5'
+        keyboardType='numeric'
+        iconRight='people-outline'
+        errorMessage={errors.playersPerTeam?.message}
+      />
+
+      <CustomInput
+        name='matchDuration'
+        control={control}
+        label='Duración del Partido (minutos)'
+        styleLabel={{ minHeight: 20 }}
+        placeholder='Ej: 40'
+        keyboardType='numeric'
+        iconRight='time-outline'
+        errorMessage={errors.matchDuration?.message}
+      />
 
       <Text style={styles.subTitle}>Sistema de Puntuación</Text>
-      <View style={styles.row}>
-        <View style={{ flex: 1 }}>
-          <CustomInput
-            name='scoring.win'
-            control={control}
-            label='Victoria'
-            styleLabel={{ minHeight: 20 }}
-            placeholder='3'
-            keyboardType='numeric'
-          />
-        </View>
-        <View style={{ width: 10 }} />
-        <View style={{ flex: 1 }}>
-          <CustomInput
-            name='scoring.draw'
-            control={control}
-            label='Empate'
-            styleLabel={{ minHeight: 20 }}
-            placeholder='1'
-            keyboardType='numeric'
-          />
-        </View>
-        <View style={{ width: 10 }} />
-        <View style={{ flex: 1 }}>
-          <CustomInput
-            name='scoring.loss'
-            control={control}
-            label='Derrota'
-            styleLabel={{ minHeight: 20 }}
-            placeholder='0'
-            keyboardType='numeric'
-          />
-        </View>
-      </View>
+
+      <CustomInput
+        name='scoring.win'
+        control={control}
+        label='Puntos por Victoria'
+        styleLabel={{ minHeight: 20 }}
+        placeholder='3'
+        keyboardType='numeric'
+      />
+
+      <CustomInput
+        name='scoring.draw'
+        control={control}
+        label='Puntos por Empate'
+        styleLabel={{ minHeight: 20 }}
+        placeholder='1'
+        keyboardType='numeric'
+      />
+
+      <CustomInput
+        name='scoring.loss'
+        control={control}
+        label='Puntos por Derrota'
+        styleLabel={{ minHeight: 20 }}
+        placeholder='0'
+        keyboardType='numeric'
+      />
 
       {selectedTemplate.config?.rules && (
         <View style={styles.infoBox}>

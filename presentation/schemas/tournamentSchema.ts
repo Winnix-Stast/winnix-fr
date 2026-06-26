@@ -35,6 +35,7 @@ export const createEditionSchema = yup.object().shape({
     })
     .optional(),
   config: yup.object().optional(),
+  status: yup.string().optional().default('DRAFT'),
 });
 
 export type CreateEditionFormData = yup.InferType<typeof createEditionSchema>;
