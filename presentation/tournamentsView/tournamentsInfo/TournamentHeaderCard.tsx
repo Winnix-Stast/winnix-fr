@@ -35,7 +35,6 @@ export const TournamentHeaderCard = ({
 }: Props) => {
   const { height } = useWindowDimensions();
 
-  // Configuración de estados al estilo videojuego (Alineados con el backend: TournamentEditionStatus)
   const statusConfig: Record<
     string,
     { label: string; color: string; bgColor: string; borderColor: string }
@@ -84,10 +83,10 @@ export const TournamentHeaderCard = ({
         <View style={styles.overlay}>
           {/* Fila Superior con Estado */}
           <View style={styles.topRow}>
-            <View style={styles.liveCapsule}>
+            {/* <View style={styles.liveCapsule}>
               <View style={styles.liveDot} />
               <Text style={styles.liveText}>WINNIX ARENA</Text>
-            </View>
+            </View> */}
 
             <Text
               style={[
