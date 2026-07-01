@@ -22,4 +22,9 @@ export const tournamentAdapter = {
     const response = await privateFetcher.instance.get(`/tournament-editions/${id}`);
     return response.data;
   },
+
+  updateEdition: async (id: string, payload: any) => {
+    const response = await privateFetcher.instance.patch(`/tournament-editions/${id}`, payload);
+    return response.data;
+  },
 };

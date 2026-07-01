@@ -44,7 +44,7 @@ export const CustomInput = ({ name, control, iconLeft, iconRight, label = "", st
                 setIsActive(false);
                 onBlur();
               }}
-              value={value}
+              value={value !== undefined && value !== null ? String(value) : ""}
               keyboardType={keyboardType}
               onChangeText={onChange}
               secureTextEntry={isPassword}

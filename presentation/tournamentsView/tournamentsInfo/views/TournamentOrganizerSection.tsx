@@ -7,10 +7,5 @@ interface Props {
 }
 
 export const TournamentOrganizerSection = ({ editionId, isOrganizer }: Props) => {
-  return (
-    <TournamentStagesLayout
-      editionId={editionId}
-      isOrganizer={isOrganizer}
-    />
-  );
+  return <TournamentStagesLayout editionId={editionId} isOrganizer={isOrganizer} />;
 };

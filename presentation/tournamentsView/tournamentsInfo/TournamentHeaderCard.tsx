@@ -12,6 +12,8 @@ import { WinnixIcon } from '@/presentation/plugins/Icon';
 import { Colors } from '@/presentation/styles/colors';
 import { borderRadius } from '@/presentation/styles/theme';
 
+import { getTournamentStatusConfig } from '@/presentation/styles';
+
 type TournamentState = string;
 
 type Props = {
@@ -19,6 +21,7 @@ type Props = {
   state: TournamentState;
   dateText: string;
   image: ImageSourcePropType;
+  statusLabel?: string;
   titleStyle?: TextStyle;
   dateStyle?: TextStyle;
   statusStyle?: TextStyle;
@@ -27,6 +30,7 @@ type Props = {
 export const TournamentHeaderCard = ({
   title,
   state,
+  statusLabel,
   dateText,
   image,
   titleStyle,
@@ -35,42 +39,10 @@ export const TournamentHeaderCard = ({
 }: Props) => {
   const { height } = useWindowDimensions();
 
-  const statusConfig: Record<
-    string,
-    { label: string; color: string; bgColor: string; borderColor: string }
-  > = {
-    DRAFT: {
-      label: 'Borrador',
-      color: Colors.text_primary,
-      bgColor: Colors.text_tertiary,
-      borderColor: Colors.text_tertiary,
-    },
-    REGISTRATION_OPEN: {
-      label: 'Inscripciones Abiertas',
-      color: Colors.on_brand,
-      bgColor: Colors.brand_primary,
-      borderColor: Colors.brand_primary,
-    },
-    ACTIVE: {
-      label: 'En curso',
-      color: Colors.text_primary,
-      bgColor: Colors.brand_secondary,
-      borderColor: Colors.brand_secondary,
-    },
-    FINISHED: {
-      label: 'Finalizado',
-      color: Colors.text_primary,
-      bgColor: Colors.text_tertiary,
-      borderColor: Colors.text_tertiary,
-    },
-  };
-
-  const { label, color, bgColor, borderColor } = statusConfig[state] || {
-    label: state,
-    color: Colors.text_primary,
-    bgColor: Colors.text_tertiary,
-    borderColor: Colors.text_tertiary,
-  };
+  const statusStyleConfig = getTournamentStatusConfig(state);
+  const color = statusStyleConfig.headerTextColor;
+  const bgColor = statusStyleConfig.headerBgColor;
+  const borderColor = statusStyleConfig.headerBorderColor;
 
   return (
     <View style={[styles.container, { borderRadius: parseInt(borderRadius.border_m) }]}>
@@ -96,7 +68,7 @@ export const TournamentHeaderCard = ({
               ]}
               adjustsFontSizeToFit
             >
-              {label}
+              {statusLabel || state}
             </Text>
           </View>
 
@@ -155,7 +127,7 @@ const styles = StyleSheet.create({
   },
   topRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     width: '100%',
   },
@@ -183,13 +155,13 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   statusTag: {
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 4,
-    borderWidth: 1,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    borderWidth: 1.5,
     textTransform: 'uppercase',
-    fontSize: 10,
-    fontWeight: '900',
+    fontSize: 12,
+    fontWeight: 'bold',
     letterSpacing: 0.5,
     overflow: 'hidden',
   },

@@ -7,6 +7,7 @@ import { useAuthStore } from '@/presentation/auth/store/useAuthStore';
 import { usePermission } from '@/presentation/hooks/auth/usePermission';
 import { useMyTeams } from '@/presentation/hooks/teams/useMyTeams';
 import { useTeam } from '@/presentation/hooks/teams/useTeam';
+import { getTournamentStatusConfig } from '@/presentation/styles';
 
 export const useTournamentDetails = (id: string, router: any) => {
   const { activeRole, user } = useAuthStore();
@@ -22,6 +23,10 @@ export const useTournamentDetails = (id: string, router: any) => {
   const [jerseyNumbers, setJerseyNumbers] = useState<Record<string, string>>({});
   const [hasSyncPlayers, setHasSyncPlayers] = useState(false);
   const [isSavingRoster, setIsSavingRoster] = useState(false);
+
+  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+  const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
+  const [isStartingTournament, setIsStartingTournament] = useState(false);
 
   const { data: edition, isLoading } = useQuery({
     queryKey: ['edition', id],
@@ -229,6 +234,26 @@ export const useTournamentDetails = (id: string, router: any) => {
     Alert.alert('Patrocinar Torneo', 'Función de patrocinio próximamente disponible.');
   };
 
+  const handleStartTournament = () => {
+    setIsConfirmModalVisible(true);
+  };
+
+  const confirmStartTournament = async () => {
+    setIsStartingTournament(true);
+    try {
+      await tournamentsActions.updateEditionAction(id, { status: 'REGISTRATION_OPEN' });
+      setIsConfirmModalVisible(false);
+      setTimeout(() => {
+        setIsSuccessModalVisible(true);
+      }, 500);
+      await queryClient.invalidateQueries({ queryKey: ['edition', id] });
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo iniciar el torneo.');
+    } finally {
+      setIsStartingTournament(false);
+    }
+  };
+
   const handleParticipationAction = () => {
     if (canDirectInscribe) {
       handleDirectInscribe();
@@ -284,10 +309,10 @@ export const useTournamentDetails = (id: string, router: any) => {
     : '';
 
   const statusMap: Record<string, string> = {
-    DRAFT: 'Borrador',
-    REGISTRATION_OPEN: 'Inscripciones Abiertas',
-    ACTIVE: 'En curso',
-    FINISHED: 'Finalizado',
+    DRAFT: getTournamentStatusConfig('DRAFT').label,
+    REGISTRATION_OPEN: getTournamentStatusConfig('REGISTRATION_OPEN').label,
+    ACTIVE: getTournamentStatusConfig('ACTIVE').label,
+    FINISHED: getTournamentStatusConfig('FINISHED').label,
   };
 
   const tournamentData = edition
@@ -412,6 +437,13 @@ export const useTournamentDetails = (id: string, router: any) => {
     handleGoBack,
     handleChangeView,
     handleParticipationAction,
+    handleStartTournament,
+    confirmStartTournament,
+    isConfirmModalVisible,
+    setIsConfirmModalVisible,
+    isSuccessModalVisible,
+    setIsSuccessModalVisible,
+    isStartingTournament,
     getParticipationProps,
     tournamentData,
     statsData,

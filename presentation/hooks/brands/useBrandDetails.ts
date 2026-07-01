@@ -4,6 +4,8 @@ import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { brandsActions } from '@/core/brands/actions/brands-actions';
 import { tournamentsActions } from '@/core/tournaments/actions/tournaments-actions';
 
+import { getTournamentStatusConfig } from '@/presentation/styles';
+
 export const useBrandDetails = () => {
   const { brandId, id } = useLocalSearchParams<{ brandId: string; id: string }>();
   const resolvedId = brandId || id;
@@ -38,15 +40,11 @@ export const useBrandDetails = () => {
   };
 
   const statusLabel = (status: string) => {
-    const normalizedStatus = status?.toLowerCase() || '';
-    const map: Record<string, { label: string; color: string }> = {
-      draft: { label: 'Próximamente', color: '#f59e0b' },
-      published: { label: 'Publicado', color: '#3b82f6' },
-      in_progress: { label: 'En curso', color: '#10b981' },
-      finished: { label: 'Finalizado', color: '#6b7280' },
-      cancelled: { label: 'Cancelado', color: '#ef4444' },
+    const config = getTournamentStatusConfig(status);
+    return {
+      label: config.label,
+      color: config.color,
     };
-    return map[normalizedStatus] || { label: status, color: '#a3adb8' };
   };
 
   return {

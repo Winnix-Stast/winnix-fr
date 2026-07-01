@@ -108,4 +108,40 @@ export const Colors = {
   orange_700: "#B44509",
   orange_800: "#92400E",
   orange_900: "#78350F",
+
+  /* ======================= * STATUS COLORS * ======================= */
+  // Draft (Orange)
+  status_draft: '#F59E0B',
+  status_draft_bg: 'rgba(245, 158, 11, 0.1)',
+  status_draft_border: 'rgba(245, 158, 11, 0.25)',
+  status_draft_grad_start: 'rgba(245, 158, 11, 0.12)',
+  status_draft_grad_end: 'rgba(217, 119, 6, 0.03)',
+
+  // Registration Open (Teal/Brand Primary)
+  status_reg_open: '#28D1C3',
+  status_reg_open_bg: 'rgba(40, 209, 195, 0.1)',
+  status_reg_open_border: 'rgba(40, 209, 195, 0.25)',
+  status_reg_open_grad_start: 'rgba(40, 209, 195, 0.12)',
+  status_reg_open_grad_end: 'rgba(40, 209, 195, 0.03)',
+
+  // Active (Indigo/Brand Secondary)
+  status_active: '#6366F1',
+  status_active_bg: 'rgba(99, 102, 241, 0.1)',
+  status_active_border: 'rgba(99, 102, 241, 0.25)',
+  status_active_grad_start: 'rgba(99, 102, 241, 0.12)',
+  status_active_grad_end: 'rgba(99, 102, 241, 0.03)',
+
+  // Finished (Gray)
+  status_finished: '#6E7C96',
+  status_finished_bg: 'rgba(110, 124, 150, 0.1)',
+  status_finished_border: 'rgba(110, 124, 150, 0.25)',
+  status_finished_grad_start: 'rgba(110, 124, 150, 0.12)',
+  status_finished_grad_end: 'rgba(110, 124, 150, 0.03)',
+
+  // Cancelled (Red)
+  status_cancelled: '#EF4444',
+  status_cancelled_bg: 'rgba(239, 68, 68, 0.1)',
+  status_cancelled_border: 'rgba(239, 68, 68, 0.25)',
+  status_cancelled_grad_start: 'rgba(239, 68, 68, 0.12)',
+  status_cancelled_grad_end: 'rgba(239, 68, 68, 0.03)',
 };

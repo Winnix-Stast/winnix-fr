@@ -1,13 +1,15 @@
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, usePathname, useRouter } from 'expo-router';
 import { useTournamentDetails } from '@/presentation/hooks/tournaments/useTournamentDetails';
 import { IconName, WinnixIcon } from '@/presentation/plugins/Icon';
-import { Colors } from '@/presentation/styles/colors';
+import { Colors, getTournamentStatusConfig } from '@/presentation/styles';
 import { Flex, Fonts } from '@/presentation/styles/global-styles';
 import { CustomFormView } from '@/presentation/theme/components/CustomFormView';
 import { CustomText } from '@/presentation/theme/components/CustomText';
+import { AppModal as CustomModal } from '@/presentation/theme/components/CustomModal';
+import { CustomButton } from '@/presentation/theme/components/CustomButton';
 import {
   BracketLayout,
   InformationTournament,
@@ -24,6 +26,7 @@ const TournamentDetails = () => {
   const { id } = useLocalSearchParams();
   const { top } = useSafeAreaInsets();
   const router = useRouter();
+  const pathname = usePathname();
 
   const details = useTournamentDetails(id as string, router);
 
@@ -80,8 +83,9 @@ const TournamentDetails = () => {
   }
 
   return (
-    <CustomFormView>
-      <ScrollView>
+    <View style={{ flex: 1, backgroundColor: Colors.surface_screen }}>
+      <CustomFormView>
+        <ScrollView>
         <View style={{ ...Flex.columnCenter, gap: 12, padding: 15 }}>
           <Pressable
             onPress={details.handleGoBack}
@@ -98,32 +102,30 @@ const TournamentDetails = () => {
               color={Colors.text_primary}
             />
           </Pressable>
-          <Pressable
-            onPress={() =>
-              router.push({
-                pathname: '/winnix/tabs/tournament/edit',
-                params: { id: id as string },
-              })
-            }
-            style={[
-              styles.editButton,
-              {
-                top: top - 30,
-              },
-            ]}
-          >
-            <WinnixIcon name={'pencil-outline'} size={24} color={Colors.brand_primary} />
-          </Pressable>
+
 
           {details.tournamentData && (
             <TournamentHeaderCard
               key={details.tournamentData.id}
               title={details.tournamentData.title}
               state={details.tournamentData.state}
+              statusLabel={
+                details.statusMap[details.edition.status] || details.edition.status
+              }
               dateText={details.tournamentData.dateText}
               image={details.tournamentData.image}
               titleStyle={{ fontSize: 32 }}
             />
+          )}
+
+          {details.isOrganizer && details.edition.status === 'DRAFT' && (
+            <Pressable
+              style={styles.startTournamentButton}
+              onPress={details.handleStartTournament}
+            >
+              <WinnixIcon name="play-outline" size={20} color={Colors.status_draft} />
+              <CustomText label="Empezar Torneo" color={Colors.status_draft} weight="bold" />
+            </Pressable>
           )}
 
           {/* Cards teams and reward */}
@@ -194,7 +196,81 @@ const TournamentDetails = () => {
           {details.activeTab === 'info' && <InformationTournament />}
         </View>
       </ScrollView>
-    </CustomFormView>
+      </CustomFormView>
+
+      {details.isOrganizer && (
+        <View style={styles.fabContainer}>
+          <Pressable
+            onPress={() => {
+              const isOurTournaments = pathname.includes('ourTournaments');
+              const editPath = isOurTournaments
+                ? '/winnix/ourTournaments/tournament/edit'
+                : '/winnix/tabs/tournament/edit';
+              router.push({
+                pathname: editPath,
+                params: { id: id as string },
+              });
+            }}
+            style={styles.fabEdit}
+          >
+            <WinnixIcon name="pencil-outline" size={24} color={Colors.brand_primary} />
+          </Pressable>
+        </View>
+      )}
+
+      {/* Modal de Confirmación */}
+      <CustomModal
+        visible={details.isConfirmModalVisible}
+        onClose={() => details.setIsConfirmModalVisible(false)}
+        iconColor={Colors.text_primary}
+        contentStyle={{ backgroundColor: Colors.surface_base, padding: 20 }}
+      >
+        <View style={{ alignItems: 'center', gap: 15, paddingVertical: 10 }}>
+          <WinnixIcon name="warning-outline" size={50} color={Colors.status_draft} />
+          <CustomText label="¿Deseas iniciar el torneo?" weight="bold" size={20} color={Colors.text_primary} />
+          <CustomText
+            label="Esta acción cambiará el estado a 'Inscripciones Abiertas' y no se puede revertir."
+            color={Colors.text_secondary}
+          />
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
+            <CustomButton
+              label="Cancelar"
+              onPress={() => details.setIsConfirmModalVisible(false)}
+              outline={true}
+              stylePressable={{ flex: 1 }}
+            />
+            <CustomButton
+              label="Iniciar"
+              onPress={details.confirmStartTournament}
+              disabled={details.isStartingTournament}
+              stylePressable={{ flex: 1 }}
+            />
+          </View>
+        </View>
+      </CustomModal>
+
+      {/* Modal de Éxito */}
+      <CustomModal
+        visible={details.isSuccessModalVisible}
+        onClose={() => details.setIsSuccessModalVisible(false)}
+        iconColor={Colors.text_primary}
+        contentStyle={{ backgroundColor: Colors.surface_base, padding: 20 }}
+      >
+        <View style={{ alignItems: 'center', gap: 15, paddingVertical: 10 }}>
+          <WinnixIcon name="checkmark-circle-outline" size={50} color={Colors.green_400} />
+          <CustomText label="¡Torneo iniciado!" weight="bold" size={20} color={Colors.text_primary} />
+          <CustomText
+            label="El torneo ha pasado a estado de Inscripciones Abiertas exitosamente."
+            color={Colors.text_secondary}
+          />
+          <CustomButton
+            label="Entendido"
+            onPress={() => details.setIsSuccessModalVisible(false)}
+            stylePressable={{ marginTop: 20, width: '100%' }}
+          />
+        </View>
+      </CustomModal>
+    </View>
   );
 };
 
@@ -208,14 +284,40 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
 
-  editButton: {
+  fabContainer: {
     position: 'absolute',
-    right: 20,
-    zIndex: 10,
+    bottom: 40,
+    right: 25,
+    zIndex: 100,
     elevation: 10,
-    padding: 6,
+  },
+  startTournamentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface_elevated,
+    borderWidth: 1,
+    borderColor: Colors.status_draft,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 8,
+    gap: 8,
+    width: '100%',
+  },
+  fabEdit: {
     backgroundColor: 'rgba(40, 209, 195, 0.15)',
-    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.brand_primary,
+    padding: 14,
+    borderRadius: 30,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   nameTournament: {

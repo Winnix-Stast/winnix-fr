@@ -21,6 +21,26 @@ export const stagesActions = {
     }
   },
 
+  updateStageAction: async (id: string, stageData: any) => {
+    try {
+      const response = await privateFetcher.patch<any>(`/stages/${id}`, stageData);
+      return response;
+    } catch (error) {
+      console.error('Error updating stage:', error);
+      throw error;
+    }
+  },
+
+  deleteStageAction: async (id: string) => {
+    try {
+      const response = await privateFetcher.delete<any>(`/stages/${id}`);
+      return response;
+    } catch (error) {
+      console.error('Error deleting stage:', error);
+      throw error;
+    }
+  },
+
   getStageTemplatesAction: async () => {
     try {
       const response = await privateFetcher.get<any>('/stage-templates');
@@ -31,4 +51,3 @@ export const stagesActions = {
     }
   },
 };
-

@@ -72,4 +72,14 @@ export const tournamentsActions = {
       return null;
     }
   },
+
+  updateEditionAction: async (id: string, payload: any): Promise<any> => {
+    try {
+      const data = await tournamentAdapter.updateEdition(id, payload);
+      return data;
+    } catch (error: any) {
+      console.error('updateEditionAction error :>> ', error?.response?.data || error);
+      throw error;
+    }
+  },
 };

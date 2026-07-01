@@ -26,6 +26,12 @@ const OurTournaments = () => (
         headerShown: false,
       }}
     />
+    <Stack.Screen
+      name='tournament/edit'
+      options={{
+        headerShown: false,
+      }}
+    />
     {/* <Stack.Screen
         name='player/[id]'
         options={{

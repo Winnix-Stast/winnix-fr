@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { WinnixIcon } from '@/presentation/plugins/Icon';
-import { Colors } from '@/presentation/styles/colors';
+import { Colors, getTournamentStatusConfig } from '@/presentation/styles';
 import { CustomText } from '@/presentation/theme/components/CustomText';
 import { GradientContainer } from '@/presentation/theme/components/GradientCard';
 
@@ -16,6 +16,16 @@ export const TournamentStatsCards = ({
   status,
   statusLabel,
 }: Props) => {
+  const currentConfig = getTournamentStatusConfig(status);
+  const {
+    statsCardColors: colors,
+    statsCardBorderColor: borderColor,
+    iconName,
+    iconColor,
+    iconBgColor,
+    statsCardTextColor: textColor,
+  } = currentConfig;
+
   return (
     <View style={styles.container}>
       {/* Card 1: Equipos */}
@@ -47,12 +57,12 @@ export const TournamentStatsCards = ({
 
       {/* Card 2: Estado */}
       <GradientContainer
-        colors={['rgba(245, 158, 11, 0.12)', 'rgba(217, 119, 6, 0.03)']}
-        borderColor='rgba(245, 158, 11, 0.25)'
+        colors={colors}
+        borderColor={borderColor}
         containerStyle={styles.card}
       >
-        <View style={[styles.iconWrapper, styles.iconWrapperStatus]}>
-          <WinnixIcon name='hourglass-outline' size={20} color='#F59E0B' />
+        <View style={[styles.iconWrapper, { backgroundColor: iconBgColor }]}>
+          <WinnixIcon name={iconName} size={20} color={iconColor} />
         </View>
         <View style={styles.textContainer}>
           <CustomText
@@ -65,7 +75,7 @@ export const TournamentStatsCards = ({
           <CustomText
             label={statusLabel.toUpperCase()}
             size={11}
-            color='#F59E0B'
+            color={textColor}
             weight='bold'
             style={styles.statusValue}
             numberOfLines={2}
@@ -102,9 +112,6 @@ const styles = StyleSheet.create({
   },
   iconWrapperTeams: {
     backgroundColor: 'rgba(59, 130, 246, 0.1)',
-  },
-  iconWrapperStatus: {
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
   },
   textContainer: {
     flex: 1,

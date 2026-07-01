@@ -20,9 +20,10 @@ interface Props {
   allowFutureDates?: boolean;
   minimumDate?: Date;
   maximumDate?: Date;
+  disabled?: boolean;
 }
 
-export const CustomDatePicker = ({ name, control, iconLeft, iconRight = "calendar-outline", label = "", styleLabel, placeholder = "Selecciona una fecha", errorMessage, modalTitle = "Selecciona una fecha", allowFutureDates = false, minimumDate, maximumDate }: Props) => {
+export const CustomDatePicker = ({ name, control, iconLeft, iconRight = "calendar-outline", label = "", styleLabel, placeholder = "Selecciona una fecha", errorMessage, modalTitle = "Selecciona una fecha", allowFutureDates = false, minimumDate, maximumDate, disabled = false }: Props) => {
   const [open, setOpen] = useState(false);
   const [tempDate, setTempDate] = useState<Date>(new Date());
 
@@ -57,15 +58,17 @@ export const CustomDatePicker = ({ name, control, iconLeft, iconRight = "calenda
           return (
             <>
               <TouchableOpacity
-                activeOpacity={0.8}
+                activeOpacity={disabled ? 1 : 0.8}
                 onPress={() => {
+                  if (disabled) return;
                   setTempDate(isValid ? dateValue : new Date());
                   setOpen(true);
                 }}
                 style={[
                   styles.selectContainer,
                   {
-                    borderColor: errorMessage ? Colors.surface_warning : open ? Colors.text_primary : Colors.neutral_500,
+                    borderColor: disabled ? Colors.neutral_500 : errorMessage ? Colors.surface_warning : open ? Colors.text_primary : Colors.neutral_500,
+                    opacity: disabled ? 0.6 : 1,
                   },
                 ]}>
                 {iconLeft && <Ionicons name={iconLeft} size={24} color={Colors.primary_50} style={{ marginRight: 10 }} />}
