@@ -119,10 +119,10 @@ export const TournamentPreviewModal = ({ visible, onClose, formData }: PreviewPr
             {activeTab === 'summary' && (
               <ResumeLayout
                 stats={[
-                  { label: 'Encuentros jugados', value: '0 / 0' },
+                  { label: 'Encuentros jugados', value: 0 },
                   { label: 'Goles anotados', value: 0 },
-                  { label: 'Jugador destacado', value: '—' },
-                  { label: 'Avance del torneo', value: '0%' },
+                  { label: 'Tarjetas amarillas', value: 0 },
+                  { label: 'Tarjetas rojas', value: 0 },
                 ]}
                 activities={[
                   {

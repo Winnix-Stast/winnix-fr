@@ -76,7 +76,7 @@ export const useCreateTournament = () => {
                   const brandId = payload.tournament;
                   resolve();
                   if (brandId) {
-                    router.replace(`/winnix/myZone/organizer/brands/${brandId}`);
+                    router.replace(`/winnix/brand/${brandId}`);
                   } else {
                     router.back();
                   }
@@ -107,7 +107,7 @@ export const useCreateTournament = () => {
   const handleGoBack = () => {
     const brandId = getValues('tournament');
     if (brandId) {
-      router.replace(`/winnix/myZone/organizer/brands/${brandId}`);
+      router.replace(`/winnix/brand/${brandId}`);
     } else {
       router.back();
     }

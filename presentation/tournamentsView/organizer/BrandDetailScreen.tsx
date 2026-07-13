@@ -156,9 +156,7 @@ export const BrandDetailScreen = () => {
                     key={edition._id}
                     style={[styles.editionCard, { borderLeftColor: st.color }]}
                     activeOpacity={0.855}
-                    onPress={() =>
-                      router.push(`/winnix/ourTournaments/tournament/${edition._id}`)
-                    }
+                    onPress={() => router.push(`/winnix/tournament/${edition._id}`)}
                   >
                     <View style={styles.editionContent}>
                       <View style={styles.editionTop}>
@@ -260,14 +258,14 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
   licenseBadgeText: {
-    fontSize: 11, // Increased from 9 for accessibility
+    fontSize: 11,
     fontWeight: '900',
     color: '#28D1C3',
     letterSpacing: 1.5,
   },
   brandMeta: {
-    fontSize: 12, // Increased from 10
-    color: '#A2B4D6', // Brighter slate-blue for better dark-mode contrast
+    fontSize: 12,
+    color: '#A2B4D6',
     fontWeight: 'bold',
     letterSpacing: 1.2,
   },
@@ -281,7 +279,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#0a0f26',
     borderRadius: 14,
-    padding: 14, // Increased padding
+    padding: 14,
     borderWidth: 1.5,
     gap: 12,
     elevation: 4,
@@ -302,13 +300,13 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   statLabel: {
-    fontSize: 11, // Increased from 9
-    color: '#A2B4D6', // Brighter light steel blue
+    fontSize: 11,
+    color: '#A2B4D6',
     fontWeight: 'bold',
     letterSpacing: 1,
   },
   statValue: {
-    fontSize: 18, // Increased from 15
+    fontSize: 18,
     fontWeight: '900',
     color: '#FFFFFF',
   },
@@ -322,7 +320,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   sectionTitle: {
-    fontSize: 17, // Increased from 16
+    fontSize: 17,
     fontWeight: '900',
     color: '#FFFFFF',
     textTransform: 'uppercase',
@@ -340,7 +338,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   addButtonText: {
-    fontSize: 13, // Increased from 11
+    fontSize: 13,
     color: '#28D1C3',
     fontWeight: '900',
     letterSpacing: 1,
@@ -373,19 +371,19 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   editionName: {
-    fontSize: 16, // Increased from 15
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#FFFFFF',
     flex: 1,
   },
   statusBadge: {
-    paddingHorizontal: 10, // Increased padding
+    paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
   },
   statusText: {
-    fontSize: 11, // Increased from 9
+    fontSize: 11,
     fontWeight: '900',
     letterSpacing: 0.5,
   },
@@ -395,8 +393,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   editionDate: {
-    fontSize: 13, // Increased from 12
-    color: '#9EADCE', // Brighter than #6E7C96 for high contrast
+    fontSize: 13,
+    color: '#9EADCE',
     fontWeight: '500',
   },
   emptyEditions: {
@@ -419,14 +417,14 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   emptyText: {
-    fontSize: 17, // Increased from 15
+    fontSize: 17,
     fontWeight: 'bold',
     color: '#9EADCE',
     marginTop: 4,
   },
   emptySubtext: {
-    fontSize: 14, // Increased from 12
-    color: '#9EADCE', // Brighter than #6E7C96
+    fontSize: 14,
+    color: '#9EADCE',
     textAlign: 'center',
     paddingHorizontal: 30,
     lineHeight: 18,

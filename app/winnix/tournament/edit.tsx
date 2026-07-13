@@ -1,20 +1,27 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View, Pressable, Image } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { ScreenHeader } from '@/presentation/components/customs';
-import { Colors } from '@/presentation/styles';
+import { useEditTournament } from '@/presentation/hooks/tournaments/useEditTournament';
 import { WinnixIcon } from '@/presentation/plugins/Icon';
+import { Colors } from '@/presentation/styles';
 import {
   CustomButton,
+  CustomDatePicker,
   CustomFormView,
+  CustomImagePicker,
   CustomInput,
   CustomSelect,
-  CustomDatePicker,
-  CustomImagePicker,
 } from '@/presentation/theme/components';
-import { useEditTournament } from '@/presentation/hooks/tournaments/useEditTournament';
-import { TournamentStagesLayout } from '@/presentation/tournamentsView/tournamentsInfo/stagesLayout/TournamentStagesLayout';
 import { InformationTournament } from '@/presentation/tournamentsView/tournamentsInfo/information/InformationTournament';
+import { TournamentStagesLayout } from '@/presentation/tournamentsView/tournamentsInfo/stagesLayout/TournamentStagesLayout';
 
 type TabType = 'ajustes' | 'multimedia' | 'etapas' | 'equipos' | 'info';
 
@@ -46,9 +53,9 @@ export default function EditTournamentScreen() {
   if (isLoading && !inscriptions) {
     return (
       <CustomFormView>
-        <ScreenHeader title="Editar Torneo" onBack={handleGoBack} />
+        <ScreenHeader title='Editar Torneo' onBack={handleGoBack} />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.brand_primary} />
+          <ActivityIndicator size='large' color={Colors.brand_primary} />
         </View>
       </CustomFormView>
     );
@@ -57,9 +64,13 @@ export default function EditTournamentScreen() {
   if (errorMsg || !id) {
     return (
       <CustomFormView>
-        <ScreenHeader title="Editar Torneo" onBack={handleGoBack} />
+        <ScreenHeader title='Editar Torneo' onBack={handleGoBack} />
         <View style={styles.loadingContainer}>
-          <WinnixIcon name="alert-circle-outline" size={50} color={Colors.status_cancelled} />
+          <WinnixIcon
+            name='alert-circle-outline'
+            size={50}
+            color={Colors.status_cancelled}
+          />
           <Text style={styles.errorText}>
             {errorMsg || 'No se especificó un ID de torneo válido.'}
           </Text>
@@ -70,17 +81,19 @@ export default function EditTournamentScreen() {
 
   return (
     <CustomFormView>
-      <ScreenHeader title="Editar Torneo" onBack={handleGoBack} />
+      <ScreenHeader title='Editar Torneo' onBack={handleGoBack} />
 
       {/* Premium Horizontal Tab Selector */}
       <View style={styles.tabBar}>
-        {([
-          { key: 'ajustes', label: 'Ajustes', icon: 'settings-outline' },
-          { key: 'multimedia', label: 'Imagen', icon: 'image-outline' },
-          { key: 'etapas', label: 'Etapas', icon: 'flag-outline' },
-          { key: 'equipos', label: 'Equipos', icon: 'people-outline' },
-          { key: 'info', label: 'Info', icon: 'information-circle-outline' },
-        ] as const).map((tab) => {
+        {(
+          [
+            { key: 'ajustes', label: 'Ajustes', icon: 'settings-outline' },
+            { key: 'multimedia', label: 'Imagen', icon: 'image-outline' },
+            { key: 'etapas', label: 'Etapas', icon: 'flag-outline' },
+            { key: 'equipos', label: 'Equipos', icon: 'people-outline' },
+            { key: 'info', label: 'Info', icon: 'information-circle-outline' },
+          ] as const
+        ).map((tab) => {
           const isActive = activeTab === tab.key;
           return (
             <Pressable
@@ -109,11 +122,17 @@ export default function EditTournamentScreen() {
           <View style={styles.tabContent}>
             {!isDraft && (
               <View style={styles.warningBanner}>
-                <WinnixIcon name="information-circle-outline" size={24} color={Colors.status_draft} />
+                <WinnixIcon
+                  name='information-circle-outline'
+                  size={24}
+                  color={Colors.status_draft}
+                />
                 <View style={{ flex: 1, gap: 4 }}>
                   <Text style={styles.warningTitle}>Configuración Bloqueada</Text>
                   <Text style={styles.warningText}>
-                    Este torneo ya está activo o en inscripciones abiertas. Solo se permite cambiar el nombre de la temporada. Reglas, fechas y formato están bloqueados para proteger los partidos actuales.
+                    Este torneo ya está activo o en inscripciones abiertas. Solo se
+                    permite cambiar el nombre de la temporada. Reglas, fechas y formato
+                    están bloqueados para proteger los partidos actuales.
                   </Text>
                 </View>
               </View>
@@ -122,19 +141,19 @@ export default function EditTournamentScreen() {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Información del Torneo</Text>
               <CustomInput
-                name="seasonName"
+                name='seasonName'
                 control={control}
-                label="Nombre de la Temporada *"
-                placeholder="Ej. Apertura 2026"
+                label='Nombre de la Temporada *'
+                placeholder='Ej. Apertura 2026'
                 errorMessage={errors.seasonName?.message}
               />
               <View style={{ opacity: 0.6 }}>
                 <CustomSelect
-                  name="sport"
+                  name='sport'
                   control={control}
                   options={sportOptions}
-                  label="Deporte (No modificable)"
-                  placeholder="Cargando deporte..."
+                  label='Deporte (No modificable)'
+                  placeholder='Cargando deporte...'
                   disabled={true}
                 />
               </View>
@@ -143,21 +162,21 @@ export default function EditTournamentScreen() {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Fechas del Torneo</Text>
               <CustomDatePicker
-                name="startDate"
+                name='startDate'
                 control={control}
-                label="Inicio de Inscripciones *"
-                placeholder="DD/MM/YYYY"
-                modalTitle="Fecha de Apertura"
+                label='Inicio de Inscripciones *'
+                placeholder='DD/MM/YYYY'
+                modalTitle='Fecha de Apertura'
                 allowFutureDates={true}
                 disabled={!isDraft}
                 errorMessage={errors.startDate?.message}
               />
               <CustomDatePicker
-                name="endDate"
+                name='endDate'
                 control={control}
-                label="Fin del Torneo (Opcional)"
-                placeholder="DD/MM/YYYY"
-                modalTitle="Fecha de Clausura"
+                label='Fin del Torneo (Opcional)'
+                placeholder='DD/MM/YYYY'
+                modalTitle='Fecha de Clausura'
                 allowFutureDates={true}
                 disabled={!isDraft}
                 errorMessage={errors.endDate?.message}
@@ -167,22 +186,22 @@ export default function EditTournamentScreen() {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Formato y Reglas</Text>
               <CustomSelect
-                name="sportTemplate"
+                name='sportTemplate'
                 control={control}
                 options={templateOptions}
-                label="Plantilla de Reglas *"
-                placeholder="Selecciona una plantilla..."
+                label='Plantilla de Reglas *'
+                placeholder='Selecciona una plantilla...'
                 disabled={!isDraft}
                 errorMessage={errors.sportTemplate?.message}
               />
 
               <View style={!isDraft && { opacity: 0.6 }}>
                 <CustomInput
-                  name="playersPerTeam"
+                  name='playersPerTeam'
                   control={control}
-                  label="Cantidad Máxima de Jugadores por Equipo"
-                  placeholder="Ej. 10"
-                  keyboardType="numeric"
+                  label='Cantidad Máxima de Jugadores por Equipo'
+                  placeholder='Ej. 10'
+                  keyboardType='numeric'
                   editable={isDraft}
                   errorMessage={errors.playersPerTeam?.message}
                 />
@@ -190,11 +209,11 @@ export default function EditTournamentScreen() {
 
               <View style={!isDraft && { opacity: 0.6 }}>
                 <CustomInput
-                  name="matchDuration"
+                  name='matchDuration'
                   control={control}
-                  label="Duración del Partido (minutos)"
-                  placeholder="Ej. 40"
-                  keyboardType="numeric"
+                  label='Duración del Partido (minutos)'
+                  placeholder='Ej. 40'
+                  keyboardType='numeric'
                   editable={isDraft}
                   errorMessage={errors.matchDuration?.message}
                 />
@@ -205,33 +224,33 @@ export default function EditTournamentScreen() {
               <Text style={styles.sectionTitle}>Reglas de Puntuación</Text>
               <View style={!isDraft && { opacity: 0.6 }}>
                 <CustomInput
-                  name="scoring.win"
+                  name='scoring.win'
                   control={control}
-                  label="Puntos por Victoria"
-                  placeholder="Ej. 3"
-                  keyboardType="numeric"
+                  label='Puntos por Victoria'
+                  placeholder='Ej. 3'
+                  keyboardType='numeric'
                   editable={isDraft}
                   errorMessage={errors.scoring?.win?.message}
                 />
               </View>
               <View style={!isDraft && { opacity: 0.6 }}>
                 <CustomInput
-                  name="scoring.draw"
+                  name='scoring.draw'
                   control={control}
-                  label="Puntos por Empate"
-                  placeholder="Ej. 1"
-                  keyboardType="numeric"
+                  label='Puntos por Empate'
+                  placeholder='Ej. 1'
+                  keyboardType='numeric'
                   editable={isDraft}
                   errorMessage={errors.scoring?.draw?.message}
                 />
               </View>
               <View style={!isDraft && { opacity: 0.6 }}>
                 <CustomInput
-                  name="scoring.loss"
+                  name='scoring.loss'
                   control={control}
-                  label="Puntos por Derrota"
-                  placeholder="Ej. 0"
-                  keyboardType="numeric"
+                  label='Puntos por Derrota'
+                  placeholder='Ej. 0'
+                  keyboardType='numeric'
                   editable={isDraft}
                   errorMessage={errors.scoring?.loss?.message}
                 />
@@ -254,9 +273,9 @@ export default function EditTournamentScreen() {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Póster del Torneo</Text>
               <CustomImagePicker
-                name="image"
+                name='image'
                 control={control}
-                label="📸 Subir Banner de Publicidad (16:9)"
+                label='📸 Subir Banner de Publicidad (16:9)'
                 errorMessage={errors.image?.message}
                 aspect={[16, 9]}
               />
@@ -265,9 +284,9 @@ export default function EditTournamentScreen() {
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Logo del Torneo</Text>
               <CustomImagePicker
-                name="logo"
+                name='logo'
                 control={control}
-                label="🏆 Subir Logo Circular (1:1)"
+                label='🏆 Subir Logo Circular (1:1)'
                 errorMessage={errors.logo?.message}
                 isRound={true}
                 aspect={[1, 1]}
@@ -296,19 +315,26 @@ export default function EditTournamentScreen() {
           <View style={styles.tabContent}>
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Equipos Inscritos</Text>
-              
-              {(!inscriptions || inscriptions.length === 0) ? (
+
+              {!inscriptions || inscriptions.length === 0 ? (
                 <View style={styles.emptyState}>
-                  <WinnixIcon name="shield-outline" size={48} color={Colors.text_tertiary} />
-                  <Text style={styles.emptyText}>Ningún equipo se ha inscrito en esta edición todavía.</Text>
+                  <WinnixIcon
+                    name='shield-outline'
+                    size={48}
+                    color={Colors.text_tertiary}
+                  />
+                  <Text style={styles.emptyText}>
+                    Ningún equipo se ha inscrito en esta edición todavía.
+                  </Text>
                 </View>
               ) : (
                 <View style={styles.teamsList}>
                   {inscriptions.map((ins: any, index: number) => {
                     const team = ins.team;
                     if (!team) return null;
-                    const captainName = team.captain?.nickname || team.captain?.username || '—';
-                    
+                    const captainName =
+                      team.captain?.nickname || team.captain?.username || '—';
+
                     return (
                       <View key={ins._id || index} style={styles.teamCard}>
                         <Image
@@ -327,7 +353,7 @@ export default function EditTournamentScreen() {
                           onPress={() => deleteInscription(ins._id, team.name)}
                           style={styles.removeButton}
                         >
-                          <WinnixIcon name="trash-outline" size={16} color="#EF4444" />
+                          <WinnixIcon name='trash-outline' size={16} color='#EF4444' />
                           <Text style={styles.removeText}>Retirar</Text>
                         </Pressable>
                       </View>
@@ -408,7 +434,6 @@ const styles = StyleSheet.create({
   submitContainer: {
     marginTop: 10,
   },
-  // Tab Bar Styles
   tabBar: {
     flexDirection: 'row',
     borderBottomWidth: 1,
@@ -442,7 +467,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 3,
     borderTopRightRadius: 3,
   },
-  // Teams Tab Styles
   teamsList: {
     gap: 12,
     marginTop: 8,

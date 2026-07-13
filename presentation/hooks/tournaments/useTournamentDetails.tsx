@@ -330,10 +330,22 @@ export const useTournamentDetails = (id: string, router: any) => {
     : null;
 
   const statsData = [
-    { label: 'Encuentros jugados', value: '12 / 63' },
-    { label: 'Goles anotados', value: 120 },
-    { label: 'Jugador destacado', value: 'Juan Pérez' },
-    { label: 'Avance del torneo', value: '20%' },
+    {
+      label: 'Encuentros jugados',
+      value: edition?.editionStats?.matchesPlayed ?? 0,
+    },
+    {
+      label: 'Goles anotados',
+      value: edition?.editionStats?.goals ?? 0,
+    },
+    {
+      label: 'Tarjetas amarillas',
+      value: edition?.editionStats?.yellowCards ?? 0,
+    },
+    {
+      label: 'Tarjetas rojas',
+      value: edition?.editionStats?.redCards ?? 0,
+    },
   ];
 
   const recentActivities = [

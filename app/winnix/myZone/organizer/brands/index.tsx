@@ -16,7 +16,6 @@ import OurTournamentsList from '@/presentation/tournamentsView/shared/OurTournam
 
 /**
  * Vista exclusiva del Organizador: lista sus Marcas de torneo.
- * Ruta: /winnix/myZone/organizer/brands
  */
 const OrganizerBrandsScreen = () => {
   const router = useRouter();
@@ -29,7 +28,7 @@ const OrganizerBrandsScreen = () => {
   }, [navigation]);
 
   const handlePressItem = (item: any) => {
-    router.push(`/winnix/myZone/organizer/brands/${item._id}`);
+    router.push(`/winnix/brand/${item._id}`);
   };
 
   const handleCreateBrand = () => {
@@ -58,9 +57,18 @@ const OrganizerBrandsScreen = () => {
       </TouchableOpacity>
 
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Mis Marcas</Text>
-          <Text style={styles.subtitle}>Gestiona tus marcas y ediciones de torneo</Text>
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+            activeOpacity={0.7}
+          >
+            <Ionicons name='chevron-back' size={26} color={Colors.light} />
+          </TouchableOpacity>
+          <View style={styles.headerTexts}>
+            <Text style={styles.title}>Mis Marcas</Text>
+            <Text style={styles.subtitle}>Gestiona tus marcas y ediciones de torneo</Text>
+          </View>
         </View>
 
         {brands.length > 0 ? (
@@ -104,11 +112,25 @@ export default OrganizerBrandsScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingVertical: 20,
+    paddingVertical: 10,
   },
-  header: {
-    marginBottom: 20,
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  backButton: {
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    marginRight: 14,
+  },
+  headerTexts: {
+    flex: 1,
+    justifyContent: 'center',
   },
   title: {
     fontSize: 24,

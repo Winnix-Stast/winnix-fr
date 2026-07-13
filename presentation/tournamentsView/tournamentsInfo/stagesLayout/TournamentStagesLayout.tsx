@@ -130,26 +130,20 @@ export const TournamentStagesLayout = ({ editionId, isOrganizer }: Props) => {
                   containerStyle={styles.stageCard}
                 >
                   <View style={styles.cardHeader}>
-                    {/* Template/Type Icon Badge */}
-                    <View style={styles.iconContainer}>
-                      <WinnixIcon name={iconName} size={20} color={Colors.brand_primary} />
-                    </View>
-
-                    {/* Status Pill */}
-                    <View style={[styles.statusBadge, { backgroundColor: statusBg }]}>
-                      <CustomText label={statusText} size={11} weight="bold" color={statusColor} />
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                      <View style={styles.iconContainer}>
+                        <WinnixIcon name={iconName} size={24} color={Colors.brand_primary} />
+                      </View>
+                      <View>
+                        <CustomText label={stage.name} size={18} weight='bold' color={Colors.text_primary} />
+                        <View style={[styles.statusBadge, { backgroundColor: statusBg, alignSelf: 'flex-start', marginTop: 4 }]}>
+                          <CustomText label={statusText} size={10} weight="bold" color={statusColor} />
+                        </View>
+                      </View>
                     </View>
                   </View>
 
-                  <View style={styles.cardBody}>
-                    <CustomText
-                      label={stage.name}
-                      size={20}
-                      weight='bold'
-                      color={Colors.text_primary}
-                    />
-
-                    {/* Meta info tags */}
+                  <View style={styles.cardFooter}>
                     <View style={styles.metaRow}>
                       <View style={styles.metaItem}>
                         <WinnixIcon name="people-outline" size={14} color={Colors.text_secondary} />
@@ -159,19 +153,15 @@ export const TournamentStagesLayout = ({ editionId, isOrganizer }: Props) => {
                         <WinnixIcon name="options-outline" size={14} color={Colors.text_secondary} />
                         <CustomText label={`${matchDetails}${thirdPlaceText}`} size={12} color={Colors.text_secondary} />
                       </View>
+                      <View style={styles.metaItem}>
+                        <WinnixIcon name="calendar-outline" size={14} color={Colors.text_secondary} />
+                        <CustomText 
+                          label={startDateStr ? `${startDateStr}${endDateStr ? ` - ${endDateStr}` : ''}` : 'Sin fecha definida'} 
+                          size={12} 
+                          color={Colors.text_secondary} 
+                        />
+                      </View>
                     </View>
-                  </View>
-
-                  <View style={styles.cardFooter}>
-                    <View style={styles.dateRange}>
-                      <WinnixIcon name="calendar-outline" size={14} color={Colors.text_tertiary} />
-                      <CustomText 
-                        label={startDateStr ? `${startDateStr}${endDateStr ? ` - ${endDateStr}` : ''}` : 'Sin fecha definida'} 
-                        size={12} 
-                        color={Colors.text_tertiary} 
-                      />
-                    </View>
-
                     <WinnixIcon
                       name='chevron-forward-outline'
                       size={18}
@@ -232,35 +222,30 @@ const styles = StyleSheet.create({
   stageCard: {
     width: '100%',
     padding: 16,
+    gap: 16,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
   },
   iconContainer: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     backgroundColor: 'rgba(40, 209, 195, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  cardBody: {
-    marginBottom: 12,
-    gap: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
   },
   metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
-    marginTop: 4,
   },
   metaItem: {
     flexDirection: 'row',
@@ -274,11 +259,5 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.04)',
     paddingTop: 12,
-    marginTop: 4,
-  },
-  dateRange: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
   },
 });

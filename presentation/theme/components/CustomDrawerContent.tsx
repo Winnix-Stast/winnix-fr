@@ -5,29 +5,15 @@ import { Ionicons } from '@expo/vector-icons';
 import {
   DrawerContentComponentProps,
   DrawerContentScrollView,
-  DrawerItem,
   DrawerItemList,
 } from '@react-navigation/drawer';
-import { router } from 'expo-router';
 import { useAuthStore } from '@/presentation/auth/store/useAuthStore';
-import { usePermission } from '@/presentation/hooks/auth/usePermission';
 import { Colors } from '@/presentation/styles/colors';
 import { Fonts } from '@/presentation/styles/global-styles';
 
 export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const { logout } = useAuthStore();
-  const { can } = usePermission();
   const insets = useSafeAreaInsets();
-
-  const isOrganizer = can('create:tournament');
-
-  const handleMyZonePress = () => {
-    if (isOrganizer) {
-      router.push('/winnix/myZone/organizer/brands');
-    } else {
-      router.push('/winnix/myZone/captain/inscriptions');
-    }
-  };
 
   return (
     <View style={styles.container}>
@@ -45,22 +31,6 @@ export const CustomDrawerContent = (props: DrawerContentComponentProps) => {
         {/* Lista de Navegación standard (tabs, perfil, settings) */}
         <View style={styles.listContainer}>
           <DrawerItemList {...props} />
-
-          {/* Ítem dinámico por rol: Mis Marcas (org) o Mis Torneos (captain/player) */}
-          <DrawerItem
-            label={isOrganizer ? 'Mis Marcas' : 'Mis Torneos'}
-            icon={({ color, size }) => (
-              <Ionicons
-                name={isOrganizer ? 'trophy-outline' : 'football-outline'}
-                size={size}
-                color={color}
-              />
-            )}
-            onPress={handleMyZonePress}
-            labelStyle={styles.drawerItemLabel}
-            activeTintColor={Colors.brand_primary}
-            inactiveTintColor={Colors.text_secondary}
-          />
         </View>
       </DrawerContentScrollView>
 

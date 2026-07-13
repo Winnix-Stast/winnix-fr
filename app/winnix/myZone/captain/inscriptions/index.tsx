@@ -49,7 +49,7 @@ const CaptainInscriptionsScreen = () => {
 
   const handlePressItem = (item: any) => {
     if (item.editionId) {
-      router.push(`/winnix/ourTournaments/tournament/${item.editionId}`);
+      router.push(`/winnix/tournament/${item.editionId}`);
     }
   };
 

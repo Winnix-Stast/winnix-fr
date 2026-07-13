@@ -1,15 +1,15 @@
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLocalSearchParams, usePathname, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTournamentDetails } from '@/presentation/hooks/tournaments/useTournamentDetails';
 import { IconName, WinnixIcon } from '@/presentation/plugins/Icon';
-import { Colors, getTournamentStatusConfig } from '@/presentation/styles';
+import { Colors } from '@/presentation/styles';
 import { Flex, Fonts } from '@/presentation/styles/global-styles';
-import { CustomFormView } from '@/presentation/theme/components/CustomFormView';
-import { CustomText } from '@/presentation/theme/components/CustomText';
-import { AppModal as CustomModal } from '@/presentation/theme/components/CustomModal';
 import { CustomButton } from '@/presentation/theme/components/CustomButton';
+import { CustomFormView } from '@/presentation/theme/components/CustomFormView';
+import { AppModal as CustomModal } from '@/presentation/theme/components/CustomModal';
+import { CustomText } from '@/presentation/theme/components/CustomText';
 import {
   BracketLayout,
   InformationTournament,
@@ -26,7 +26,6 @@ const TournamentDetails = () => {
   const { id } = useLocalSearchParams();
   const { top } = useSafeAreaInsets();
   const router = useRouter();
-  const pathname = usePathname();
 
   const details = useTournamentDetails(id as string, router);
 
@@ -85,135 +84,134 @@ const TournamentDetails = () => {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.surface_screen }}>
       <CustomFormView>
-        <ScrollView>
-        <View style={{ ...Flex.columnCenter, gap: 12, padding: 15 }}>
-          <Pressable
-            onPress={details.handleGoBack}
-            style={[
-              styles.back,
-              {
-                top: top - 30,
-              },
-            ]}
-          >
-            <WinnixIcon
-              name={'chevron-back-outline'}
-              size={30}
-              color={Colors.text_primary}
-            />
-          </Pressable>
+        <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+          <View style={{ ...Flex.columnCenter, gap: 12, padding: 15 }}>
+            <Pressable
+              onPress={details.handleGoBack}
+              style={[
+                styles.back,
+                {
+                  top: top - 30,
+                },
+              ]}
+            >
+              <WinnixIcon
+                name={'chevron-back-outline'}
+                size={30}
+                color={Colors.text_primary}
+              />
+            </Pressable>
 
+            {details.tournamentData && (
+              <TournamentHeaderCard
+                key={details.tournamentData.id}
+                title={details.tournamentData.title}
+                state={details.tournamentData.state}
+                statusLabel={
+                  details.statusMap[details.edition.status] || details.edition.status
+                }
+                dateText={details.tournamentData.dateText}
+                image={details.tournamentData.image}
+                titleStyle={{ fontSize: 32 }}
+              />
+            )}
 
-          {details.tournamentData && (
-            <TournamentHeaderCard
-              key={details.tournamentData.id}
-              title={details.tournamentData.title}
-              state={details.tournamentData.state}
+            {details.isOrganizer && details.edition.status === 'DRAFT' && (
+              <Pressable
+                style={styles.startTournamentButton}
+                onPress={details.handleStartTournament}
+              >
+                <WinnixIcon name='play-outline' size={20} color={Colors.status_draft} />
+                <CustomText
+                  label='Empezar Torneo'
+                  color={Colors.status_draft}
+                  weight='bold'
+                />
+              </Pressable>
+            )}
+
+            {/* Cards teams and reward */}
+            <TournamentStatsCards
+              inscriptionsCount={details.edition.inscriptions?.length || 0}
+              status={details.edition.status}
               statusLabel={
                 details.statusMap[details.edition.status] || details.edition.status
               }
-              dateText={details.tournamentData.dateText}
-              image={details.tournamentData.image}
-              titleStyle={{ fontSize: 32 }}
             />
-          )}
 
-          {details.isOrganizer && details.edition.status === 'DRAFT' && (
-            <Pressable
-              style={styles.startTournamentButton}
-              onPress={details.handleStartTournament}
-            >
-              <WinnixIcon name="play-outline" size={20} color={Colors.status_draft} />
-              <CustomText label="Empezar Torneo" color={Colors.status_draft} weight="bold" />
-            </Pressable>
-          )}
-
-          {/* Cards teams and reward */}
-          <TournamentStatsCards
-            inscriptionsCount={details.edition.inscriptions?.length || 0}
-            status={details.edition.status}
-            statusLabel={
-              details.statusMap[details.edition.status] || details.edition.status
-            }
-          />
-
-          <TournamentMenu
-            activeKey={details.activeTab}
-            onSelect={(key) => details.handleChangeView(key)}
-            items={filteredMenuItems}
-          />
-
-          {/* Section Mi Equipo */}
-          {details.activeTab === 'my_team' && (
-            <TournamentCaptainSection
-              members={details.members}
-              loadingMembers={details.loadingMembers}
-              selectedPlayers={details.selectedPlayers}
-              jerseyNumbers={details.jerseyNumbers}
-              isSavingRoster={details.isSavingRoster}
-              playersPerTeam={details.edition.playersPerTeam}
-              handleTogglePlayer={details.handleTogglePlayer}
-              handleJerseyNumberChange={details.handleJerseyNumberChange}
-              handleSaveRoster={details.handleSaveRoster}
+            <TournamentMenu
+              activeKey={details.activeTab}
+              onSelect={(key) => details.handleChangeView(key)}
+              items={filteredMenuItems}
             />
-          )}
 
-          {/* Section View Summary */}
-          {details.activeTab === 'summary' && (
-            <ResumeLayout
-              stats={details.statsData}
-              activities={details.recentActivities}
-              showParticipation={details.showParticipation}
-              onInscribe={details.handleParticipationAction}
-              participationProps={details.getParticipationProps()}
-            />
-          )}
+            {/* Section Mi Equipo */}
+            {details.activeTab === 'my_team' && (
+              <TournamentCaptainSection
+                members={details.members}
+                loadingMembers={details.loadingMembers}
+                selectedPlayers={details.selectedPlayers}
+                jerseyNumbers={details.jerseyNumbers}
+                isSavingRoster={details.isSavingRoster}
+                playersPerTeam={details.edition.playersPerTeam}
+                handleTogglePlayer={details.handleTogglePlayer}
+                handleJerseyNumberChange={details.handleJerseyNumberChange}
+                handleSaveRoster={details.handleSaveRoster}
+              />
+            )}
 
-          {/* Section Stages */}
-          {details.activeTab === 'stages' && (
-            <TournamentOrganizerSection
-              editionId={id as string}
-              isOrganizer={!!details.isOrganizer}
-            />
-          )}
+            {/* Section View Summary */}
+            {details.activeTab === 'summary' && (
+              <ResumeLayout
+                stats={details.statsData}
+                activities={details.recentActivities}
+                showParticipation={details.showParticipation}
+                onInscribe={details.handleParticipationAction}
+                participationProps={details.getParticipationProps()}
+              />
+            )}
 
-          {/* Section teams */}
-          {details.activeTab === 'teams' && (
-            <TournamentTeamsLayout
-              inscriptions={details.inscriptions}
-              playersPerTeam={details.edition?.playersPerTeam}
-            />
-          )}
+            {/* Section Stages */}
+            {details.activeTab === 'stages' && (
+              <TournamentOrganizerSection
+                editionId={id as string}
+                isOrganizer={!!details.isOrganizer}
+              />
+            )}
 
-          {/* Section Bracket */}
-          {details.activeTab === 'bracket' && (
-            <BracketLayout
-              matches={details.matches}
-              upcomingMatches={details.upcomingMatches}
-            />
-          )}
+            {/* Section teams */}
+            {details.activeTab === 'teams' && (
+              <TournamentTeamsLayout
+                inscriptions={details.inscriptions}
+                playersPerTeam={details.edition?.playersPerTeam}
+              />
+            )}
 
-          {details.activeTab === 'info' && <InformationTournament />}
-        </View>
-      </ScrollView>
+            {/* Section Bracket */}
+            {details.activeTab === 'bracket' && (
+              <BracketLayout
+                matches={details.matches}
+                upcomingMatches={details.upcomingMatches}
+              />
+            )}
+
+            {details.activeTab === 'info' && <InformationTournament />}
+          </View>
+        </ScrollView>
       </CustomFormView>
 
       {details.isOrganizer && (
         <View style={styles.fabContainer}>
           <Pressable
             onPress={() => {
-              const isOurTournaments = pathname.includes('ourTournaments');
-              const editPath = isOurTournaments
-                ? '/winnix/ourTournaments/tournament/edit'
-                : '/winnix/tabs/tournament/edit';
               router.push({
-                pathname: editPath,
+                pathname: '/winnix/tournament/edit',
                 params: { id: id as string },
               });
             }}
             style={styles.fabEdit}
           >
-            <WinnixIcon name="pencil-outline" size={24} color={Colors.brand_primary} />
+            <WinnixIcon name='pencil-outline' size={24} color={Colors.brand_primary} />
           </Pressable>
         </View>
       )}
@@ -226,21 +224,26 @@ const TournamentDetails = () => {
         contentStyle={{ backgroundColor: Colors.surface_base, padding: 20 }}
       >
         <View style={{ alignItems: 'center', gap: 15, paddingVertical: 10 }}>
-          <WinnixIcon name="warning-outline" size={50} color={Colors.status_draft} />
-          <CustomText label="¿Deseas iniciar el torneo?" weight="bold" size={20} color={Colors.text_primary} />
+          <WinnixIcon name='warning-outline' size={50} color={Colors.status_draft} />
+          <CustomText
+            label='¿Deseas iniciar el torneo?'
+            weight='bold'
+            size={20}
+            color={Colors.text_primary}
+          />
           <CustomText
             label="Esta acción cambiará el estado a 'Inscripciones Abiertas' y no se puede revertir."
             color={Colors.text_secondary}
           />
           <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
             <CustomButton
-              label="Cancelar"
+              label='Cancelar'
               onPress={() => details.setIsConfirmModalVisible(false)}
               outline={true}
               stylePressable={{ flex: 1 }}
             />
             <CustomButton
-              label="Iniciar"
+              label='Iniciar'
               onPress={details.confirmStartTournament}
               disabled={details.isStartingTournament}
               stylePressable={{ flex: 1 }}
@@ -257,14 +260,23 @@ const TournamentDetails = () => {
         contentStyle={{ backgroundColor: Colors.surface_base, padding: 20 }}
       >
         <View style={{ alignItems: 'center', gap: 15, paddingVertical: 10 }}>
-          <WinnixIcon name="checkmark-circle-outline" size={50} color={Colors.green_400} />
-          <CustomText label="¡Torneo iniciado!" weight="bold" size={20} color={Colors.text_primary} />
+          <WinnixIcon
+            name='checkmark-circle-outline'
+            size={50}
+            color={Colors.green_400}
+          />
           <CustomText
-            label="El torneo ha pasado a estado de Inscripciones Abiertas exitosamente."
+            label='¡Torneo iniciado!'
+            weight='bold'
+            size={20}
+            color={Colors.text_primary}
+          />
+          <CustomText
+            label='El torneo ha pasado a estado de Inscripciones Abiertas exitosamente.'
             color={Colors.text_secondary}
           />
           <CustomButton
-            label="Entendido"
+            label='Entendido'
             onPress={() => details.setIsSuccessModalVisible(false)}
             stylePressable={{ marginTop: 20, width: '100%' }}
           />

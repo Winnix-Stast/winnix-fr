@@ -1,11 +1,12 @@
 import React from 'react';
 import { IconName } from '@/presentation/plugins/Icon';
 import { ParticipationCard } from './ParticipationCard';
-import { Activity, RecentActivityCard } from './RecentActivityCard';
+import { Activity } from './RecentActivityCard';
 import { TournamentStatsCard } from './TournamentStatsCard';
 
 interface Stat {
   label: string;
+  value: string | number;
 }
 interface Props {
   stats: Stat[];
@@ -42,7 +43,7 @@ export const ResumeLayout = ({
       <TournamentStatsCard stats={stats} />
 
       {/* Recently Activity */}
-      <RecentActivityCard activities={activities} />
+      {/* <RecentActivityCard activities={activities} /> */}
     </>
   );
 };

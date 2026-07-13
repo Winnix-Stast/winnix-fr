@@ -5,6 +5,7 @@ import { Drawer } from 'expo-router/drawer';
 import { useAuthStore } from '@/presentation/auth/store/useAuthStore';
 import { usePermission } from '@/presentation/hooks/auth/usePermission';
 import { CustomDrawerContent, CustomHeader } from '@/presentation/theme/components/';
+import { WinnixIcon } from '@/presentation/plugins/Icon';
 
 const CheckAuthenticationLayout = () => {
   const { status, checkStatus } = useAuthStore();
@@ -56,8 +57,19 @@ const CheckAuthenticationLayout = () => {
       <Drawer.Screen
         name='tabs'
         options={{
-          drawerLabel: 'Dashboard',
-          title: 'Mis torneos',
+          drawerLabel: 'Inicio',
+          title: 'Inicio',
+          drawerIcon: ({ color, size }) => (
+            <WinnixIcon name='home-outline' size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Drawer.Screen
+        name='myZone'
+        options={{
+          drawerItemStyle: { display: 'none' },
+          title: isOrganizer ? 'Mis Marcas' : 'Mis Torneos',
         }}
       />
 
@@ -66,24 +78,20 @@ const CheckAuthenticationLayout = () => {
         options={{
           drawerLabel: 'Mi perfil',
           title: 'Mi perfil',
+          drawerIcon: ({ color, size }) => (
+            <WinnixIcon name='person-outline' size={size} color={color} />
+          ),
         }}
       />
 
       <Drawer.Screen
         name='settings'
         options={{
-          drawerLabel: 'Settings',
-          title: 'Settings',
-        }}
-      />
-
-      {/* myZone — zona personal por rol. El drawer item se oculta;
-          la navegación se hace desde el DrawerContent por rol. */}
-      <Drawer.Screen
-        name='myZone'
-        options={{
-          drawerItemStyle: { display: 'none' },
-          title: isOrganizer ? 'Mis Marcas' : 'Mis Torneos',
+          drawerLabel: 'Ajustes',
+          title: 'Ajustes',
+          drawerIcon: ({ color, size }) => (
+            <WinnixIcon name='settings-outline' size={size} color={color} />
+          ),
         }}
       />
 
@@ -119,6 +127,30 @@ const CheckAuthenticationLayout = () => {
 
       <Drawer.Screen
         name='team/[id]'
+        options={{
+          drawerItemStyle: { display: 'none' },
+          title: '',
+        }}
+      />
+
+      <Drawer.Screen
+        name='tournament/[id]'
+        options={{
+          drawerItemStyle: { display: 'none' },
+          title: '',
+        }}
+      />
+
+      <Drawer.Screen
+        name='tournament/edit'
+        options={{
+          drawerItemStyle: { display: 'none' },
+          title: '',
+        }}
+      />
+
+      <Drawer.Screen
+        name='brand/[id]'
         options={{
           drawerItemStyle: { display: 'none' },
           title: '',

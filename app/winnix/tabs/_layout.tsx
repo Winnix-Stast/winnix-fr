@@ -17,7 +17,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name='dashboard/index'
         options={{
-          title: `Dashboard`,
+          title: `Inicio`,
           tabBarIcon: ({ color }) => (
             <WinnixIcon size={28} name='home-outline' color={color} />
           ),

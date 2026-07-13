@@ -23,7 +23,7 @@ const TournamentsList = ({
   hasNextPage,
 }: Props) => {
   const handleNavigate = (item: any) => {
-    router.push(`/winnix/tabs/(tournamentStack)/tournament/${item._id}`);
+    router.push(`/winnix/tournament/${item._id}`);
   };
 
   const statusMap: Record<string, string> = {
