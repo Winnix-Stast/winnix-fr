@@ -8,11 +8,10 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { WinnixIcon } from '@/presentation/plugins/Icon';
-import { Colors } from '@/presentation/styles/colors';
-import { borderRadius } from '@/presentation/styles/theme';
-
 import { getTournamentStatusConfig } from '@/presentation/styles';
+import { Colors } from '@/presentation/styles/colors';
 
 type TournamentState = string;
 
@@ -45,57 +44,57 @@ export const TournamentHeaderCard = ({
   const borderColor = statusStyleConfig.headerBorderColor;
 
   return (
-    <View style={[styles.container, { borderRadius: parseInt(borderRadius.border_m) }]}>
+    <View style={styles.container}>
       <ImageBackground
         source={image}
-        style={[styles.imageBackground, { height: height * 0.28 }]}
+        style={[styles.imageBackground, { height: Math.max(220, height * 0.28) }]}
         imageStyle={styles.portrait}
         resizeMode='cover'
       >
-        <View style={styles.overlay}>
-          {/* Fila Superior con Estado */}
+        <LinearGradient
+          colors={[
+            'rgba(6, 11, 24, 0.25)',
+            'rgba(6, 11, 24, 0.65)',
+            'rgba(6, 11, 24, 0.95)',
+          ]}
+          locations={[0, 0.5, 1]}
+          style={styles.gradientOverlay}
+        >
           <View style={styles.topRow}>
-            {/* <View style={styles.liveCapsule}>
-              <View style={styles.liveDot} />
-              <Text style={styles.liveText}>WINNIX ARENA</Text>
-            </View> */}
-
-            <Text
+            <View
               style={[
                 styles.statusTag,
-                { color, backgroundColor: bgColor, borderColor },
-                statusStyle,
+                { backgroundColor: bgColor, borderColor: borderColor },
               ]}
-              adjustsFontSizeToFit
             >
-              {statusLabel || state}
-            </Text>
-          </View>
-
-          {/* Sección Media con Título */}
-          <View style={styles.middleSection}>
-            <View style={styles.titleBadge}>
-              <Text style={[styles.title, titleStyle]} numberOfLines={2}>
-                {title}
+              <Text style={[styles.statusTagText, { color }, statusStyle]}>
+                {(statusLabel || state).toUpperCase()}
               </Text>
             </View>
           </View>
 
-          {/* Fila Inferior con Fecha */}
-          <View style={styles.bottomRow}>
+          <View style={styles.middleSection}>
+            <Text style={[styles.title, titleStyle]} numberOfLines={2}>
+              {title}
+            </Text>
+          </View>
+
+          <View style={styles.bottomBar}>
             <View style={styles.dateContainer}>
-              <WinnixIcon
-                name='calendar-outline'
-                size={16}
-                color={Colors.brand_primary}
-              />
+              <View style={styles.calendarIconBg}>
+                <WinnixIcon
+                  name='calendar-outline'
+                  size={15}
+                  color={Colors.brand_primary}
+                />
+              </View>
               <View style={{ gap: 2 }}>
-                <Text style={styles.dateLabel}>Temporada</Text>
+                <Text style={styles.dateLabel}>TEMPORADA DE JUEGO</Text>
                 <Text style={[styles.dateValue, dateStyle]}>{dateText}</Text>
               </View>
             </View>
           </View>
-        </View>
+        </LinearGradient>
       </ImageBackground>
     </View>
   );
@@ -104,25 +103,25 @@ export const TournamentHeaderCard = ({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
+    borderRadius: 22,
     overflow: 'hidden',
     borderWidth: 1.5,
-    borderColor: Colors.border_subtitle,
-    shadowColor: Colors.brand_primary,
-    shadowOffset: { width: 0, height: 6 },
+    borderColor: 'rgba(40, 209, 195, 0.25)',
+    shadowColor: '#28D1C3',
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
-    shadowRadius: 10,
+    shadowRadius: 12,
     elevation: 8,
   },
   imageBackground: {
     width: '100%',
   },
   portrait: {
-    borderRadius: 8,
+    borderRadius: 20,
   },
-  overlay: {
+  gradientOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(3, 8, 25, 0.45)',
-    padding: 12,
+    padding: 16,
     justifyContent: 'space-between',
   },
   topRow: {
@@ -131,84 +130,67 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
   },
-  liveCapsule: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(3, 8, 25, 0.75)',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(40, 209, 195, 0.3)',
+  statusTag: {
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1.5,
   },
-  liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Colors.brand_primary,
-  },
-  liveText: {
-    color: Colors.brand_primary,
-    fontSize: 9,
+  statusTagText: {
+    fontSize: 11,
     fontWeight: '900',
     letterSpacing: 1,
   },
-  statusTag: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    borderWidth: 1.5,
-    textTransform: 'uppercase',
-    fontSize: 12,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
-    overflow: 'hidden',
-  },
   middleSection: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    marginVertical: 12,
-  },
-  titleBadge: {
-    backgroundColor: 'rgba(3, 8, 25, 0.8)',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    justifyContent: 'flex-end',
+    marginBottom: 10,
   },
   title: {
-    fontSize: 22,
-    color: Colors.text_primary,
-    fontWeight: 'bold',
+    fontSize: 28,
+    color: '#FFFFFF',
+    fontWeight: '900',
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
-  bottomRow: {
+  bottomBar: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    backgroundColor: 'rgba(14, 21, 41, 0.95)',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    backgroundColor: 'rgba(10, 16, 38, 0.75)',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     borderWidth: 1,
-    borderColor: 'rgba(40, 209, 195, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   dateContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
+  },
+  calendarIconBg: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    backgroundColor: 'rgba(40, 209, 195, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(40, 209, 195, 0.2)',
   },
   dateLabel: {
-    color: Colors.text_tertiary,
-    fontSize: 8,
-    textTransform: 'uppercase',
+    color: '#A2B4D6',
+    fontSize: 9,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
   dateValue: {
-    color: Colors.text_primary,
-    fontSize: 11,
+    color: '#FFFFFF',
+    fontSize: 12,
     fontWeight: '700',
   },
 });

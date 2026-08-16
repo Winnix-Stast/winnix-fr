@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -26,6 +27,54 @@ export const BrandDetailScreen = () => {
     formatDate,
     statusLabel,
   } = useBrandDetails();
+
+  const [selectedFilter, setSelectedFilter] = useState<
+    'all' | 'active' | 'upcoming' | 'finished'
+  >('all');
+
+  const filterChips = [
+    { key: 'all', label: 'TODOS', icon: 'grid-outline' },
+    { key: 'active', label: 'ACTIVOS', icon: 'flash-outline' },
+    { key: 'upcoming', label: 'PRÓXIMAMENTE', icon: 'time-outline' },
+    { key: 'finished', label: 'FINALIZADOS', icon: 'checkmark-done-outline' },
+  ];
+
+  const getStatusPriority = (status?: string) => {
+    const s = (status || '').toUpperCase();
+    if (['REGISTRATION_OPEN', 'ACTIVE', 'IN_PROGRESS', 'PUBLISHED'].includes(s)) return 1;
+    if (['DRAFT', 'UPCOMING'].includes(s)) return 2;
+    if (['FINISHED', 'CANCELLED'].includes(s)) return 3;
+    return 4;
+  };
+
+  const filteredEditions = useMemo(() => {
+    if (!editions) return [];
+
+    let list = [...editions];
+
+    if (selectedFilter === 'active') {
+      list = list.filter((e) =>
+        ['REGISTRATION_OPEN', 'ACTIVE', 'IN_PROGRESS', 'PUBLISHED'].includes(
+          (e.status || '').toUpperCase(),
+        ),
+      );
+    } else if (selectedFilter === 'upcoming') {
+      list = list.filter((e) =>
+        ['DRAFT', 'UPCOMING'].includes((e.status || '').toUpperCase()),
+      );
+    } else if (selectedFilter === 'finished') {
+      list = list.filter((e) =>
+        ['FINISHED', 'CANCELLED'].includes((e.status || '').toUpperCase()),
+      );
+    }
+
+    return list.sort((a, b) => {
+      const pA = getStatusPriority(a.status);
+      const pB = getStatusPriority(b.status);
+      if (pA !== pB) return pA - pB;
+      return new Date(b.startDate || 0).getTime() - new Date(a.startDate || 0).getTime();
+    });
+  }, [editions, selectedFilter]);
 
   if (loadingBrand) {
     return (
@@ -125,7 +174,7 @@ export const BrandDetailScreen = () => {
             </View>
           </View>
 
-          {/* Editions Section */}
+          {/* Editions Section Header */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Ediciones Creadas</Text>
             <PermissionGate permission='create:tournament-edition'>
@@ -145,51 +194,120 @@ export const BrandDetailScreen = () => {
             </PermissionGate>
           </View>
 
+          {/* E-Sports Filter Chips */}
+          {editions && editions.length > 0 && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterChipsContainer}
+            >
+              {filterChips.map((chip) => {
+                const isActive = selectedFilter === chip.key;
+                return (
+                  <TouchableOpacity
+                    key={chip.key}
+                    style={[styles.chipButton, isActive && styles.activeChipButton]}
+                    activeOpacity={0.8}
+                    onPress={() => setSelectedFilter(chip.key as any)}
+                  >
+                    <WinnixIcon
+                      name={chip.icon as any}
+                      size={14}
+                      color={isActive ? '#28D1C3' : '#6E7C96'}
+                    />
+                    <Text style={[styles.chipText, isActive && styles.activeChipText]}>
+                      {chip.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          )}
+
           {loadingEditions ? (
             <ActivityIndicator size='small' color={Colors.primary} />
-          ) : editions && editions.length > 0 ? (
+          ) : filteredEditions && filteredEditions.length > 0 ? (
             <View style={{ gap: 14 }}>
-              {editions.map((edition: any) => {
+              {filteredEditions.map((edition: any) => {
                 const st = statusLabel(edition.status);
+                const thumbUri = edition.image || edition.logo;
                 return (
                   <TouchableOpacity
                     key={edition._id}
-                    style={[styles.editionCard, { borderLeftColor: st.color }]}
-                    activeOpacity={0.855}
+                    style={[
+                      styles.editionCard,
+                      {
+                        shadowColor: st.color,
+                        borderColor: `${st.color}35`,
+                      },
+                    ]}
+                    activeOpacity={0.85}
                     onPress={() => router.push(`/winnix/tournament/${edition._id}`)}
                   >
-                    <View style={styles.editionContent}>
-                      <View style={styles.editionTop}>
-                        <Text style={styles.editionName} numberOfLines={1}>
-                          {edition.seasonName}
-                        </Text>
-                        <View
-                          style={[
-                            styles.statusBadge,
-                            {
-                              backgroundColor: st.color + '12',
-                              borderColor: st.color + '35',
-                            },
-                          ]}
-                        >
-                          <Text style={[styles.statusText, { color: st.color }]}>
-                            {st.label.toUpperCase()}
+                    <View style={styles.editionHeaderRow}>
+                      {/* Left Thumbnail Image or Icon */}
+                      <View style={styles.editionThumbContainer}>
+                        {thumbUri ? (
+                          <Image
+                            source={{ uri: thumbUri }}
+                            style={styles.editionThumbImage}
+                            resizeMode='cover'
+                          />
+                        ) : (
+                          <View
+                            style={[
+                              styles.editionThumbIconBg,
+                              { backgroundColor: st.color + '15' },
+                            ]}
+                          >
+                            <WinnixIcon
+                              name='trophy-outline'
+                              size={22}
+                              color={st.color}
+                            />
+                          </View>
+                        )}
+                      </View>
+
+                      {/* Main Title & Details */}
+                      <View style={styles.editionMainInfo}>
+                        <View style={styles.editionTitleRow}>
+                          <Text style={styles.editionName} numberOfLines={1}>
+                            {edition.seasonName}
+                          </Text>
+                          <View
+                            style={[
+                              styles.statusBadge,
+                              {
+                                backgroundColor: st.color + '15',
+                                borderColor: st.color + '40',
+                              },
+                            ]}
+                          >
+                            <Text style={[styles.statusText, { color: st.color }]}>
+                              {st.label.toUpperCase()}
+                            </Text>
+                          </View>
+                        </View>
+
+                        <View style={styles.editionMeta}>
+                          <WinnixIcon name='calendar-outline' size={14} color='#6E7C96' />
+                          <Text style={styles.editionDate}>
+                            {formatDate(edition.startDate)} —{' '}
+                            {edition.endDate
+                              ? formatDate(edition.endDate)
+                              : 'Sin definir'}
                           </Text>
                         </View>
                       </View>
-                      <View style={styles.editionMeta}>
-                        <WinnixIcon name='calendar-outline' size={14} color='#6E7C96' />
-                        <Text style={styles.editionDate}>
-                          {formatDate(edition.startDate)} —{' '}
-                          {edition.endDate ? formatDate(edition.endDate) : 'Sin definir'}
-                        </Text>
-                      </View>
+
+                      {/* Chevron Arrow */}
+                      <WinnixIcon
+                        name='chevron-forward-outline'
+                        size={20}
+                        color='#6E7C96'
+                      />
                     </View>
-                    <WinnixIcon
-                      name='chevron-forward-outline'
-                      size={20}
-                      color='#6E7C96'
-                    />
                   </TouchableOpacity>
                 );
               })}
@@ -343,49 +461,102 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 1,
   },
-  editionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#0a0f26',
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.04)',
-    borderLeftWidth: 4,
-    gap: 12,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-  },
-  editionContent: {
-    flex: 1,
+  filterChipsContainer: {
     gap: 8,
+    paddingVertical: 4,
+    marginBottom: 4,
   },
-  editionTop: {
+  chipButton: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 10,
+    gap: 6,
+    backgroundColor: 'rgba(10, 15, 38, 0.6)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  activeChipButton: {
+    backgroundColor: 'rgba(40, 209, 195, 0.12)',
+    borderColor: '#28D1C3',
+    shadowColor: '#28D1C3',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  chipText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#6E7C96',
+    letterSpacing: 0.8,
+  },
+  activeChipText: {
+    color: '#28D1C3',
+  },
+  editionCard: {
+    backgroundColor: '#0c122b',
+    borderRadius: 18,
+    padding: 14,
+    borderWidth: 1.5,
+    elevation: 6,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+  },
+  editionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  editionThumbContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: '#161e38',
+  },
+  editionThumbImage: {
+    width: '100%',
+    height: '100%',
+  },
+  editionThumbIconBg: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  editionMainInfo: {
+    flex: 1,
+    gap: 6,
+  },
+  editionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
   },
   editionName: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '900',
     color: '#FFFFFF',
     flex: 1,
+    letterSpacing: 0.3,
   },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 8,
     borderWidth: 1,
   },
   statusText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '900',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   editionMeta: {
     flexDirection: 'row',
@@ -393,9 +564,9 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   editionDate: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#9EADCE',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   emptyEditions: {
     alignItems: 'center',

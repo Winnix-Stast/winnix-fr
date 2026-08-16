@@ -32,13 +32,12 @@ export default function CreateBrandScreen() {
           <View style={styles.infoCard}>
             <WinnixIcon
               name='information-circle-outline'
-              size={24}
+              size={20}
               color={Colors.brand_primary}
             />
             <Text style={styles.infoText}>
-              {
-                "Una Marca es la dueña de tu liga (como la 'Dimayor'). Una vez que la crees, podrás armar todos los torneos y temporadas (como la Liga BetPlay) que quieras bajo su nombre. ¡Empieza a armar tu propia liga!"
-              }
+              Define el nombre y logo oficial con el que se identificará tu liga de
+              torneos.
             </Text>
           </View>
 

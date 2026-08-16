@@ -76,9 +76,9 @@ export const styles = StyleSheet.create({
     elevation: 5,
   },
   logoImage: {
-    width: '75%',
-    height: '75%',
-    borderRadius: 30,
+    width: '100%',
+    height: '100%',
+    borderRadius: 40,
   },
   infoContainer: {
     flex: 1,
@@ -131,11 +131,11 @@ export const styles = StyleSheet.create({
   },
   techPanel: {
     flexDirection: 'row',
-    backgroundColor: '#0a0f26', // Solid dark navy background for clean text rendering and contrast
+    backgroundColor: '#0a0f26',
     borderRadius: Radius.medium,
     padding: 14,
     borderWidth: 1.5,
-    borderColor: 'rgba(40, 209, 195, 0.25)', // Higher contrast tech-accent border
+    borderColor: 'rgba(40, 209, 195, 0.25)',
     justifyContent: 'space-between',
     alignItems: 'center',
     zIndex: 2,
@@ -154,14 +154,14 @@ export const styles = StyleSheet.create({
   },
   techLabel: {
     fontSize: 11,
-    color: '#CFD8E9', // Brighter, metallic silver-blue for excellent contrast
+    color: '#CFD8E9',
     fontWeight: '700',
     letterSpacing: 1.2,
   },
   techValue: {
     fontSize: 17,
     fontWeight: '900',
-    color: '#FFFFFF', // Clean bright white text
+    color: '#FFFFFF',
     letterSpacing: 0.5,
   },
   techPanelRight: {

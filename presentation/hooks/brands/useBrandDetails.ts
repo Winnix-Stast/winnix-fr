@@ -1,9 +1,13 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import {
+  useFocusEffect,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from 'expo-router';
 import { brandsActions } from '@/core/brands/actions/brands-actions';
 import { tournamentsActions } from '@/core/tournaments/actions/tournaments-actions';
-
 import { getTournamentStatusConfig } from '@/presentation/styles';
 
 export const useBrandDetails = () => {
@@ -12,17 +16,34 @@ export const useBrandDetails = () => {
   const router = useRouter();
   const navigation = useNavigation();
 
-  const { data: brand, isLoading: loadingBrand } = useQuery({
+  const {
+    data: brand,
+    isLoading: loadingBrand,
+    refetch: refetchBrand,
+  } = useQuery({
     queryKey: ['brand', resolvedId],
     queryFn: () => brandsActions.getBrandByIdAction(resolvedId as string),
     enabled: !!resolvedId,
   });
 
-  const { data: editions, isLoading: loadingEditions } = useQuery({
+  const {
+    data: editions,
+    isLoading: loadingEditions,
+    refetch: refetchEditions,
+  } = useQuery({
     queryKey: ['editions-by-brand', resolvedId],
     queryFn: () => tournamentsActions.getEditionsByBrandAction(resolvedId as string),
     enabled: !!resolvedId,
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      if (resolvedId) {
+        refetchBrand();
+        refetchEditions();
+      }
+    }, [resolvedId, refetchBrand, refetchEditions]),
+  );
 
   useEffect(() => {
     if (brand?.name) {

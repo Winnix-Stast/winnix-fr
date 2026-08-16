@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { tournamentsActions } from '@/core/tournaments/actions/tournaments-actions';
+import { filesAdapter } from '@/core/files/files-adapter';
 import { inscriptionsActions } from '@/core/inscriptions/actions/inscriptions-actions';
+import { tournamentsActions } from '@/core/tournaments/actions/tournaments-actions';
 import { useCustomForm } from '@/hooks/useCustomForm';
 import { useAlertStore } from '@/presentation/components/customs/useAlertStore';
-import { useSports, useSportTemplates } from '@/presentation/hooks/sports/useSports';
+import { useSportTemplates, useSports } from '@/presentation/hooks/sports/useSports';
 import {
   EditEditionFormData,
   editEditionSchema,
@@ -16,7 +17,12 @@ export const useEditTournament = (id: string) => {
   const queryClient = useQueryClient();
 
   // 1. Fetch tournament edition data
-  const { data: edition, isLoading, isError, error } = useQuery({
+  const {
+    data: edition,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ['edition', id],
     queryFn: () => tournamentsActions.getEditionByIdAction(id),
     enabled: !!id,
@@ -46,12 +52,18 @@ export const useEditTournament = (id: string) => {
   useEffect(() => {
     if (edition) {
       reset({
-        tournament: typeof edition.tournament === 'object' ? edition.tournament?._id : edition.tournament,
+        tournament:
+          typeof edition.tournament === 'object'
+            ? edition.tournament?._id
+            : edition.tournament,
         seasonName: edition.seasonName,
         startDate: edition.startDate ? new Date(edition.startDate) : undefined,
         endDate: edition.endDate ? new Date(edition.endDate) : undefined,
         sport: typeof edition.sport === 'object' ? edition.sport?._id : edition.sport,
-        sportTemplate: typeof edition.sportTemplate === 'object' ? edition.sportTemplate?._id : edition.sportTemplate,
+        sportTemplate:
+          typeof edition.sportTemplate === 'object'
+            ? edition.sportTemplate?._id
+            : edition.sportTemplate,
         playersPerTeam: edition.playersPerTeam,
         matchDuration: edition.matchDuration,
         scoring: {
@@ -79,7 +91,8 @@ export const useEditTournament = (id: string) => {
     return new Promise<void>((resolve, reject) => {
       useAlertStore.getState().showAlert({
         title: 'Confirmar Cambios',
-        message: '¿Estás seguro de que deseas guardar las modificaciones de configuración del torneo?',
+        message:
+          '¿Estás seguro de que deseas guardar las modificaciones de configuración del torneo?',
         type: 'info',
         showCancel: true,
         confirmText: 'Sí, guardar',
@@ -92,24 +105,24 @@ export const useEditTournament = (id: string) => {
             const updatePayload = {
               seasonName: payload.seasonName,
               // Only send editable fields if it's draft, to avoid backend warnings or inconsistencies
-              ...(isDraft ? {
-                startDate: payload.startDate?.toISOString(),
-                endDate: payload.endDate?.toISOString(),
-                sportTemplate: payload.sportTemplate,
-                playersPerTeam: payload.playersPerTeam,
-                matchDuration: payload.matchDuration,
-                scoring: payload.scoring,
-              } : {})
+              ...(isDraft
+                ? {
+                    startDate: payload.startDate?.toISOString(),
+                    endDate: payload.endDate?.toISOString(),
+                    sportTemplate: payload.sportTemplate,
+                    playersPerTeam: payload.playersPerTeam,
+                    matchDuration: payload.matchDuration,
+                    scoring: payload.scoring,
+                  }
+                : {}),
             };
 
             await tournamentsActions.updateEditionAction(id, updatePayload);
 
             // Invalidate queries to refresh detail and lists
             await queryClient.invalidateQueries({ queryKey: ['edition', id] });
+            await queryClient.invalidateQueries({ queryKey: ['editions-by-brand'] });
             await queryClient.invalidateQueries({ queryKey: ['my-brands'] });
-            if (payload.tournament) {
-              await queryClient.invalidateQueries({ queryKey: ['editions-by-brand', payload.tournament] });
-            }
 
             useAlertStore.getState().showAlert({
               title: 'Torneo Actualizado',
@@ -118,6 +131,7 @@ export const useEditTournament = (id: string) => {
               confirmText: 'Entendido',
               onConfirm: () => {
                 resolve();
+                router.replace(`/winnix/tournament/${id}`);
               },
             });
           } catch (error: any) {
@@ -156,17 +170,38 @@ export const useEditTournament = (id: string) => {
         },
         onConfirm: async () => {
           try {
+            let imageUrl = payload.image;
+            let logoUrl = payload.logo;
+
+            if (
+              payload.image &&
+              (payload.image.startsWith('file:') ||
+                payload.image.startsWith('content:') ||
+                payload.image.startsWith('ph:'))
+            ) {
+              const res = await filesAdapter.uploadFile(payload.image, 'tournaments');
+              imageUrl = res.url;
+            }
+
+            if (
+              payload.logo &&
+              (payload.logo.startsWith('file:') ||
+                payload.logo.startsWith('content:') ||
+                payload.logo.startsWith('ph:'))
+            ) {
+              const res = await filesAdapter.uploadFile(payload.logo, 'tournaments');
+              logoUrl = res.url;
+            }
+
             await tournamentsActions.updateEditionAction(id, {
-              image: payload.image,
-              logo: payload.logo,
+              image: imageUrl,
+              logo: logoUrl,
             });
 
             // Invalidate queries to refresh detail and lists
             await queryClient.invalidateQueries({ queryKey: ['edition', id] });
+            await queryClient.invalidateQueries({ queryKey: ['editions-by-brand'] });
             await queryClient.invalidateQueries({ queryKey: ['my-brands'] });
-            if (payload.tournament) {
-              await queryClient.invalidateQueries({ queryKey: ['editions-by-brand', payload.tournament] });
-            }
 
             useAlertStore.getState().showAlert({
               title: 'Imágenes Guardadas',
@@ -175,6 +210,7 @@ export const useEditTournament = (id: string) => {
               confirmText: 'Entendido',
               onConfirm: () => {
                 resolve();
+                router.replace(`/winnix/tournament/${id}`);
               },
             });
           } catch (error: any) {
@@ -216,7 +252,9 @@ export const useEditTournament = (id: string) => {
             await inscriptionsActions.deleteInscriptionAction(inscriptionId);
 
             // Invalidate queries
-            await queryClient.invalidateQueries({ queryKey: ['inscriptions-by-edition', id] });
+            await queryClient.invalidateQueries({
+              queryKey: ['inscriptions-by-edition', id],
+            });
             await queryClient.invalidateQueries({ queryKey: ['edition', id] });
 
             useAlertStore.getState().showAlert({
@@ -230,7 +268,8 @@ export const useEditTournament = (id: string) => {
             });
           } catch (error: any) {
             const serverMsg = error?.response?.data?.message;
-            const errorMessage = serverMsg || 'No se pudo retirar al equipo. Inténtalo de nuevo.';
+            const errorMessage =
+              serverMsg || 'No se pudo retirar al equipo. Inténtalo de nuevo.';
 
             useAlertStore.getState().showAlert({
               title: 'Error al retirar',
@@ -248,7 +287,7 @@ export const useEditTournament = (id: string) => {
   };
 
   const handleGoBack = () => {
-    router.back();
+    router.replace(`/winnix/tournament/${id}`);
   };
 
   return {

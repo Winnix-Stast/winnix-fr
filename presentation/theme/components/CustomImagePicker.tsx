@@ -1,11 +1,10 @@
-import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
-import React from "react";
-import { Controller } from "react-hook-form";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-
-import { Colors } from "@/presentation/styles";
-import { ErrorMessage, Fonts } from "@/presentation/styles/global-styles";
+import React from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { Controller } from 'react-hook-form';
+import { Colors } from '@/presentation/styles';
+import { ErrorMessage, Fonts } from '@/presentation/styles/global-styles';
 
 interface Props {
   name: string;
@@ -16,10 +15,17 @@ interface Props {
   isRound?: boolean;
 }
 
-export const CustomImagePicker = ({ name, control, label, errorMessage, aspect = [4, 3], isRound = false }: Props) => {
+export const CustomImagePicker = ({
+  name,
+  control,
+  label,
+  errorMessage,
+  aspect = [4, 3],
+  isRound = false,
+}: Props) => {
   const pickImage = async (onChange: (value: string) => void) => {
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.MediaTypeOptions?.Images || ('images' as any),
       allowsEditing: true,
       aspect,
       quality: 0.8,
@@ -37,9 +43,22 @@ export const CustomImagePicker = ({ name, control, label, errorMessage, aspect =
         control={control}
         name={name}
         render={({ field: { onChange, value } }) => (
-          <TouchableOpacity style={[styles.pickerContainer, isRound && styles.roundContainer, errorMessage ? { borderColor: Colors.surface_warning } : {}, !value && styles.emptyPicker]} activeOpacity={0.8} onPress={() => pickImage(onChange)}>
+          <TouchableOpacity
+            style={[
+              styles.pickerContainer,
+              isRound && styles.roundContainer,
+              errorMessage ? { borderColor: Colors.surface_warning } : {},
+              !value && styles.emptyPicker,
+            ]}
+            activeOpacity={0.8}
+            onPress={() => pickImage(onChange)}
+          >
             {value ? (
-              <Image source={{ uri: value }} style={[styles.image, isRound && styles.roundImage]} resizeMode='cover' />
+              <Image
+                source={{ uri: value }}
+                style={[styles.image, isRound && styles.roundImage]}
+                resizeMode='cover'
+              />
             ) : (
               <View style={styles.placeholderContainer}>
                 <Ionicons name='camera-outline' size={32} color={Colors.primary_50} />
@@ -48,7 +67,7 @@ export const CustomImagePicker = ({ name, control, label, errorMessage, aspect =
             )}
 
             {value && (
-              <TouchableOpacity style={styles.removeButton} onPress={() => onChange("")}>
+              <TouchableOpacity style={styles.removeButton} onPress={() => onChange('')}>
                 <Ionicons name='close-circle' size={24} color={Colors.surface_warning} />
               </TouchableOpacity>
             )}
@@ -62,45 +81,45 @@ export const CustomImagePicker = ({ name, control, label, errorMessage, aspect =
 
 const styles = StyleSheet.create({
   container: {
-    width: "100%",
+    width: '100%',
     gap: 5,
   },
   label: {
     fontSize: Fonts.normal,
     color: Colors.primary_50,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   pickerContainer: {
-    width: "100%",
+    width: '100%',
     height: 150,
     borderWidth: 1,
     borderColor: Colors.border_focus,
     borderRadius: 12,
-    overflow: "hidden",
-    justifyContent: "center",
-    alignItems: "center",
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: Colors.surface_elevated,
   },
   emptyPicker: {
-    borderStyle: "dashed",
+    borderStyle: 'dashed',
     borderColor: Colors.neutral_500,
   },
   roundContainer: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    alignSelf: "center",
+    alignSelf: 'center',
   },
   image: {
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
   },
   roundImage: {
     borderRadius: 60,
   },
   placeholderContainer: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   placeholderText: {
     color: Colors.primary_50,
@@ -108,10 +127,10 @@ const styles = StyleSheet.create({
     fontSize: Fonts.small,
   },
   removeButton: {
-    position: "absolute",
+    position: 'absolute',
     top: 5,
     right: 5,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: 'rgba(0,0,0,0.5)',
     borderRadius: 12,
   },
 });

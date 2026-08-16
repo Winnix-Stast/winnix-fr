@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
+import { filesAdapter } from '@/core/files/files-adapter';
 import { tournamentsActions } from '@/core/tournaments/actions/tournaments-actions';
 import { useCustomForm } from '@/hooks/useCustomForm';
 import { useAlertStore } from '@/presentation/components/customs/useAlertStore';
@@ -39,6 +40,29 @@ export const useCreateTournament = () => {
         },
         onConfirm: async () => {
           try {
+            let imageUrl = payload.image;
+            let logoUrl = payload.logo;
+
+            if (
+              payload.image &&
+              (payload.image.startsWith('file:') ||
+                payload.image.startsWith('content:') ||
+                payload.image.startsWith('ph:'))
+            ) {
+              const res = await filesAdapter.uploadFile(payload.image, 'tournaments');
+              imageUrl = res.url;
+            }
+
+            if (
+              payload.logo &&
+              (payload.logo.startsWith('file:') ||
+                payload.logo.startsWith('content:') ||
+                payload.logo.startsWith('ph:'))
+            ) {
+              const res = await filesAdapter.uploadFile(payload.logo, 'tournaments');
+              logoUrl = res.url;
+            }
+
             const createPayload = {
               tournament: payload.tournament,
               seasonName: payload.seasonName,
@@ -47,8 +71,8 @@ export const useCreateTournament = () => {
               sport: payload.sport,
               sportCategory: payload.sportCategory || undefined,
               sportTemplate: payload.sportTemplate,
-              image: payload.image,
-              logo: payload.logo,
+              image: imageUrl || undefined,
+              logo: logoUrl || undefined,
               playersPerTeam: payload.playersPerTeam,
               matchDuration: payload.matchDuration,
               scoring: payload.scoring,
@@ -75,7 +99,9 @@ export const useCreateTournament = () => {
                   reset();
                   const brandId = payload.tournament;
                   resolve();
-                  if (brandId) {
+                  if (router.canGoBack()) {
+                    router.back();
+                  } else if (brandId) {
                     router.replace(`/winnix/brand/${brandId}`);
                   } else {
                     router.back();

@@ -1,6 +1,8 @@
+import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { brandsActions } from '@/core/brands/actions/brands-actions';
+import { filesAdapter } from '@/core/files/files-adapter';
 import { useCustomForm } from '@/hooks/useCustomForm';
 import { useAlertStore } from '@/presentation/components/customs/useAlertStore';
 import {
@@ -12,17 +14,41 @@ export const useCreateBrand = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { control, handleSubmit, errors, isSubmitting, isDisabled, getValues } =
+  const { control, handleSubmit, errors, isSubmitting, isDisabled, getValues, reset } =
     useCustomForm<CreateBrandFormData>(createBrandSchema);
+
+  // Reset form inputs whenever the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      reset({
+        name: '',
+        logo: '',
+      });
+    }, [reset]),
+  );
 
   const onSubmit = async (payload: CreateBrandFormData) => {
     try {
+      let logoUrl = payload.logo;
+
+      // If user selected a local file, upload it to the backend first
+      if (
+        payload.logo &&
+        (payload.logo.startsWith('file:') ||
+          payload.logo.startsWith('content:') ||
+          payload.logo.startsWith('ph:'))
+      ) {
+        const uploadResult = await filesAdapter.uploadFile(payload.logo, 'brands');
+        logoUrl = uploadResult.url;
+      }
+
       const data = await brandsActions.createBrandAction({
         name: payload.name,
-        logo: payload.logo,
+        logo: logoUrl,
       });
 
       if (data) {
+        reset({ name: '', logo: '' });
         queryClient.invalidateQueries({ queryKey: ['my-brands'] });
         useAlertStore.getState().showAlert({
           title: 'Marca Creada',
@@ -47,6 +73,7 @@ export const useCreateBrand = () => {
   };
 
   const handleGoBack = () => {
+    reset({ name: '', logo: '' });
     router.back();
   };
 

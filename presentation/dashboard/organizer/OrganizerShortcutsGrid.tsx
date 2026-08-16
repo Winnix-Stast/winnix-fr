@@ -38,8 +38,8 @@ export const OrganizerShortcutsGrid = ({
               color={Colors.brand_primary}
             />
           </View>
-          <Text style={styles.shortcutTitle}>Crear Liga</Text>
-          <Text style={styles.shortcutSubtitle}>Registra una nueva liga</Text>
+          <Text style={styles.shortcutTitle}>Crear Marca</Text>
+          <Text style={styles.shortcutSubtitle}>Registra una nueva Marca</Text>
         </LinearGradient>
       </TouchableOpacity>
 
@@ -60,8 +60,8 @@ export const OrganizerShortcutsGrid = ({
           >
             <WinnixIcon name='folder-open-outline' size={22} color='#6366F1' />
           </View>
-          <Text style={styles.shortcutTitle}>Mis Ligas</Text>
-          <Text style={styles.shortcutSubtitle}>Ver todas mis ligas</Text>
+          <Text style={styles.shortcutTitle}>Mis Marcas</Text>
+          <Text style={styles.shortcutSubtitle}>Ver todas mis Marcas</Text>
         </LinearGradient>
       </TouchableOpacity>
 

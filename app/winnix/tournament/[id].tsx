@@ -84,8 +84,7 @@ const TournamentDetails = () => {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.surface_screen }}>
       <CustomFormView>
-        <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-          <View style={{ ...Flex.columnCenter, gap: 12, padding: 15 }}>
+          <View style={{ ...Flex.columnCenter, gap: 12, padding: 15, paddingBottom: 100 }}>
             <Pressable
               onPress={details.handleGoBack}
               style={[
@@ -195,9 +194,13 @@ const TournamentDetails = () => {
               />
             )}
 
-            {details.activeTab === 'info' && <InformationTournament />}
+            {details.activeTab === 'info' && (
+              <InformationTournament
+                edition={details.edition}
+                isOrganizer={!!details.isOrganizer}
+              />
+            )}
           </View>
-        </ScrollView>
       </CustomFormView>
 
       {details.isOrganizer && (

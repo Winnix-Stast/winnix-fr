@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ScreenHeader } from '@/presentation/components/customs';
 import { useMyBrands } from '@/presentation/hooks/brands/useMyBrands';
 import {
@@ -9,7 +9,6 @@ import {
   useSports,
 } from '@/presentation/hooks/sports/useSports';
 import { useCreateTournament } from '@/presentation/hooks/tournaments/useCreateTournament';
-import { WinnixIcon } from '@/presentation/plugins/Icon';
 import { Colors } from '@/presentation/styles/colors';
 import { Fonts } from '@/presentation/styles/global-styles';
 import { CustomButton, CustomFormView } from '@/presentation/theme/components/';
@@ -20,6 +19,7 @@ import { SportSection } from '@/presentation/tournamentsView/create/SportSection
 import { TemplateDetailsModal } from '@/presentation/tournamentsView/create/TemplateDetailsModal';
 
 export default function CreateTournamentScreen() {
+  const router = useRouter();
   const { brandId } = useLocalSearchParams<{ brandId?: string }>();
 
   const {
@@ -46,6 +46,13 @@ export default function CreateTournamentScreen() {
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const selectedTemplate = templates.find((t: any) => t._id === selectedTemplateId);
 
+  // Redirigir a crear liga si no hay marcas registradas
+  useEffect(() => {
+    if (!loadingBrands && brands.length === 0) {
+      router.replace('/winnix/brand/create');
+    }
+  }, [loadingBrands, brands]);
+
   // Preselect brand if coming from brand detail
   useEffect(() => {
     if (brandId && !watch('tournament')) {
@@ -66,26 +73,7 @@ export default function CreateTournamentScreen() {
     setValue('sportTemplate', '');
   }, [selectedSport]);
 
-  // Empty state handling
-  if (!loadingBrands && brands.length === 0) {
-    return (
-      <CustomFormView>
-        <View style={styles.emptyContainer}>
-          <ScreenHeader title='Armar Torneo' onBack={handleGoBack} />
-          <View style={styles.emptyStateContent}>
-            <WinnixIcon name='trophy-outline' size={80} color={Colors.brand_primary} />
-            <Text style={styles.emptyTitle}>Primero necesitas una marca</Text>
-            <Text style={styles.emptySubtitle}>
-              Una marca es la identidad de tus torneos (ej: Liga Capitalina). Crea tu
-              primera marca para empezar a organizar ediciones.
-            </Text>
-          </View>
-        </View>
-      </CustomFormView>
-    );
-  }
-
-  if (loadingBrands || loadingSports) {
+  if (loadingBrands || loadingSports || brands.length === 0) {
     return (
       <CustomFormView>
         <View style={styles.loadingContainer}>
@@ -97,7 +85,7 @@ export default function CreateTournamentScreen() {
 
   return (
     <CustomFormView>
-      <ScreenHeader title='Armar Torneo' onBack={handleGoBack} />
+      <ScreenHeader title='Crear Torneo' onBack={handleGoBack} />
 
       <View style={styles.formContainer}>
         <PersonalizationSection control={control} errors={errors} />
@@ -128,7 +116,6 @@ export default function CreateTournamentScreen() {
           <CustomButton
             label={isSubmitting ? 'Creando...' : 'CREAR TORNEO'}
             onPress={handleSubmit(onSubmit)}
-            icon='flash-outline'
             disabled={isDisabled || isSubmitting}
           />
         </View>

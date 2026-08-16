@@ -58,11 +58,23 @@ export const useTournamentDetails = (id: string, router: any) => {
   });
 
   const isCaptain = activeRole === 'captain';
+
+  const organizerId =
+    typeof edition?.tournament?.organizer === 'object'
+      ? edition?.tournament?.organizer?._id || edition?.tournament?.organizer?.id
+      : edition?.tournament?.organizer;
+
+  const currentUserId = user?.id || (user as any)?._id;
+
+  const isSubOrganizer = edition?.subOrganizers?.some((sub: any) => {
+    const subId = typeof sub === 'object' ? sub?._id || sub?.id : sub;
+    return String(subId) === String(currentUserId);
+  });
+
   const isOrganizer =
-    user &&
-    edition?.tournament &&
-    (edition.tournament.organizer === user.id ||
-      (edition.subOrganizers && edition.subOrganizers.includes(user.id)));
+    Boolean(user) &&
+    Boolean(edition?.tournament) &&
+    (String(organizerId) === String(currentUserId) || Boolean(isSubOrganizer));
 
   // Permission checks for scalability
   const canDirectInscribe = can('create:inscription');
@@ -187,7 +199,18 @@ export const useTournamentDetails = (id: string, router: any) => {
   };
 
   const handleGoBack = () => {
-    router.back();
+    const brandId =
+      typeof edition?.tournament === 'object'
+        ? edition?.tournament?._id
+        : edition?.tournament;
+
+    if (router.canGoBack()) {
+      router.back();
+    } else if (brandId) {
+      router.replace(`/winnix/brand/${brandId}`);
+    } else {
+      router.replace('/winnix/tabs/dashboard');
+    }
   };
 
   const handleChangeView = (view: string) => {
@@ -247,6 +270,8 @@ export const useTournamentDetails = (id: string, router: any) => {
         setIsSuccessModalVisible(true);
       }, 500);
       await queryClient.invalidateQueries({ queryKey: ['edition', id] });
+      await queryClient.invalidateQueries({ queryKey: ['editions-by-brand'] });
+      await queryClient.invalidateQueries({ queryKey: ['my-brands'] });
     } catch (error) {
       Alert.alert('Error', 'No se pudo iniciar el torneo.');
     } finally {
@@ -321,10 +346,10 @@ export const useTournamentDetails = (id: string, router: any) => {
         title: edition.seasonName || 'Edición',
         state: edition.status || 'DRAFT',
         dateText: `${startDate} — ${endDate}`,
-        image: edition.tournament?.logo
-          ? { uri: edition.tournament.logo }
-          : edition.image
-            ? { uri: edition.image }
+        image: edition.image
+          ? { uri: edition.image }
+          : edition.tournament?.logo
+            ? { uri: edition.tournament.logo }
             : require('@/assets/images/imgT.jpg'),
       }
     : null;

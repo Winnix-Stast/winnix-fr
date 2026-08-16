@@ -220,7 +220,7 @@ export const BrandCard3D = ({
                       require('@/assets/icons/brand/default/escudo2.png')
                 }
                 style={styles.logoImage}
-                resizeMode='contain'
+                resizeMode='cover'
               />
             </Animated.View>
 

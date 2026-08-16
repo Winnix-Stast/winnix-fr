@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { WinnixIcon } from '@/presentation/plugins/Icon';
 import { Colors } from '@/presentation/styles';
@@ -16,17 +16,44 @@ export const OrganizerBrandOnboarding = ({
   onCreateBrand,
   onShowTutorial,
 }: OrganizerBrandOnboardingProps) => {
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.08,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [pulseAnim]);
+
   return (
     <View style={styles.onboardingContainer}>
       <View style={styles.onboardingHeader}>
         <Text style={styles.welcomeTitle}>¡Hola, {userName}! 👋</Text>
-        <TouchableOpacity
-          style={styles.helpButton}
-          onPress={onShowTutorial}
-          activeOpacity={0.7}
-        >
-          <WinnixIcon name='help-circle-outline' size={22} color={Colors.brand_primary} />
-        </TouchableOpacity>
+        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+          <TouchableOpacity
+            style={styles.helpButtonCircle}
+            onPress={onShowTutorial}
+            activeOpacity={0.7}
+          >
+            <WinnixIcon
+              name='help-circle-outline'
+              size={24}
+              color={Colors.brand_primary}
+            />
+          </TouchableOpacity>
+        </Animated.View>
       </View>
 
       <View style={styles.onboardingIconWrapper}>
@@ -86,16 +113,25 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   welcomeTitle: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: 'bold',
     color: Colors.text_primary,
+    flex: 1,
   },
-  helpButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(40, 209, 195, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(40, 209, 195, 0.15)',
+  helpButtonCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(40, 209, 195, 0.12)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(40, 209, 195, 0.4)',
+    shadowColor: Colors.brand_primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 4,
   },
   onboardingIconWrapper: {
     marginVertical: 10,

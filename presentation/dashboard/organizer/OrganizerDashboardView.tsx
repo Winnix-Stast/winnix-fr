@@ -125,7 +125,7 @@ export const OrganizerDashboardView = () => {
 
           {/* Active Brands list */}
           <View style={[styles.sectionHeader, { marginTop: 28, marginBottom: 10 }]}>
-            <Text style={styles.sectionTitle}>Mis Ligas Activas</Text>
+            <Text style={styles.sectionTitle}>Mis Marcas Activas</Text>
             <TouchableOpacity onPress={handleNavigateToBrandsTab}>
               <Text style={styles.seeAllText}>Ver todas</Text>
             </TouchableOpacity>
