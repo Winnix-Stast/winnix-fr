@@ -12,6 +12,7 @@ type RegisterPayload = {
   password: string;
   confirmPassword: string;
   isChecked: boolean;
+  phone: number;
   birthDate: string;
   roleType: string;
 };
@@ -33,7 +34,6 @@ export const AuthAdapter = {
     const response = await authFetcher.instance.post("/auth/login-email", payload);
     const tokenPayload = response.data?.data || response.data;
 
-    // Guardamos tokens si existen
     if (tokenPayload?.accessToken) {
       await SecureStorageAdapter.setItem("accessToken", tokenPayload.accessToken);
     }
@@ -44,15 +44,42 @@ export const AuthAdapter = {
     return tokenPayload;
   },
 
-  register: async (payload: RegisterPayload) => {
-    const response = await authFetcher.instance.post("/auth/signup", payload);
-
+  loginWithGoogle: async (idToken: string) => {
+    const response = await authFetcher.instance.post("/auth/google", { idToken });
     const tokenPayload = response.data?.data || response.data;
 
     if (tokenPayload?.accessToken) {
       await SecureStorageAdapter.setItem("accessToken", tokenPayload.accessToken);
     }
+    if (tokenPayload?.refreshToken) {
+      await SecureStorageAdapter.setItem("refreshToken", tokenPayload.refreshToken);
+    }
 
+    return tokenPayload;
+  },
+
+  requestForgotPassword: async (email: string) => {
+    const response = await authFetcher.instance.post("/auth/forgot-password", { email });
+    return response.data?.data || response.data;
+  },
+
+  verifyOtp: async (email: string, code: string) => {
+    const response = await authFetcher.instance.post("/auth/verify-otp", { email, code });
+    return response.data?.data || response.data;
+  },
+
+  resetPassword: async (payload: { email: string; code: string; password: string; confirmPassword: string }) => {
+    const response = await authFetcher.instance.post("/auth/reset-password", payload);
+    return response.data?.data || response.data;
+  },
+
+  register: async (payload: RegisterPayload) => {
+    const response = await authFetcher.instance.post("/auth/signup", payload);
+    const tokenPayload = response.data?.data || response.data;
+
+    if (tokenPayload?.accessToken) {
+      await SecureStorageAdapter.setItem("accessToken", tokenPayload.accessToken);
+    }
     if (tokenPayload?.refreshToken) {
       await SecureStorageAdapter.setItem("refreshToken", tokenPayload.refreshToken);
     }
@@ -78,7 +105,7 @@ export const AuthAdapter = {
 
   completeProfile: async (payload: CompleteProfilePayload) => {
     const response = await privateFetcher.instance.put("/user/complete-profile", payload);
-    return response.data;
+    return response.data?.data || response.data;
   },
 
   getRoles: async (): Promise<Role[]> => {

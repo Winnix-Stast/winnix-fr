@@ -8,6 +8,7 @@ export interface AuthUser {
   avatar?: string;
   roles: string[];
   roleEntities: any[];
+  isProfileComplete?: boolean;
   accessToken: string;
   refreshToken: string;
 }
@@ -20,6 +21,7 @@ const mapAuthResponse = (data: any): AuthUser => ({
   avatar: data.avatar,
   roles: data.roles || [],
   roleEntities: data.roleEntities || [],
+  isProfileComplete: data.isProfileComplete,
   accessToken: data.accessToken,
   refreshToken: data.refreshToken,
 });
@@ -30,8 +32,54 @@ export const authActions = {
       const data = await AuthAdapter.login({ email, password });
       return mapAuthResponse(data);
     } catch (error) {
-      console.error("authLogin error :>> ", error);
+      console.log("authLogin error :>> ", error);
       return null;
+    }
+  },
+
+  loginWithGoogle: async (idToken: string): Promise<AuthUser | null> => {
+    try {
+      const data = await AuthAdapter.loginWithGoogle(idToken);
+      return mapAuthResponse(data);
+    } catch (error) {
+      console.log("loginWithGoogle error :>> ", error);
+      return null;
+    }
+  },
+
+  requestForgotPassword: async (email: string) => {
+    try {
+      return await AuthAdapter.requestForgotPassword(email);
+    } catch (error) {
+      console.log("requestForgotPassword error :>> ", error);
+      throw error;
+    }
+  },
+
+  verifyOtp: async (email: string, code: string) => {
+    try {
+      return await AuthAdapter.verifyOtp(email, code);
+    } catch (error) {
+      console.log("verifyOtp error :>> ", error);
+      throw error;
+    }
+  },
+
+  resetPassword: async (payload: { email: string; code: string; password: string; confirmPassword: string }) => {
+    try {
+      return await AuthAdapter.resetPassword(payload);
+    } catch (error) {
+      console.log("resetPassword error :>> ", error);
+      throw error;
+    }
+  },
+
+  completeProfile: async (payload: { phone: number; role: string; birthDate: string }) => {
+    try {
+      return await AuthAdapter.completeProfile(payload);
+    } catch (error) {
+      console.log("completeProfile error :>> ", error);
+      throw error;
     }
   },
 
@@ -40,7 +88,7 @@ export const authActions = {
       const data = await AuthAdapter.refreshToken();
       return data ? mapAuthResponse(data) : null;
     } catch (error) {
-      console.error("authCheckStatus error :>> ", error);
+      console.log("authCheckStatus error :>> ", error);
       return null;
     }
   },
@@ -51,11 +99,11 @@ export const authActions = {
 
   signUp: async (params: any) => {
     try {
-      const { role, ...restParams } = params;
-      const data = await AuthAdapter.register({ ...restParams, roleType: role });
+      const roleType = params.roleType || params.role;
+      const data = await AuthAdapter.register({ ...params, roleType });
       return mapAuthResponse(data);
     } catch (error) {
-      console.error("authSignUp error :>> ", error);
+      console.log("authSignUp error :>> ", error);
       return null;
     }
   },

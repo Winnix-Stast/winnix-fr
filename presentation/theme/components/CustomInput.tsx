@@ -1,10 +1,19 @@
-import { Ionicons } from "@expo/vector-icons";
-import { useRef, useState } from "react";
-import { Controller } from "react-hook-form";
-import { KeyboardTypeOptions, Platform, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View } from "react-native";
-
-import { Colors } from "@/presentation/styles";
-import { ErrorMessage, Fonts } from "../../styles/global-styles";
+import { useRef, useState } from 'react';
+import {
+  KeyboardTypeOptions,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  TextStyle,
+  View,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Controller } from 'react-hook-form';
+import { Colors } from '@/presentation/styles';
+import { ErrorMessage, Fonts } from '../../styles/global-styles';
 
 interface Props extends TextInputProps {
   label?: string;
@@ -18,9 +27,27 @@ interface Props extends TextInputProps {
   errorMessage?: string;
 }
 
-export const CustomInput = ({ name, control, iconLeft, iconRight, label = "", styleLabel, keyboardType = "default", isPassword = false, errorMessage, ...rest }: Props) => {
+export const CustomInput = ({
+  name,
+  control,
+  iconLeft,
+  iconRight,
+  label = '',
+  styleLabel,
+  keyboardType = 'default',
+  isPassword = false,
+  errorMessage,
+  ...rest
+}: Props) => {
   const [isActive, setIsActive] = useState(false);
+  const [secureText, setSecureText] = useState(isPassword);
   const inputRef = useRef<TextInput>(null);
+
+  const rightIconName = isPassword
+    ? secureText
+      ? 'eye-off-outline'
+      : 'eye-outline'
+    : iconRight;
 
   return (
     <View style={styles.container}>
@@ -32,9 +59,14 @@ export const CustomInput = ({ name, control, iconLeft, iconRight, label = "", st
         render={({ field: { onChange, onBlur, value } }) => (
           <View
             style={{
-              borderColor: errorMessage ? Colors.surface_warning : isActive ? Colors.text_primary : Colors.neutral_500,
+              borderColor: errorMessage
+                ? Colors.surface_warning
+                : isActive
+                  ? Colors.text_primary
+                  : Colors.neutral_500,
               ...styles.containerInput,
-            }}>
+            }}
+          >
             {iconLeft && <Ionicons name={iconLeft} size={24} color={Colors.primary_50} />}
             <TextInput
               ref={inputRef}
@@ -44,14 +76,34 @@ export const CustomInput = ({ name, control, iconLeft, iconRight, label = "", st
                 setIsActive(false);
                 onBlur();
               }}
-              value={value !== undefined && value !== null ? String(value) : ""}
+              value={value !== undefined && value !== null ? String(value) : ''}
               keyboardType={keyboardType}
-              onChangeText={onChange}
-              secureTextEntry={isPassword}
+              onChangeText={(text) => {
+                if (
+                  Platform.OS === 'ios' &&
+                  secureText &&
+                  text.length === 1 &&
+                  value &&
+                  String(value).length > 0
+                ) {
+                  onChange(String(value) + text);
+                  return;
+                }
+                onChange(text);
+              }}
+              secureTextEntry={secureText}
               style={styles.input}
               {...rest}
             />
-            {iconRight && <Ionicons name={iconRight} size={24} color={Colors.primary_50} />}
+            {rightIconName && (
+              <Pressable onPress={() => isPassword && setSecureText(!secureText)}>
+                <Ionicons
+                  name={rightIconName as any}
+                  size={24}
+                  color={Colors.primary_50}
+                />
+              </Pressable>
+            )}
           </View>
         )}
       />
@@ -63,27 +115,27 @@ export const CustomInput = ({ name, control, iconLeft, iconRight, label = "", st
 
 const styles = StyleSheet.create({
   container: {
-    width: "100%",
-    display: "flex",
+    width: '100%',
+    display: 'flex',
     gap: 5,
   },
   containerInput: {
     borderWidth: 1,
     borderRadius: 10,
-    padding: Platform.OS === "ios" ? 12 : 6,
-    flexDirection: "row",
-    alignItems: "center",
+    padding: Platform.OS === 'ios' ? 12 : 6,
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
   },
   input: {
     flex: 1,
     fontSize: Fonts.normal,
-    fontWeight: "500",
+    fontWeight: '500',
     color: Colors.primary_50,
   },
   label: {
     fontSize: Fonts.normal,
     color: Colors.primary_50,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
 });

@@ -11,29 +11,45 @@ export interface AuthState {
   refreshToken?: string;
   user?: User;
   activeRole?: string;
+  isProfileComplete?: boolean;
 
   setActiveRole: (role: string) => void;
-  login: (email: string, password: string) => Promise<boolean>;
-  signup: (params: any) => Promise<boolean>;
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<{ success: boolean; isProfileComplete?: boolean }>;
+  loginWithGoogle: (
+    idToken: string,
+  ) => Promise<{ success: boolean; isProfileComplete?: boolean }>;
+  signup: (params: any) => Promise<{ success: boolean; isProfileComplete?: boolean }>;
   checkStatus: () => Promise<void>;
   logout: () => Promise<void>;
   changeStatus: (
     accessToken?: string,
     refreshToken?: string,
     user?: User,
-  ) => Promise<boolean>;
+    isProfileComplete?: boolean,
+  ) => Promise<{ success: boolean; isProfileComplete?: boolean }>;
 }
 
 export const useAuthStore = create<AuthState>()((set, get) => ({
   //Properties
   status: 'checking',
-  token: undefined,
+  accessToken: undefined,
+  refreshToken: undefined,
   user: undefined,
   activeRole: undefined,
+  isProfileComplete: true,
 
   //Methods (Actions)
   setActiveRole: (role: string) => set({ activeRole: role }),
-  changeStatus: async (accessToken?: string, refreshToken?: string, user?: User) => {
+
+  changeStatus: async (
+    accessToken?: string,
+    refreshToken?: string,
+    user?: User,
+    isProfileComplete: boolean = true,
+  ) => {
     if (!accessToken || !refreshToken || !user) {
       set({
         status: 'unauthenticated',
@@ -41,10 +57,11 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         refreshToken: undefined,
         user: undefined,
         activeRole: undefined,
+        isProfileComplete: false,
       });
       await SecureStorageAdapter.deleteItem('accessToken');
       await SecureStorageAdapter.deleteItem('refreshToken');
-      return false;
+      return { success: false };
     }
 
     let initialRole = 'player';
@@ -63,37 +80,69 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       refreshToken,
       user,
       activeRole: initialRole,
+      isProfileComplete,
     });
     await SecureStorageAdapter.setItem('accessToken', accessToken);
     await SecureStorageAdapter.setItem('refreshToken', refreshToken);
 
-    return true;
+    return { success: true, isProfileComplete };
   },
 
   login: async (email: string, password: string) => {
     const resp = await authActions.login(email, password);
-    return get().changeStatus(resp?.accessToken, resp?.refreshToken, {
-      id: resp?.id,
-      email: resp?.email,
-      username: resp?.username,
-      nickname: resp?.nickname,
-      avatar: resp?.avatar,
-      roles: resp?.roles,
-      roleEntities: resp?.roleEntities,
-    });
+    if (!resp) return { success: false };
+    return get().changeStatus(
+      resp.accessToken,
+      resp.refreshToken,
+      {
+        id: resp.id,
+        email: resp.email,
+        username: resp.username,
+        nickname: resp.nickname,
+        avatar: resp.avatar,
+        roles: resp.roles,
+        roleEntities: resp.roleEntities,
+      },
+      resp.isProfileComplete ?? true,
+    );
+  },
+
+  loginWithGoogle: async (idToken: string) => {
+    const resp = await authActions.loginWithGoogle(idToken);
+    if (!resp) return { success: false };
+    return get().changeStatus(
+      resp.accessToken,
+      resp.refreshToken,
+      {
+        id: resp.id,
+        email: resp.email,
+        username: resp.username,
+        nickname: resp.nickname,
+        avatar: resp.avatar,
+        roles: resp.roles,
+        roleEntities: resp.roleEntities,
+      },
+      resp.isProfileComplete ?? false,
+    );
   },
 
   signup: async (params: any) => {
     const resp = await authActions.signUp(params);
-    return get().changeStatus(resp?.accessToken, resp?.refreshToken, {
-      id: resp?.id,
-      email: resp?.email,
-      username: resp?.username,
-      nickname: resp?.nickname,
-      avatar: resp?.avatar,
-      roles: resp?.roles,
-      roleEntities: resp?.roleEntities,
-    });
+    if (!resp) return { success: false };
+    return get().changeStatus(
+      resp.accessToken,
+      resp.refreshToken,
+      {
+        id: resp.id,
+        email: resp.email,
+        username: resp.username,
+        nickname: resp.nickname,
+        avatar: resp.avatar,
+        roles: resp.roles,
+        roleEntities: resp.roleEntities,
+      },
+      true,
+    );
   },
 
   checkStatus: async () => {
@@ -105,6 +154,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         refreshToken: undefined,
         user: undefined,
         activeRole: undefined,
+        isProfileComplete: false,
       });
       return;
     }
@@ -133,8 +183,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         roleEntities: resp.roleEntities,
       },
       activeRole: initialRole,
+      isProfileComplete: resp.isProfileComplete ?? true,
     });
-    return;
   },
 
   logout: async () => {
@@ -146,6 +196,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       refreshToken: undefined,
       user: undefined,
       activeRole: undefined,
+      isProfileComplete: false,
     });
   },
 }));

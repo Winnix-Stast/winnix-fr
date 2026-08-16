@@ -1,19 +1,23 @@
-import { Colors } from "@/presentation/styles";
-import { Fonts } from "@/presentation/styles/global-styles";
-import { MyCheckbox } from "@/presentation/theme/components/CustomCheckbox";
-import { SignUpFormData } from "@/presentation/types/SignUpData";
-import React from "react";
-import { Control, Controller, FieldErrors } from "react-hook-form";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Control, Controller, FieldErrors } from 'react-hook-form';
+import { Colors } from '@/presentation/styles';
+import { Fonts } from '@/presentation/styles/global-styles';
+import { MyCheckbox } from '@/presentation/theme/components/CustomCheckbox';
 
 interface Props {
-  control: Control<SignUpFormData>;
+  control: Control<any>;
   Haptics: any;
   handleTermsClick: () => void;
-  errors: FieldErrors<SignUpFormData>;
+  errors: FieldErrors<any>;
 }
 
-export const TermsAndConditions = ({ control, Haptics, handleTermsClick, errors }: Props) => (
+export const TermsAndConditions = ({
+  control,
+  Haptics,
+  handleTermsClick,
+  errors,
+}: Props) => (
   <>
     <View style={styles.terms}>
       <View style={styles.termsTextContainer}>
@@ -39,23 +43,25 @@ export const TermsAndConditions = ({ control, Haptics, handleTermsClick, errors 
       />
     </View>
 
-    {errors?.isChecked && <Text style={styles.errorText}>{errors.isChecked.message}</Text>}
+    {typeof errors?.isChecked?.message === 'string' && (
+      <Text style={styles.errorText}>{errors.isChecked.message}</Text>
+    )}
   </>
 );
 const styles = StyleSheet.create({
   terms: {
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
     gap: 15,
     zIndex: 2,
   },
 
   termsTextContainer: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 5,
   },
 
@@ -67,10 +73,10 @@ const styles = StyleSheet.create({
   termsLink: {
     fontSize: Fonts.small + 2,
     color: Colors.actions_primary_bg,
-    textDecorationLine: "underline",
+    textDecorationLine: 'underline',
   },
   errorText: {
-    color: "#E97451",
+    color: '#E97451',
     fontSize: Fonts.small,
     marginTop: 2,
   },
