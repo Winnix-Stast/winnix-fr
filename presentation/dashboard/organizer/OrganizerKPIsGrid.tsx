@@ -27,8 +27,8 @@ export const OrganizerKPIsGrid = ({
         style={[styles.kpiCard, { borderColor: 'rgba(40, 209, 195, 0.25)' }]}
       >
         <View style={styles.kpiHeaderRow}>
-          <WinnixIcon name='trophy-outline' size={20} color={Colors.brand_primary} />
-          <Text style={[styles.kpiLabel, { color: Colors.brand_primary }]}>Ligas</Text>
+          <WinnixIcon name='trophy-outline' size={22} color={Colors.brand_primary} />
+          <Text style={[styles.kpiLabel, { color: Colors.brand_primary }]}>Marcas</Text>
         </View>
         <Text style={styles.kpiValue}>{totalBrands}</Text>
       </LinearGradient>
@@ -41,7 +41,7 @@ export const OrganizerKPIsGrid = ({
         style={[styles.kpiCard, { borderColor: 'rgba(99, 102, 241, 0.25)' }]}
       >
         <View style={styles.kpiHeaderRow}>
-          <WinnixIcon name='layers-outline' size={20} color='#6366F1' />
+          <WinnixIcon name='layers-outline' size={22} color='#6366F1' />
           <Text style={[styles.kpiLabel, { color: '#6366F1' }]}>Torneos</Text>
         </View>
         <Text style={styles.kpiValue}>{totalTournaments}</Text>
@@ -55,7 +55,7 @@ export const OrganizerKPIsGrid = ({
         style={[styles.kpiCard, { borderColor: 'rgba(16, 185, 129, 0.25)' }]}
       >
         <View style={styles.kpiHeaderRow}>
-          <WinnixIcon name='game-controller-outline' size={20} color='#10B981' />
+          <WinnixIcon name='game-controller-outline' size={22} color='#10B981' />
           <Text style={[styles.kpiLabel, { color: '#10B981' }]}>Partidos</Text>
         </View>
         <Text style={styles.kpiValue}>{totalMatches}</Text>
@@ -69,7 +69,7 @@ export const OrganizerKPIsGrid = ({
         style={[styles.kpiCard, { borderColor: 'rgba(251, 191, 36, 0.25)' }]}
       >
         <View style={styles.kpiHeaderRow}>
-          <WinnixIcon name='flame-outline' size={20} color='#FBBF24' />
+          <WinnixIcon name='flame-outline' size={22} color='#FBBF24' />
           <Text style={[styles.kpiLabel, { color: '#FBBF24' }]}>Goles</Text>
         </View>
         <Text style={styles.kpiValue}>{totalGoals}</Text>
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderRadius: 16,
     padding: 14,
-    gap: 2,
+    gap: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
@@ -105,13 +105,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   kpiValue: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '900',
     color: Colors.text_primary,
     marginTop: 4,
   },
   kpiLabel: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '900',
     textTransform: 'uppercase',
     letterSpacing: 0.8,

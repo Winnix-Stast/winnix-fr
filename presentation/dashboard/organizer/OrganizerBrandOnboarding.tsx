@@ -8,7 +8,7 @@ import { CustomIcon } from '@/presentation/theme/components/icons/CustomIcon';
 interface OrganizerBrandOnboardingProps {
   userName: string;
   onCreateBrand: () => void;
-  onShowTutorial: () => void;
+  onShowTutorial?: () => void;
 }
 
 export const OrganizerBrandOnboarding = ({
@@ -41,19 +41,21 @@ export const OrganizerBrandOnboarding = ({
     <View style={styles.onboardingContainer}>
       <View style={styles.onboardingHeader}>
         <Text style={styles.welcomeTitle}>¡Hola, {userName}! 👋</Text>
-        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-          <TouchableOpacity
-            style={styles.helpButtonCircle}
-            onPress={onShowTutorial}
-            activeOpacity={0.7}
-          >
-            <WinnixIcon
-              name='help-circle-outline'
-              size={24}
-              color={Colors.brand_primary}
-            />
-          </TouchableOpacity>
-        </Animated.View>
+        {onShowTutorial && (
+          <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+            <TouchableOpacity
+              style={styles.helpButtonCircle}
+              onPress={onShowTutorial}
+              activeOpacity={0.7}
+            >
+              <WinnixIcon
+                name='help-circle-outline'
+                size={24}
+                color={Colors.brand_primary}
+              />
+            </TouchableOpacity>
+          </Animated.View>
+        )}
       </View>
 
       <View style={styles.onboardingIconWrapper}>
@@ -67,11 +69,11 @@ export const OrganizerBrandOnboarding = ({
             size={20}
             color={Colors.brand_primary}
           />
-          <Text style={styles.explanationTitle}>¿Cómo empezar mi liga?</Text>
+          <Text style={styles.explanationTitle}>¿Cómo empezar mi marca?</Text>
         </View>
         <Text style={styles.explanationText}>
           Para comenzar a organizar tus campeonatos, primero necesitas crear una{' '}
-          <Text style={styles.boldText}>Liga</Text> (es decir, el nombre oficial de tu
+          <Text style={styles.boldText}>marca</Text> (es decir, el nombre oficial de tu
           organización de torneos).
         </Text>
         <Text style={styles.explanationText}>
@@ -91,7 +93,7 @@ export const OrganizerBrandOnboarding = ({
           color={Colors.on_brand}
           style={{ marginRight: 8 }}
         />
-        <Text style={styles.createButtonText}>CREAR MI PRIMERA LIGA</Text>
+        <Text style={styles.createButtonText}>CREAR MI PRIMERA MARCA</Text>
       </TouchableOpacity>
     </View>
   );
@@ -113,7 +115,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   welcomeTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: Colors.text_primary,
     flex: 1,
@@ -142,10 +144,10 @@ const styles = StyleSheet.create({
     borderColor: Colors.border_focus || 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
     borderRadius: 16,
-    padding: 16,
+    padding: 18,
     width: '100%',
     marginBottom: 30,
-    gap: 10,
+    gap: 12,
   },
   explanationHeader: {
     flexDirection: 'row',
@@ -153,14 +155,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   explanationTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: Colors.text_primary,
   },
   explanationText: {
-    fontSize: 14,
+    fontSize: 16,
     color: Colors.text_secondary,
-    lineHeight: 22,
+    lineHeight: 24,
   },
   boldText: {
     fontWeight: 'bold',
@@ -183,7 +185,7 @@ const styles = StyleSheet.create({
   },
   createButtonText: {
     color: Colors.on_brand,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     letterSpacing: 1,
   },

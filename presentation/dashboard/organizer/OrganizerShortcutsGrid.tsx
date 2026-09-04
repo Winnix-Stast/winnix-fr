@@ -1,45 +1,81 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { WinnixIcon } from '@/presentation/plugins/Icon';
 import { Colors } from '@/presentation/styles';
 
 interface OrganizerShortcutsGridProps {
+  onCreateTournament: () => void;
   onCreateBrand: () => void;
   onNavigateToBrands: () => void;
   onNavigateToCalendar: () => void;
 }
 
 export const OrganizerShortcutsGrid = ({
+  onCreateTournament,
   onCreateBrand,
   onNavigateToBrands,
   onNavigateToCalendar,
 }: OrganizerShortcutsGridProps) => {
   return (
-    <View style={styles.shortcutsGrid}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.horizontalScrollContent}
+    >
+      <TouchableOpacity
+        style={styles.shortcutCard}
+        onPress={onCreateTournament}
+        activeOpacity={0.85}
+      >
+        <LinearGradient
+          colors={['rgba(40, 209, 195, 0.15)', 'rgba(255, 255, 255, 0.02)']}
+          style={styles.shortcutGradient}
+        >
+          <View
+            style={[
+              styles.shortcutIconBg,
+              { backgroundColor: 'rgba(40, 209, 195, 0.15)' },
+            ]}
+          >
+            <WinnixIcon
+              name='trophy-outline'
+              size={24}
+              color={Colors.brand_primary}
+            />
+          </View>
+          <View style={styles.shortcutTextCol}>
+            <Text style={styles.shortcutTitle} numberOfLines={1}>Crear Torneo</Text>
+            <Text style={styles.shortcutSubtitle} numberOfLines={1}>Nueva edición</Text>
+          </View>
+        </LinearGradient>
+      </TouchableOpacity>
+
       <TouchableOpacity
         style={styles.shortcutCard}
         onPress={onCreateBrand}
         activeOpacity={0.85}
       >
         <LinearGradient
-          colors={['rgba(40, 209, 195, 0.05)', 'rgba(255, 255, 255, 0.01)']}
+          colors={['rgba(99, 102, 241, 0.12)', 'rgba(255, 255, 255, 0.02)']}
           style={styles.shortcutGradient}
         >
           <View
             style={[
               styles.shortcutIconBg,
-              { backgroundColor: 'rgba(40, 209, 195, 0.08)' },
+              { backgroundColor: 'rgba(99, 102, 241, 0.12)' },
             ]}
           >
             <WinnixIcon
               name='add-circle-outline'
-              size={22}
-              color={Colors.brand_primary}
+              size={24}
+              color='#6366F1'
             />
           </View>
-          <Text style={styles.shortcutTitle}>Crear Marca</Text>
-          <Text style={styles.shortcutSubtitle}>Registra una nueva Marca</Text>
+          <View style={styles.shortcutTextCol}>
+            <Text style={styles.shortcutTitle} numberOfLines={1}>Crear Marca</Text>
+            <Text style={styles.shortcutSubtitle} numberOfLines={1}>Nueva marca</Text>
+          </View>
         </LinearGradient>
       </TouchableOpacity>
 
@@ -49,19 +85,21 @@ export const OrganizerShortcutsGrid = ({
         activeOpacity={0.85}
       >
         <LinearGradient
-          colors={['rgba(99, 102, 241, 0.05)', 'rgba(255, 255, 255, 0.01)']}
+          colors={['rgba(16, 185, 129, 0.12)', 'rgba(255, 255, 255, 0.02)']}
           style={styles.shortcutGradient}
         >
           <View
             style={[
               styles.shortcutIconBg,
-              { backgroundColor: 'rgba(99, 102, 241, 0.08)' },
+              { backgroundColor: 'rgba(16, 185, 129, 0.12)' },
             ]}
           >
-            <WinnixIcon name='folder-open-outline' size={22} color='#6366F1' />
+            <WinnixIcon name='folder-open-outline' size={24} color='#10B981' />
           </View>
-          <Text style={styles.shortcutTitle}>Mis Marcas</Text>
-          <Text style={styles.shortcutSubtitle}>Ver todas mis Marcas</Text>
+          <View style={styles.shortcutTextCol}>
+            <Text style={styles.shortcutTitle} numberOfLines={1}>Mis Marcas</Text>
+            <Text style={styles.shortcutSubtitle} numberOfLines={1}>Ver mis marcas</Text>
+          </View>
         </LinearGradient>
       </TouchableOpacity>
 
@@ -71,50 +109,45 @@ export const OrganizerShortcutsGrid = ({
         activeOpacity={0.85}
       >
         <LinearGradient
-          colors={['rgba(251, 191, 36, 0.05)', 'rgba(255, 255, 255, 0.01)']}
+          colors={['rgba(251, 191, 36, 0.12)', 'rgba(255, 255, 255, 0.02)']}
           style={styles.shortcutGradient}
         >
           <View
             style={[
               styles.shortcutIconBg,
-              { backgroundColor: 'rgba(251, 191, 36, 0.08)' },
+              { backgroundColor: 'rgba(251, 191, 36, 0.12)' },
             ]}
           >
-            <WinnixIcon name='calendar-outline' size={22} color='#FBBF24' />
+            <WinnixIcon name='calendar-outline' size={24} color='#FBBF24' />
           </View>
-          <Text style={styles.shortcutTitle}>Calendario</Text>
-          <Text style={styles.shortcutSubtitle}>Fechas y fixture</Text>
+          <View style={styles.shortcutTextCol}>
+            <Text style={styles.shortcutTitle} numberOfLines={1}>Calendario</Text>
+            <Text style={styles.shortcutSubtitle} numberOfLines={1}>Fechas y fixture</Text>
+          </View>
         </LinearGradient>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  shortcutsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  horizontalScrollContent: {
     paddingHorizontal: 20,
-    gap: 10,
+    gap: 12,
   },
   shortcutCard: {
-    flex: 1,
+    width: 190,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 3,
   },
   shortcutGradient: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    minHeight: 110,
-    justifyContent: 'center',
-    padding: 12,
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
   },
   shortcutIconBg: {
     width: 44,
@@ -122,19 +155,20 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 4,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     borderWidth: 1,
   },
+  shortcutTextCol: {
+    flex: 1,
+  },
   shortcutTitle: {
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: 'bold',
     color: Colors.text_primary,
-    textAlign: 'center',
   },
   shortcutSubtitle: {
-    fontSize: 9,
+    fontSize: 13,
     color: Colors.text_tertiary,
-    textAlign: 'center',
+    marginTop: 2,
   },
 });
