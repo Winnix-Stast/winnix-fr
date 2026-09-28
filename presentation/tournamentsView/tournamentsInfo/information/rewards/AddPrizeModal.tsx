@@ -11,8 +11,10 @@ import {
 import { Control } from 'react-hook-form';
 import {
   PREDEFINED_THEMES,
+  PRIZE_STATUS_OPTIONS,
   PRIZE_SUGGESTIONS,
 } from '@/core/prizes/constants/prize-themes';
+import { PrizeStatus } from '@/core/prizes/interface/prize.interface';
 import { WinnixIcon } from '@/presentation/plugins/Icon';
 import { Colors } from '@/presentation/styles/colors';
 import { CustomButton, CustomInput } from '@/presentation/theme/components';
@@ -24,6 +26,8 @@ interface AddPrizeModalProps {
   catalogItems: any[];
   selectedChip: string;
   selectedItems: string[];
+  selectedStatus: PrizeStatus;
+  setSelectedStatus: (status: PrizeStatus) => void;
   control: Control<any>;
   formValues: { cashAmountRaw?: string; [key: string]: any };
   isTitleEditable: boolean;
@@ -40,6 +44,8 @@ export const AddPrizeModal: React.FC<AddPrizeModalProps> = ({
   catalogItems,
   selectedChip,
   selectedItems,
+  selectedStatus,
+  setSelectedStatus,
   control,
   formValues,
   isTitleEditable,
@@ -66,7 +72,7 @@ export const AddPrizeModal: React.FC<AddPrizeModalProps> = ({
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps='handled'
           contentContainerStyle={styles.modalScrollBody}
-          style={{ maxHeight: 520, width: '100%' }}
+          style={{ maxHeight: 540, width: '100%' }}
         >
           <View style={styles.modalHeaderTitleRow}>
             <View style={styles.modalTrophyBg}>
@@ -137,6 +143,44 @@ export const AddPrizeModal: React.FC<AddPrizeModalProps> = ({
               editable={isTitleEditable}
               style={[!isTitleEditable && styles.inputDisabled]}
             />
+          </View>
+
+          {/* Estado Inicial del Premio */}
+          <View style={styles.formGroup}>
+            <Text style={styles.inputLabelLarge}>Estado del Premio</Text>
+            <View style={styles.chipsContainer}>
+              {PRIZE_STATUS_OPTIONS.map((opt) => {
+                const isSelected = selectedStatus === opt.value;
+                return (
+                  <TouchableOpacity
+                    key={opt.value}
+                    onPress={() => setSelectedStatus(opt.value)}
+                    style={[
+                      styles.statusChip,
+                      {
+                        backgroundColor: isSelected ? opt.color : opt.bg,
+                        borderColor: opt.borderColor,
+                      },
+                    ]}
+                    activeOpacity={0.8}
+                  >
+                    <WinnixIcon
+                      name={opt.iconName as any}
+                      size={15}
+                      color={isSelected ? '#000000' : opt.color}
+                    />
+                    <Text
+                      style={[
+                        styles.statusChipText,
+                        { color: isSelected ? '#000000' : opt.color },
+                      ]}
+                    >
+                      {opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
 
           {/* Input 2: Cash Amount (COP) */}
@@ -312,6 +356,19 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
     marginTop: 4,
+  },
+  statusChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1.5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+  },
+  statusChipText: {
+    fontSize: 13.5,
+    fontWeight: '900',
   },
   chipButton: {
     flexDirection: 'row',

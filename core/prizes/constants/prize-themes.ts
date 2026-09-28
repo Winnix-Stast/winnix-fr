@@ -1,5 +1,60 @@
 import { Colors } from '@/presentation/styles/colors';
-import { PrizeTheme } from '../interface/prize.interface';
+import { PrizeStatus, PrizeTheme } from '../interface/prize.interface';
+
+export interface PrizeStatusConfig {
+  value: PrizeStatus;
+  label: string;
+  color: string;
+  bg: string;
+  borderColor: string;
+  iconName: string;
+}
+
+export const PRIZE_STATUS_CONFIG: Record<string, PrizeStatusConfig> = {
+  active: {
+    value: 'active',
+    label: 'Activo',
+    color: '#28D1C3',
+    bg: 'rgba(40, 209, 195, 0.15)',
+    borderColor: 'rgba(40, 209, 195, 0.4)',
+    iconName: 'sparkles-outline',
+  },
+  in_play: {
+    value: 'in_play',
+    label: 'En Juego',
+    color: '#F59E0B',
+    bg: 'rgba(245, 158, 11, 0.15)',
+    borderColor: 'rgba(245, 158, 11, 0.4)',
+    iconName: 'flame-outline',
+  },
+  delivered: {
+    value: 'delivered',
+    label: 'Entregado',
+    color: '#10B981',
+    bg: 'rgba(16, 185, 129, 0.15)',
+    borderColor: 'rgba(16, 185, 129, 0.4)',
+    iconName: 'checkmark-circle-outline',
+  },
+  cancelled: {
+    value: 'cancelled',
+    label: 'Cancelado',
+    color: '#EF4444',
+    bg: 'rgba(239, 68, 68, 0.15)',
+    borderColor: 'rgba(239, 68, 68, 0.4)',
+    iconName: 'close-circle-outline',
+  },
+};
+
+export const PRIZE_STATUS_OPTIONS = [
+  PRIZE_STATUS_CONFIG.active,
+  PRIZE_STATUS_CONFIG.in_play,
+  PRIZE_STATUS_CONFIG.delivered,
+  PRIZE_STATUS_CONFIG.cancelled,
+];
+
+export const getPrizeStatusConfig = (status?: string): PrizeStatusConfig => {
+  return PRIZE_STATUS_CONFIG[status || 'active'] || PRIZE_STATUS_CONFIG.active;
+};
 
 export const PREDEFINED_THEMES: Record<string, PrizeTheme> = {
   campeon: {

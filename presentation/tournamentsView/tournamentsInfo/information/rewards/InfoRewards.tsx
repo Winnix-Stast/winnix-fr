@@ -7,7 +7,10 @@ import {
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { getPrizeTheme } from '@/core/prizes/constants/prize-themes';
+import {
+  getPrizeStatusConfig,
+  getPrizeTheme,
+} from '@/core/prizes/constants/prize-themes';
 import { usePrizes } from '@/presentation/hooks/prizes/usePrizes';
 import { WinnixIcon } from '@/presentation/plugins/Icon';
 import { Colors } from '@/presentation/styles/colors';
@@ -28,6 +31,8 @@ export const InfoRewards: React.FC<Props> = ({ editionId, isOrganizer }) => {
     setShowModal,
     selectedChip,
     selectedItems,
+    selectedStatus,
+    setSelectedStatus,
     control,
     formValues,
     isTitleEditable,
@@ -140,6 +145,7 @@ export const InfoRewards: React.FC<Props> = ({ editionId, isOrganizer }) => {
               <View style={styles.cardsGap}>
                 {sortedMainPrizes.map((prize: any) => {
                   const theme = getPrizeTheme(prize);
+                  const statusConfig = getPrizeStatusConfig(prize.status);
                   return (
                     <View
                       key={prize._id}
@@ -151,7 +157,7 @@ export const InfoRewards: React.FC<Props> = ({ editionId, isOrganizer }) => {
                         end={{ x: 1, y: 1 }}
                         style={styles.podiumGradient}
                       >
-                        {/* Header Row: Badge + Position Tag + Title + Delete Button */}
+                        {/* Header Row: Badge + Position Tag & Status Badge + Title + Delete Button */}
                         <View style={styles.cardHeaderRow}>
                           <View style={styles.cardBadgeTitleGroup}>
                             <View
@@ -168,16 +174,41 @@ export const InfoRewards: React.FC<Props> = ({ editionId, isOrganizer }) => {
                             </View>
 
                             <View style={styles.cardTitleBox}>
-                              <Text
-                                style={[
-                                  styles.positionTagText,
-                                  { color: theme.accentColor },
-                                ]}
-                              >
-                                {prize.position
-                                  ? `${prize.position}° LUGAR`
-                                  : theme.tagTitle}
-                              </Text>
+                              <View style={styles.titleWithStatusRow}>
+                                <Text
+                                  style={[
+                                    styles.positionTagText,
+                                    { color: theme.accentColor },
+                                  ]}
+                                >
+                                  {prize.position
+                                    ? `${prize.position}° LUGAR`
+                                    : theme.tagTitle}
+                                </Text>
+                                <View
+                                  style={[
+                                    styles.statusBadgePill,
+                                    {
+                                      backgroundColor: statusConfig.bg,
+                                      borderColor: statusConfig.borderColor,
+                                    },
+                                  ]}
+                                >
+                                  <WinnixIcon
+                                    name={statusConfig.iconName as any}
+                                    size={11}
+                                    color={statusConfig.color}
+                                  />
+                                  <Text
+                                    style={[
+                                      styles.statusBadgeText,
+                                      { color: statusConfig.color },
+                                    ]}
+                                  >
+                                    {statusConfig.label}
+                                  </Text>
+                                </View>
+                              </View>
                               <Text style={styles.prizeTitleText} numberOfLines={1}>
                                 {prize.label}
                               </Text>
@@ -284,6 +315,7 @@ export const InfoRewards: React.FC<Props> = ({ editionId, isOrganizer }) => {
               <View style={styles.cardsGap}>
                 {specialPrizes.map((prize: any) => {
                   const theme = getPrizeTheme(prize);
+                  const statusConfig = getPrizeStatusConfig(prize.status);
                   return (
                     <View
                       key={prize._id}
@@ -306,7 +338,33 @@ export const InfoRewards: React.FC<Props> = ({ editionId, isOrganizer }) => {
                           />
                         </View>
                         <View style={{ flex: 1 }}>
-                          <Text style={styles.specialLabel}>{prize.label}</Text>
+                          <View style={styles.titleWithStatusRow}>
+                            <Text style={styles.specialLabel}>{prize.label}</Text>
+                            <View
+                              style={[
+                                styles.statusBadgePill,
+                                {
+                                  backgroundColor: statusConfig.bg,
+                                  borderColor: statusConfig.borderColor,
+                                },
+                              ]}
+                            >
+                              <WinnixIcon
+                                name={statusConfig.iconName as any}
+                                size={11}
+                                color={statusConfig.color}
+                              />
+                              <Text
+                                style={[
+                                  styles.statusBadgeText,
+                                  { color: statusConfig.color },
+                                ]}
+                              >
+                                {statusConfig.label}
+                              </Text>
+                            </View>
+                          </View>
+
                           {prize.cashAmount ? (
                             <Text
                               style={[styles.specialReward, { color: theme.accentColor }]}
@@ -371,6 +429,8 @@ export const InfoRewards: React.FC<Props> = ({ editionId, isOrganizer }) => {
         catalogItems={catalogItems}
         selectedChip={selectedChip}
         selectedItems={selectedItems}
+        selectedStatus={selectedStatus}
+        setSelectedStatus={setSelectedStatus}
         control={control}
         formValues={formValues}
         isTitleEditable={isTitleEditable}
@@ -612,6 +672,26 @@ const styles = StyleSheet.create({
   cardTitleBox: {
     flex: 1,
     gap: 2,
+  },
+  titleWithStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  statusBadgePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  statusBadgeText: {
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
   },
   positionTagText: {
     fontSize: 11,

@@ -1,3 +1,5 @@
+export type PrizeStatus = 'active' | 'in_play' | 'delivered' | 'cancelled';
+
 export interface Prize {
   _id: string;
   tournamentEdition: string;
@@ -10,6 +12,7 @@ export interface Prize {
   isMainPrize?: boolean;
   icon?: string;
   order?: number;
+  status?: PrizeStatus;
 }
 
 export interface CreatePrizePayload {
@@ -23,6 +26,7 @@ export interface CreatePrizePayload {
   isMainPrize?: boolean;
   icon?: string;
   order?: number;
+  status?: PrizeStatus;
 }
 
 export interface PrizeTheme {
