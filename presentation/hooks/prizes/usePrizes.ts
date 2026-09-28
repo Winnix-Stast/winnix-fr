@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { prizesActions } from '@/core/prizes/actions/prizes-actions';
 import { PRIZE_SUGGESTIONS } from '@/core/prizes/constants/prize-themes';
-import { CreatePrizePayload } from '@/core/prizes/interface/prize.interface';
+import { CreatePrizePayload, PrizeStatus } from '@/core/prizes/interface/prize.interface';
 import { useAlertStore } from '@/presentation/components/customs';
 import { useAdditionalPrizes } from '@/presentation/hooks/prizes/useAdditionalPrizes';
 
@@ -38,6 +38,7 @@ export const usePrizes = (editionId: string) => {
   const [showModal, setShowModal] = useState(false);
   const [selectedChip, setSelectedChip] = useState<string>('Otro (Personalizado)');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<PrizeStatus>('active');
 
   const { control, setValue, watch, reset } = useForm({
     defaultValues: {
@@ -129,11 +130,13 @@ export const usePrizes = (editionId: string) => {
         position: posNum,
         isMainPrize: isMain,
         order: prizes.length,
+        status: selectedStatus || 'active',
       });
 
       reset({ label: '', cashAmountRaw: '', position: '' });
       setSelectedChip('Otro (Personalizado)');
       setSelectedItems([]);
+      setSelectedStatus('active');
       setShowModal(false);
     } catch {
       showAlert({
@@ -174,6 +177,8 @@ export const usePrizes = (editionId: string) => {
     setShowModal,
     selectedChip,
     selectedItems,
+    selectedStatus,
+    setSelectedStatus,
     control,
     formValues,
     isTitleEditable,

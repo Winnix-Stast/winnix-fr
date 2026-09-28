@@ -289,7 +289,9 @@ const styles = StyleSheet.create({
 
   // Miras tácticas (Brackets)
   bracketsContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
+    width: '100%',
+    height: '100%',
     shadowColor: Colors.brand_primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,

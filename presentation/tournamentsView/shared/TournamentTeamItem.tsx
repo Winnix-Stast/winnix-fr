@@ -1,22 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Image,
   ImageSourcePropType,
   Pressable,
   StyleProp,
   StyleSheet,
+  Text,
   TextStyle,
   View,
   ViewStyle,
 } from 'react-native';
 import Animated, {
-  interpolate,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
-  withSequence,
   withSpring,
-  withTiming,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { brandsActions } from '@/core/brands/actions/brands-actions';
@@ -29,7 +26,10 @@ interface Props {
   label: string;
   img?: ImageSourcePropType | string;
   isActive: boolean;
+  isInscribed?: boolean;
   isFavorite?: boolean;
+  statusLabelText?: string;
+  statusColorCode?: string;
   stats: {
     _id: string;
     iconName: IconName;
@@ -50,72 +50,27 @@ export const TournamentTeamItem = ({
   styleText,
   img,
   isActive,
+  isInscribed = false,
   isFavorite = false,
+  statusLabelText,
+  statusColorCode,
   stats,
 }: Props) => {
   const [favorite, setFavorite] = useState<boolean>(isFavorite);
   const [isToggling, setIsToggling] = useState(false);
 
-  const tiltX = useSharedValue(0);
-  const tiltY = useSharedValue(0);
   const scale = useSharedValue(1);
-  const shimmerPos = useSharedValue(-200);
-
-  useEffect(() => {
-    shimmerPos.value = withRepeat(
-      withSequence(
-        withTiming(400, { duration: 2500 }),
-        withTiming(-400, { duration: 0 }),
-        withTiming(-400, { duration: 3000 }),
-      ),
-      -1,
-      false,
-    );
-  }, []);
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.96);
+    scale.value = withSpring(0.97);
   };
 
   const handlePressOut = () => {
     scale.value = withSpring(1);
-    tiltX.value = withSpring(0);
-    tiltY.value = withSpring(0);
-  };
-
-  const handleMouseMove = (event: any) => {
-    const { locationX, locationY } = event.nativeEvent;
-    // Normalized coords (-1 to 1) for a standard card size
-    const normX = (locationX / 350) * 2 - 1;
-    const normY = (locationY / 200) * 2 - 1;
-
-    tiltX.value = withSpring(-normY * 12);
-    tiltY.value = withSpring(normX * 12);
   };
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { perspective: 1200 },
-      { rotateX: `${tiltX.value}deg` },
-      { rotateY: `${tiltY.value}deg` },
-      { scale: scale.value },
-    ],
-  }));
-
-  // Parallax effect for internal layers
-  const logoParallax = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: interpolate(tiltY.value, [-15, 15], [5, -5]) },
-      { translateY: interpolate(tiltX.value, [-15, 15], [-5, 5]) },
-    ],
-  }));
-
-  const statsParallax = useAnimatedStyle(() => ({
-    transform: [{ translateX: interpolate(tiltY.value, [-15, 15], [-3, 3]) }],
-  }));
-
-  const shimmerStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: shimmerPos.value }, { rotate: '25deg' }],
+    transform: [{ scale: scale.value }],
   }));
 
   const handleToggleFavorite = async () => {
@@ -131,50 +86,69 @@ export const TournamentTeamItem = ({
     }
   };
 
-  const statusLabel = isActive ? 'ACTIVO' : 'INACTIVO';
-  const statusColor = isActive ? '#28D1C3' : '#9CA3AF';
-  const glowColor = isActive ? '#28D1C3' : '#374151';
+  const statusLabel = statusLabelText || (isActive ? 'ACTIVO' : 'INACTIVO') || 'TORNEO';
+
+  // High-end sports color palette
+  const getStatusTheme = (label: string, defaultColor?: string) => {
+    const norm = label.toUpperCase();
+    if (
+      norm.includes('PROXIMAMENTE') ||
+      norm.includes('PRÓXIMAMENTE') ||
+      norm.includes('DRAFT')
+    ) {
+      return {
+        text: '#FBBF24',
+        bg: 'rgba(245, 158, 11, 0.12)',
+        border: 'rgba(245, 158, 11, 0.35)',
+        dot: '#F59E0B',
+      };
+    }
+    if (norm.includes('ABIERTA') || norm.includes('REGISTRATION')) {
+      return {
+        text: '#34D399',
+        bg: 'rgba(16, 185, 129, 0.12)',
+        border: 'rgba(16, 185, 129, 0.35)',
+        dot: '#10B981',
+      };
+    }
+    if (norm.includes('CURSO') || norm.includes('ACTIVE')) {
+      return {
+        text: '#A5B4FC',
+        bg: 'rgba(99, 102, 241, 0.12)',
+        border: 'rgba(99, 102, 241, 0.35)',
+        dot: '#6366F1',
+      };
+    }
+    const color = defaultColor || '#60A5FA';
+    return { text: color, bg: `${color}18`, border: `${color}40`, dot: color };
+  };
+
+  const statusTheme = getStatusTheme(statusLabel, statusColorCode);
 
   return (
-    <Animated.View
-      style={[
-        styles.TournamentTeamItem__container,
-        animatedStyle,
-        { shadowColor: glowColor },
-      ]}
-    >
+    <Animated.View style={[styles.TournamentTeamItem__container, animatedStyle]}>
       <Pressable
         onPress={onPressCard}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        onPointerMove={handleMouseMove}
-        style={styles.pressableArea}
+        style={[
+          styles.pressableArea,
+          {
+            borderColor: isInscribed
+              ? 'rgba(40, 209, 195, 0.45)'
+              : 'rgba(255, 255, 255, 0.12)',
+          },
+        ]}
       >
         <LinearGradient
-          colors={['#1E293B', '#0F172A', '#020617']}
-          locations={[0, 0.4, 1]}
+          colors={isInscribed ? ['#162B40', '#0E1D2E'] : ['#18233C', '#11192C']}
+          locations={[0, 1]}
           style={styles.gradientContainer}
         >
-          {/* Shimmer Light Sweep */}
-          <Animated.View style={[styles.shimmerEffect, shimmerStyle]}>
-            <LinearGradient
-              colors={['transparent', 'rgba(255,255,255,0.08)', 'transparent']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={StyleSheet.absoluteFill}
-            />
-          </Animated.View>
-
-          {/* Glowing Border Background */}
-          <View
-            pointerEvents='none'
-            style={[styles.neonBorder, { borderColor: statusColor }]}
-          />
-
           <View style={styles.details}>
-            <Animated.View style={[styles.imageWrapper, logoParallax]}>
+            <View style={[styles.imageWrapper, { borderColor: statusTheme.border }]}>
               <LinearGradient
-                colors={['rgba(255,255,255,0.15)', 'transparent']}
+                colors={['rgba(255,255,255,0.12)', 'transparent']}
                 style={styles.imageOverlay}
               />
               <Image
@@ -184,35 +158,55 @@ export const TournamentTeamItem = ({
                     : (img as ImageSourcePropType)
                 }
                 style={styles.tournamentImage}
-                resizeMode='contain'
+                resizeMode='cover'
               />
-            </Animated.View>
+            </View>
 
             <View style={styles.contentInfo}>
-              <CustomText
-                label={label}
-                numberOfLines={1}
-                ellipsizeMode='tail'
-                style={[styles.label, styleText]}
-              />
-
-              <View
-                style={[
-                  styles.stateBadge,
-                  {
-                    backgroundColor: `${statusColor}10`,
-                    borderColor: `${statusColor}40`,
-                  },
-                ]}
-              >
-                <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
+              <View style={styles.titleRow}>
                 <CustomText
-                  size={9}
-                  weight={'bold'}
-                  label={statusLabel}
-                  color={statusColor}
-                  style={{ letterSpacing: 2 }}
+                  label={label || 'TORNEO'}
+                  numberOfLines={1}
+                  ellipsizeMode='tail'
+                  style={[styles.label, styleText]}
                 />
+              </View>
+
+              <View style={styles.badgesRow}>
+                <View
+                  style={[
+                    styles.stateBadge,
+                    {
+                      backgroundColor: statusTheme.bg,
+                      borderColor: statusTheme.border,
+                    },
+                  ]}
+                >
+                  <View
+                    style={[styles.statusDot, { backgroundColor: statusTheme.dot }]}
+                  />
+                  <CustomText
+                    size={10}
+                    weight={'bold'}
+                    label={statusLabel.toUpperCase()}
+                    color={statusTheme.text}
+                    style={{ letterSpacing: 0.8 }}
+                  />
+                </View>
+
+                {isInscribed && (
+                  <View style={styles.inscribedBadgeContainer}>
+                    <LinearGradient
+                      colors={['#1E3A8A', '#2563EB']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.inscribedBadgeGradient}
+                    >
+                      <WinnixIcon name='shield-checkmark' size={11} color='#93C5FD' />
+                      <Text style={styles.inscribedBadgeText}>INSCRITO</Text>
+                    </LinearGradient>
+                  </View>
+                )}
               </View>
             </View>
 
@@ -226,18 +220,18 @@ export const TournamentTeamItem = ({
               <View style={styles.favoriteIconBg}>
                 <WinnixIcon
                   name={favorite ? 'heart' : 'heart-outline'}
-                  size={24}
-                  color={favorite ? Colors.primary : Colors.gray}
+                  size={20}
+                  color={favorite ? Colors.primary : '#6E7C96'}
                 />
               </View>
             </Pressable>
           </View>
 
           {stats && stats.length > 0 && (
-            <Animated.View style={[styles.statsGrid, statsParallax]}>
+            <View style={styles.statsGrid}>
               {stats.map((stat, index) => (
                 <View
-                  key={stat._id}
+                  key={stat._id || `stat-${index}`}
                   style={[
                     styles.statGridItem,
                     index < stats.length - 1 && styles.statBorderRight,
@@ -246,56 +240,50 @@ export const TournamentTeamItem = ({
                   <View
                     style={[
                       styles.statIconCircle,
-                      { backgroundColor: `${stat.iconColor || Colors.primary}15` },
+                      { backgroundColor: `${stat.iconColor || Colors.primary}18` },
                     ]}
                   >
                     <WinnixIcon
-                      name={stat.iconName}
-                      size={16}
+                      name={stat.iconName || 'flag-outline'}
+                      size={14}
                       color={stat.iconColor || Colors.primary}
                     />
                   </View>
                   <View style={[styles.statContent, stat.flexText ? { flex: 1 } : null]}>
                     <CustomText
-                      label={stat.value}
-                      size={stat.flexText ? 13 : 16}
+                      label={stat.title ? String(stat.title).toUpperCase() : ''}
+                      size={8}
+                      weight='bold'
+                      color='#6E7C96'
+                      style={{
+                        letterSpacing: 0.8,
+                        textAlign: stat.flexText ? 'left' : 'center',
+                      }}
+                    />
+                    <CustomText
+                      label={stat.value ? String(stat.value) : '—'}
+                      size={12}
                       weight='900'
                       color={Colors.light}
                       singleLine={stat.flexText}
                       style={{ textAlign: stat.flexText ? 'left' : 'center' }}
                     />
-                    <CustomText
-                      label={stat.title.toUpperCase()}
-                      size={9}
-                      weight='bold'
-                      color={Colors.gray}
-                      style={{
-                        letterSpacing: 1,
-                        textAlign: stat.flexText ? 'left' : 'center',
-                      }}
-                    />
                   </View>
                 </View>
               ))}
-            </Animated.View>
+            </View>
           )}
 
           <View style={styles.footer}>
-            <LinearGradient
-              colors={['transparent', 'rgba(255,255,255,0.05)', 'transparent']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.footerLine}
-            />
-            <View style={styles.moreAction}>
-              <CustomText
-                label='ABRIR TORNEO'
-                size={11}
-                weight='900'
-                color={Colors.primary}
-                style={{ letterSpacing: 2 }}
+            <Text style={styles.footerText}>ABRIR TORNEO</Text>
+            <View
+              style={[styles.chevronCircle, { backgroundColor: `${statusTheme.text}18` }]}
+            >
+              <WinnixIcon
+                name='chevron-forward-outline'
+                size={14}
+                color={statusTheme.text}
               />
-              <WinnixIcon name='chevron-forward' size={14} color={Colors.primary} />
             </View>
           </View>
         </LinearGradient>
@@ -306,53 +294,67 @@ export const TournamentTeamItem = ({
 
 const styles = StyleSheet.create({
   TournamentTeamItem__container: {
-    marginVertical: 12,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    marginVertical: 6,
+    borderRadius: 20,
     overflow: 'visible',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 12,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  inscribedBadgeContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(147, 197, 253, 0.35)',
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  inscribedBadgeGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 9,
+    paddingVertical: 3.5,
+    gap: 4,
+  },
+  inscribedBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 9.5,
+    fontWeight: '900',
+    letterSpacing: 0.8,
   },
   pressableArea: {
-    borderRadius: 24,
+    borderRadius: 20,
     overflow: 'hidden',
+    borderWidth: 1.2,
   },
   gradientContainer: {
-    padding: 18,
-  },
-  shimmerEffect: {
-    position: 'absolute',
-    top: -100,
-    left: 0,
-    width: 200,
-    height: 500,
-    zIndex: 1,
-    opacity: 0.6,
-  },
-  neonBorder: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 24,
-    borderWidth: 2,
-    opacity: 0.15,
+    padding: 16,
+    gap: 12,
   },
   details: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
     zIndex: 2,
+    gap: 12,
   },
   imageWrapper: {
-    width: 90,
-    height: 90,
+    width: 70,
+    height: 70,
+    borderRadius: 18,
+    overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#070a1e',
+    borderWidth: 1.5,
   },
   imageOverlay: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 20,
+    borderRadius: 18,
     zIndex: 1,
   },
   tournamentImage: {
@@ -362,68 +364,80 @@ const styles = StyleSheet.create({
   },
   contentInfo: {
     flex: 1,
-    marginLeft: 12,
+    gap: 6,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   label: {
-    fontSize: 22,
+    fontSize: 17,
     fontWeight: '900',
-    color: 'white',
-    marginBottom: 6,
+    color: '#FFFFFF',
     textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  badgesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
   },
   stateBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
     paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 30,
+    paddingVertical: 4,
+    borderRadius: 12,
     borderWidth: 1,
+    gap: 6,
   },
   statusDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    marginRight: 6,
   },
   favoriteButton: {
-    padding: 4,
+    padding: 2,
   },
   favoriteIconBg: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   statsGrid: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    borderRadius: 20,
-    padding: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255, 255, 255, 0.06)',
     zIndex: 2,
+    alignItems: 'center',
   },
   statGridItem: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 4,
-    gap: 6,
+    paddingVertical: 2,
+    gap: 8,
   },
   statBorderRight: {
     borderRightWidth: 1,
-    borderRightColor: 'rgba(255,255,255,0.1)',
+    borderRightColor: 'rgba(255, 255, 255, 0.08)',
+    paddingRight: 8,
   },
   statIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -431,18 +445,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   footer: {
-    marginTop: 20,
-    alignItems: 'center',
-    zIndex: 2,
-  },
-  footerLine: {
-    width: '80%',
-    height: 1,
-    marginBottom: 16,
-  },
-  moreAction: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    paddingTop: 10,
+    marginTop: 2,
+    zIndex: 2,
+  },
+  footerText: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#9EADCE',
+    letterSpacing: 1.5,
+  },
+  chevronCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

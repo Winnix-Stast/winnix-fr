@@ -1,6 +1,11 @@
 import { ReactNode } from 'react';
-import { Keyboard, StyleProp, TouchableWithoutFeedback, ViewStyle } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 import { Colors } from '../../styles/global-styles';
 
 interface Props {
@@ -9,23 +14,18 @@ interface Props {
 }
 
 export const CustomFormView = ({ children, contentStyle }: Props) => {
-  const dismissKeyboard = () => {
-    Keyboard.dismiss();
-  };
-
   return (
-    <TouchableWithoutFeedback onPress={dismissKeyboard}>
-      <KeyboardAwareScrollView
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
         keyboardShouldPersistTaps='handled'
-        enableOnAndroid={true}
-        enableAutomaticScroll={true}
-        enableResetScrollToCoords={false}
-        extraScrollHeight={80}
-        extraHeight={120}
         showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
         contentContainerStyle={{
           flexGrow: 1,
-          // paddingBottom: 80,
+          paddingVertical: 14,
         }}
         style={[
           {
@@ -36,7 +36,7 @@ export const CustomFormView = ({ children, contentStyle }: Props) => {
         ]}
       >
         {children}
-      </KeyboardAwareScrollView>
-    </TouchableWithoutFeedback>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };

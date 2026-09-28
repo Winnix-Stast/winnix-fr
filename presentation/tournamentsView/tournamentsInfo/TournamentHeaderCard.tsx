@@ -1,7 +1,7 @@
-import React from 'react';
 import {
   ImageBackground,
   ImageSourcePropType,
+  Pressable,
   StyleSheet,
   Text,
   TextStyle,
@@ -21,6 +21,7 @@ type Props = {
   dateText: string;
   image: ImageSourcePropType;
   statusLabel?: string;
+  onBack?: () => void;
   titleStyle?: TextStyle;
   dateStyle?: TextStyle;
   statusStyle?: TextStyle;
@@ -32,6 +33,7 @@ export const TournamentHeaderCard = ({
   statusLabel,
   dateText,
   image,
+  onBack,
   titleStyle,
   dateStyle,
   statusStyle,
@@ -47,7 +49,7 @@ export const TournamentHeaderCard = ({
     <View style={styles.container}>
       <ImageBackground
         source={image}
-        style={[styles.imageBackground, { height: Math.max(220, height * 0.28) }]}
+        style={[styles.imageBackground, { height: Math.max(230, height * 0.28) }]}
         imageStyle={styles.portrait}
         resizeMode='cover'
       >
@@ -57,10 +59,17 @@ export const TournamentHeaderCard = ({
             'rgba(6, 11, 24, 0.65)',
             'rgba(6, 11, 24, 0.95)',
           ]}
-          locations={[0, 0.5, 1]}
           style={styles.gradientOverlay}
         >
           <View style={styles.topRow}>
+            {onBack ? (
+              <Pressable style={styles.backButton} onPress={onBack} hitSlop={12}>
+                <WinnixIcon name='chevron-back-outline' size={26} color='#FFFFFF' />
+              </Pressable>
+            ) : (
+              <View />
+            )}
+
             <View
               style={[
                 styles.statusTag,
@@ -120,15 +129,22 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   gradientOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
+    width: '100%',
+    height: '100%',
     padding: 16,
     justifyContent: 'space-between',
   },
   topRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
+  },
+  backButton: {
+    padding: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   statusTag: {
     paddingVertical: 5,
@@ -147,11 +163,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   title: {
-    fontSize: 28,
+    fontSize: 30,
     color: '#FFFFFF',
     fontWeight: '900',
     letterSpacing: 0.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 6,
   },

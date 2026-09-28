@@ -1,31 +1,17 @@
-import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { WinnixIcon } from '@/presentation/plugins/Icon';
-import { Colors, getTournamentStatusConfig } from '@/presentation/styles';
+import { Colors } from '@/presentation/styles';
 import { CustomText } from '@/presentation/theme/components/CustomText';
 import { GradientContainer } from '@/presentation/theme/components/GradientCard';
 
 interface Props {
   inscriptionsCount: number;
-  status: string;
-  statusLabel: string;
+  playersCount?: number;
+  status?: string;
+  statusLabel?: string;
 }
 
-export const TournamentStatsCards = ({
-  inscriptionsCount,
-  status,
-  statusLabel,
-}: Props) => {
-  const currentConfig = getTournamentStatusConfig(status);
-  const {
-    statsCardColors: colors,
-    statsCardBorderColor: borderColor,
-    iconName,
-    iconColor,
-    iconBgColor,
-    statsCardTextColor: textColor,
-  } = currentConfig;
-
+export const TournamentStatsCards = ({ inscriptionsCount, playersCount = 0 }: Props) => {
   return (
     <View style={styles.container}>
       {/* Card 1: Equipos */}
@@ -55,31 +41,29 @@ export const TournamentStatsCards = ({
         </View>
       </GradientContainer>
 
-      {/* Card 2: Estado */}
+      {/* Card 2: Jugadores */}
       <GradientContainer
-        colors={colors}
-        borderColor={borderColor}
+        colors={['rgba(40, 209, 195, 0.12)', 'rgba(40, 209, 195, 0.03)']}
+        borderColor='rgba(40, 209, 195, 0.25)'
         containerStyle={styles.card}
       >
-        <View style={[styles.iconWrapper, { backgroundColor: iconBgColor }]}>
-          <WinnixIcon name={iconName} size={20} color={iconColor} />
+        <View style={[styles.iconWrapper, styles.iconWrapperPlayers]}>
+          <WinnixIcon name='person-outline' size={20} color='#28D1C3' />
         </View>
         <View style={styles.textContainer}>
           <CustomText
-            label='Estado'
+            label='Jugadores'
             size={12}
             color={Colors.text_tertiary}
             weight='600'
             style={styles.cardLabel}
           />
           <CustomText
-            label={statusLabel.toUpperCase()}
-            size={11}
-            color={textColor}
+            label={String(playersCount)}
+            size={18}
+            color={Colors.text_primary}
             weight='bold'
-            style={styles.statusValue}
-            numberOfLines={2}
-            ellipsizeMode='tail'
+            style={styles.cardValue}
           />
         </View>
       </GradientContainer>
@@ -113,6 +97,9 @@ const styles = StyleSheet.create({
   iconWrapperTeams: {
     backgroundColor: 'rgba(59, 130, 246, 0.1)',
   },
+  iconWrapperPlayers: {
+    backgroundColor: 'rgba(40, 209, 195, 0.1)',
+  },
   textContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -123,10 +110,5 @@ const styles = StyleSheet.create({
   cardValue: {
     textAlign: 'left',
     marginTop: 2,
-  },
-  statusValue: {
-    textAlign: 'left',
-    marginTop: 2,
-    lineHeight: 14,
   },
 });

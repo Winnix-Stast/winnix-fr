@@ -1,4 +1,3 @@
-import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { WinnixIcon } from '@/presentation/plugins/Icon';
 import { Colors } from '@/presentation/styles/colors';
@@ -38,7 +37,7 @@ const getStatConfig = (label: string) => {
 
 export const TournamentStatsCard = ({
   title = 'Estadísticas del torneo ',
-  stats,
+  stats = [],
 }: Props) => {
   console.log('TournamentStatsCard - stats recibidas:', JSON.stringify(stats, null, 2));
   return (
@@ -52,7 +51,7 @@ export const TournamentStatsCard = ({
       </View>
 
       <View style={styles.grid}>
-        {stats.map((stat, index) => {
+        {(stats || []).map((stat, index) => {
           const config = getStatConfig(stat.label);
           return (
             <View key={index} style={styles.gridCell}>
