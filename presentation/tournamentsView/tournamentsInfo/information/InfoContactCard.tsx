@@ -1,69 +1,195 @@
-import { IconName, WinnixIcon } from "@/presentation/plugins/Icon";
-import { Colors, Flex, Radius } from "@/presentation/styles/global-styles";
-import { CustomText } from "@/presentation/theme/components/CustomText";
-import { GradientContainer } from "@/presentation/theme/components/GradientCard";
-import React from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View } from 'react-native';
+import { IconName, WinnixIcon } from '@/presentation/plugins/Icon';
+import { Colors, Flex, Radius } from '@/presentation/styles/global-styles';
+import { CustomText } from '@/presentation/theme/components/CustomText';
+import { GradientContainer } from '@/presentation/theme/components/GradientCard';
 
-const fakeContactData = [
-  { id: 1, type: "Celular", icon: "call-outline", value: "322-788-99-99" },
-  { id: 2, type: "WhatsApp", icon: "chatbubble-ellipses-outline", value: "300-555-88-11" },
-  { id: 3, type: "Correo", icon: "mail-outline", value: "contacto@torneos.com" },
-];
+interface ContactItemProps {
+  icon: IconName;
+  type: string;
+  value: string;
+}
 
-const ContactItem = ({ icon, type, value }: { icon: string; type: string; value: string }) => (
-  <View style={styles.InfoContactCard__itemContainer}>
-    <WinnixIcon name={icon as IconName} size={30} color={Colors.primary} />
-    <CustomText label={`${type}:`} size={18} weight='bold' color={Colors.light} />
-    <CustomText label={value} size={16} color={Colors.light} weight='bold' />
+const ContactItem = ({ icon, type, value }: ContactItemProps) => (
+  <View style={styles.itemContainer}>
+    <WinnixIcon name={icon} size={26} color={Colors.primary} />
+    <View>
+      <CustomText label={type} size={12} color={Colors.secondary} />
+      <CustomText label={value} size={15} color={Colors.light} weight='bold' />
+    </View>
   </View>
 );
 
-export const InfoContactCard = () => {
+interface SubOrganizerRowProps {
+  user: any;
+}
+
+const SubOrganizerRow = ({ user }: SubOrganizerRowProps) => (
+  <View style={styles.subOrganizerRow}>
+    <WinnixIcon name='person-circle-outline' size={22} color={Colors.secondaryLigth} />
+    <View>
+      <CustomText
+        label={user.username || user.nickname || 'Sub-organizador'}
+        size={14}
+        color={Colors.light}
+        weight='bold'
+      />
+      {user.email && (
+        <CustomText label={user.email} size={12} color={Colors.text_tertiary} />
+      )}
+    </View>
+  </View>
+);
+
+interface Props {
+  organizer?: any;
+  subOrganizers?: any[];
+}
+
+export const InfoContactCard = ({ organizer, subOrganizers = [] }: Props) => {
+  const contactItems: ContactItemProps[] = [];
+
+  if (organizer?.email) {
+    contactItems.push({
+      icon: 'mail-outline',
+      type: 'Correo electrónico',
+      value: organizer.email,
+    });
+  }
+
+  if (organizer?.phoneNumber) {
+    contactItems.push({
+      icon: 'call-outline',
+      type: 'Teléfono',
+      value: String(organizer.phoneNumber),
+    });
+  }
+
+  if (organizer?.contact?.phone) {
+    contactItems.push({
+      icon: 'chatbubble-ellipses-outline',
+      type: 'Contacto',
+      value: String(organizer.contact.phone),
+    });
+  }
+
+  const hasContact = contactItems.length > 0 || subOrganizers.length > 0;
+
   return (
-    <GradientContainer colors={[Colors.dark, Colors.secondaryLigth]} borderColor={Colors.secondaryLigth}>
-      <View style={styles.InfoContactCard__container}>
+    <GradientContainer
+      colors={[Colors.dark, Colors.secondaryLigth]}
+      borderColor={Colors.secondaryLigth}
+    >
+      <View style={styles.container}>
         {/* Header */}
-        <View style={styles.InfoContactCard__header}>
-          <WinnixIcon name='chatbox-ellipses-outline' size={30} color={Colors.secondaryLigth} />
-          <CustomText label='Contacto y soporte' size={20} weight='bold' color={Colors.light} />
+        <View style={styles.header}>
+          <WinnixIcon
+            name='chatbox-ellipses-outline'
+            size={30}
+            color={Colors.secondaryLigth}
+          />
+          <CustomText
+            label='Contacto y Soporte'
+            size={20}
+            weight='bold'
+            color={Colors.light}
+          />
         </View>
 
-        {/* Lista de contactos */}
-        <View style={styles.InfoContactCard__list}>
-          {fakeContactData.map((item) => (
-            <ContactItem key={item.id} icon={item.icon} type={item.type} value={item.value} />
-          ))}
-        </View>
+        {!hasContact ? (
+          <CustomText
+            label='El organizador no ha publicado información de contacto.'
+            color={Colors.gray}
+            size={14}
+            style={{ textAlign: 'center', marginTop: 12 }}
+          />
+        ) : (
+          <>
+            {/* Main organizer contacts */}
+            {contactItems.length > 0 && (
+              <View style={styles.list}>
+                {contactItems.map((item, i) => (
+                  <ContactItem
+                    key={i}
+                    icon={item.icon}
+                    type={item.type}
+                    value={item.value}
+                  />
+                ))}
+              </View>
+            )}
+
+            {/* Sub-organizers */}
+            {subOrganizers.length > 0 && (
+              <View style={styles.subOrganizerSection}>
+                <View style={styles.subOrganizerHeader}>
+                  <WinnixIcon
+                    name='people-outline'
+                    size={20}
+                    color={Colors.secondaryLigth}
+                  />
+                  <CustomText
+                    label='Sub-Organizadores'
+                    size={15}
+                    weight='bold'
+                    color={Colors.light}
+                  />
+                </View>
+                {subOrganizers.map((u: any) => (
+                  <SubOrganizerRow key={u._id} user={u} />
+                ))}
+              </View>
+            )}
+          </>
+        )}
       </View>
     </GradientContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  InfoContactCard__container: {
+  container: {
     ...Flex.columnCenter,
-    justifyContent: "flex-start",
+    justifyContent: 'flex-start',
     gap: 8,
-    width: "100%",
+    width: '100%',
   },
-  InfoContactCard__header: {
+  header: {
     ...Flex.rowCenter,
-    justifyContent: "flex-start",
-    width: "100%",
+    justifyContent: 'flex-start',
+    width: '100%',
     gap: 8,
   },
-  InfoContactCard__list: {
-    width: "100%",
+  list: {
+    width: '100%',
     marginTop: 12,
-    gap: 12,
+    gap: 10,
   },
-  InfoContactCard__itemContainer: {
+  itemContainer: {
     ...Flex.rowCenter,
-    justifyContent: "flex-start",
+    justifyContent: 'flex-start',
     gap: 12,
-    backgroundColor: "rgba(31, 106, 224, 0.5)",
-    padding: 16,
+    backgroundColor: 'rgba(31, 106, 224, 0.35)',
+    padding: 14,
     borderRadius: Radius.medium,
+  },
+  subOrganizerSection: {
+    width: '100%',
+    marginTop: 12,
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: Radius.medium,
+    padding: 12,
+  },
+  subOrganizerHeader: {
+    ...Flex.rowCenter,
+    justifyContent: 'flex-start',
+    gap: 8,
+    marginBottom: 4,
+  },
+  subOrganizerRow: {
+    ...Flex.rowCenter,
+    justifyContent: 'flex-start',
+    gap: 10,
   },
 });

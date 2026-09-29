@@ -1,5 +1,4 @@
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTournamentDetails } from '@/presentation/hooks/tournaments/useTournamentDetails';
 import { IconName, WinnixIcon } from '@/presentation/plugins/Icon';
@@ -24,7 +23,6 @@ import { TournamentOrganizerSection } from '@/presentation/tournamentsView/tourn
 
 const TournamentDetails = () => {
   const { id } = useLocalSearchParams();
-  const { top } = useSafeAreaInsets();
   const router = useRouter();
 
   const details = useTournamentDetails(id as string, router);
@@ -205,7 +203,7 @@ const TournamentDetails = () => {
         <View style={styles.fabContainer}>
           <Pressable
             style={styles.fabEdit}
-            onPress={() => router.push(`/winnix/tournament/edit/${id}`)}
+            onPress={() => router.push(`/winnix/tournament/edit?id=${id}`)}
           >
             <WinnixIcon name='pencil-outline' size={24} color={Colors.brand_primary} />
           </Pressable>

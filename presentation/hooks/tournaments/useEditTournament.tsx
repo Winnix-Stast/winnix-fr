@@ -57,6 +57,7 @@ export const useEditTournament = (id: string) => {
             ? edition.tournament?._id
             : edition.tournament,
         seasonName: edition.seasonName,
+        fieldAddress: edition.fieldAddress || '',
         startDate: edition.startDate ? new Date(edition.startDate) : undefined,
         endDate: edition.endDate ? new Date(edition.endDate) : undefined,
         sport: typeof edition.sport === 'object' ? edition.sport?._id : edition.sport,
@@ -104,6 +105,7 @@ export const useEditTournament = (id: string) => {
           try {
             const updatePayload = {
               seasonName: payload.seasonName,
+              fieldAddress: payload.fieldAddress,
               // Only send editable fields if it's draft, to avoid backend warnings or inconsistencies
               ...(isDraft
                 ? {

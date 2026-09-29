@@ -23,6 +23,7 @@ const baseEditionSchema = yup.object().shape({
   sportTemplate: yup.string().required('Debes seleccionar una plantilla'),
   image: yup.string().optional(),
   logo: yup.string().optional(),
+  fieldAddress: yup.string().optional(),
   playersPerTeam: nullableNumber,
   matchDuration: nullableNumber,
   scoring: yup
@@ -34,8 +35,17 @@ const baseEditionSchema = yup.object().shape({
     })
     .optional(),
   config: yup.object().optional(),
+  initialStageTemplate: yup.string().optional(),
+  initialStages: yup.array().optional(),
+  initialPrizes: yup.array().optional(),
   status: yup.string().optional().default('DRAFT'),
 });
+
+const getTodayMidnight = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
 
 export const createEditionSchema = baseEditionSchema.shape({
   startDate: yup
@@ -43,7 +53,7 @@ export const createEditionSchema = baseEditionSchema.shape({
     .nullable()
     .transform((curr, orig) => (orig === '' ? null : curr))
     .required('La fecha de inicio es requerida')
-    .min(new Date(), 'La fecha de inicio no puede estar en el pasado'),
+    .min(getTodayMidnight(), 'La fecha de inicio no puede estar en el pasado'),
 });
 
 export const editEditionSchema = baseEditionSchema.shape({

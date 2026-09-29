@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -21,9 +21,10 @@ import {
   CustomSelect,
 } from '@/presentation/theme/components';
 import { InformationTournament } from '@/presentation/tournamentsView/tournamentsInfo/information/InformationTournament';
+import { InfoRewards } from '@/presentation/tournamentsView/tournamentsInfo/information/rewards/InfoRewards';
 import { TournamentStagesLayout } from '@/presentation/tournamentsView/tournamentsInfo/stagesLayout/TournamentStagesLayout';
 
-type TabType = 'ajustes' | 'multimedia' | 'etapas' | 'equipos' | 'info';
+type TabType = 'ajustes' | 'multimedia' | 'premios' | 'etapas' | 'equipos' | 'info';
 
 export default function EditTournamentScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -39,6 +40,7 @@ export default function EditTournamentScreen() {
     onSubmitVisual,
     deleteInscription,
     handleGoBack,
+    edition,
     isDraft,
     sports,
     templates,
@@ -89,6 +91,7 @@ export default function EditTournamentScreen() {
           [
             { key: 'ajustes', label: 'Ajustes', icon: 'settings-outline' },
             { key: 'multimedia', label: 'Imagen', icon: 'image-outline' },
+            { key: 'premios', label: 'Premios', icon: 'gift-outline' },
             { key: 'etapas', label: 'Etapas', icon: 'flag-outline' },
             { key: 'equipos', label: 'Equipos', icon: 'people-outline' },
             { key: 'info', label: 'Info', icon: 'information-circle-outline' },
@@ -146,6 +149,13 @@ export default function EditTournamentScreen() {
                 label='Nombre de la Temporada *'
                 placeholder='Ej. Apertura 2026'
                 errorMessage={errors.seasonName?.message}
+              />
+              <CustomInput
+                name='fieldAddress'
+                control={control}
+                label='Dirección de la Cancha / Sede'
+                placeholder='Ej. Calle 100 #15-20, Canchas El Campín'
+                errorMessage={errors.fieldAddress?.message}
               />
               <View style={{ opacity: 0.6 }}>
                 <CustomSelect
@@ -303,6 +313,13 @@ export default function EditTournamentScreen() {
           </View>
         )}
 
+        {/* TAB 3: PRIZES MANAGEMENT (PREMIOS) */}
+        {activeTab === 'premios' && (
+          <View style={styles.tabContent}>
+            <InfoRewards editionId={id} isOrganizer={true} />
+          </View>
+        )}
+
         {/* TAB 3: STAGES MANAGEMENT (ETAPAS) */}
         {activeTab === 'etapas' && (
           <View style={styles.tabContent}>
@@ -368,7 +385,7 @@ export default function EditTournamentScreen() {
         {/* TAB 5: TOURNAMENT RULES/INFO (INFO) */}
         {activeTab === 'info' && (
           <View style={styles.tabContent}>
-            <InformationTournament />
+            <InformationTournament edition={edition} isOrganizer={true} />
           </View>
         )}
       </View>

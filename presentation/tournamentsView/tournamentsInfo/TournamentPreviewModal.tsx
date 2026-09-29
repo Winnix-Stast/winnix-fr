@@ -88,6 +88,7 @@ export const TournamentPreviewModal = ({ visible, onClose, formData }: PreviewPr
     },
     organizer: organizerUser,
     subOrganizers: [],
+    fieldAddress: formData?.fieldAddress,
     playersPerTeam: formData?.playersPerTeam,
     matchDuration: formData?.matchDuration,
     scoring: formData?.scoring,
