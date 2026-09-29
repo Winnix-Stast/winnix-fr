@@ -1,10 +1,31 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { Tabs } from 'expo-router';
 import { WinnixIcon } from '@/presentation/plugins/Icon';
+import { Colors } from '@/presentation/styles/colors';
 
 export default function TabsLayout() {
   return (
-    <Tabs screenOptions={{ headerShown: false }}>
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: Colors.brand_primary,
+        tabBarInactiveTintColor: Colors.text_tertiary,
+        tabBarStyle: {
+          backgroundColor: Colors.surface_base,
+          borderTopColor: 'rgba(255, 255, 255, 0.08)',
+          borderTopWidth: 1,
+          elevation: 10,
+          height: Platform.OS === 'ios' ? 88 : 64,
+          paddingBottom: Platform.OS === 'ios' ? 28 : 8,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '700',
+        },
+      }}
+    >
       <Tabs.Screen
         name='index'
         options={{
