@@ -1,31 +1,32 @@
-import { WinnixIcon } from "@/presentation/plugins/Icon";
-import { Colors } from "@/presentation/styles/global-styles";
-import React from "react";
-import { StyleProp, TouchableOpacity, View, ViewStyle } from "react-native";
-import ModalRN, { ModalProps } from "react-native-modal";
+import React from 'react';
+import { StyleProp, TouchableOpacity, View, ViewStyle } from 'react-native';
+import ModalRN, { ModalProps } from 'react-native-modal';
+import { WinnixIcon } from '@/presentation/plugins/Icon';
+import { Colors } from '@/presentation/styles/global-styles';
 
 type AppModalProps = {
   visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
-  animationIn?: ModalProps["animationIn"];
-  animationOut?: ModalProps["animationOut"];
+  animationIn?: ModalProps['animationIn'];
+  animationOut?: ModalProps['animationOut'];
   backdropOpacity?: number;
   modalStyle?: StyleProp<ViewStyle>;
   contentStyle?: StyleProp<ViewStyle>;
-  swipeDirection?: ModalProps["swipeDirection"];
+  swipeDirection?: ModalProps['swipeDirection'];
   showIcon?: boolean;
   iconColor?: string;
   iconSize?: number;
   iconContainerStyle?: StyleProp<ViewStyle>;
+  onModalHide?: () => void;
 };
 
 export const AppModal: React.FC<AppModalProps> = ({
   visible,
   onClose,
   children,
-  animationIn = "slideInUp",
-  animationOut = "slideOutDown",
+  animationIn = 'slideInUp',
+  animationOut = 'slideOutDown',
   backdropOpacity = 0.5,
   modalStyle,
   contentStyle,
@@ -34,6 +35,7 @@ export const AppModal: React.FC<AppModalProps> = ({
   iconColor = Colors.light,
   iconSize = 28,
   iconContainerStyle = {},
+  onModalHide,
 }) => {
   return (
     <ModalRN
@@ -45,33 +47,37 @@ export const AppModal: React.FC<AppModalProps> = ({
       onBackButtonPress={onClose}
       swipeDirection={swipeDirection}
       onSwipeComplete={onClose}
-      style={[{ margin: 0, justifyContent: "center", alignItems: "center" }, modalStyle]}>
+      onModalHide={onModalHide}
+      style={[{ margin: 0, justifyContent: 'center', alignItems: 'center' }, modalStyle]}
+    >
       <View
         style={[
           {
-            backgroundColor: "white",
+            backgroundColor: 'white',
             borderRadius: 12,
-            overflow: "hidden",
-            position: "relative",
-            width: "90%",
+            overflow: 'hidden',
+            position: 'relative',
+            width: '90%',
             paddingTop: showIcon ? 40 : 0, // deja espacio si hay icono
           },
           contentStyle,
-        ]}>
+        ]}
+      >
         {/* Icono de cierre */}
         {showIcon && (
           <TouchableOpacity
             onPress={onClose}
             style={[
               {
-                position: "absolute",
+                position: 'absolute',
                 top: 25,
                 right: 15,
                 zIndex: 10,
                 padding: 5,
               },
               iconContainerStyle,
-            ]}>
+            ]}
+          >
             <WinnixIcon name='close-outline' size={iconSize} color={iconColor} />
           </TouchableOpacity>
         )}
