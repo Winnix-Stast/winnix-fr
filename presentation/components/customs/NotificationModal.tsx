@@ -1,6 +1,14 @@
-import React from 'react';
+import { NOTIFICATION_TYPE_CONFIG } from '@/core/notifications/constants/notifications-config';
+import { NotificationItem } from '@/core/notifications/interface/notification.interface';
+import { WinnixIcon } from '@/presentation/plugins/Icon';
+import { Colors } from '@/presentation/styles/colors';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Modal,
   ScrollView,
   StyleSheet,
@@ -10,13 +18,6 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import { NOTIFICATION_TYPE_CONFIG } from '@/core/notifications/constants/notifications-config';
-import { NotificationItem } from '@/core/notifications/interface/notification.interface';
-import { WinnixIcon } from '@/presentation/plugins/Icon';
-import { Colors } from '@/presentation/styles/colors';
 
 export interface NotificationModalProps {
   visible: boolean;
@@ -26,9 +27,76 @@ export interface NotificationModalProps {
   isSubmittingAction?: boolean;
 }
 
+// Estructura de la Entidad Principal del Evento (Spotlight)
+interface SpotlightEntity {
+  name: string;
+  badge?: string;
+  subtitle?: string;
+  avatarUrl?: string;
+  icon: string;
+  contextTag?: string;
+}
+
+// Estructura de Metadato Dinámico Clave-Valor
+interface DynamicAttribute {
+  key: string;
+  label: string;
+  value: string;
+  icon: string;
+}
+
+// Diccionario semántico de etiquetas e iconos para atributos del campo mixto
+const ATTRIBUTE_METADATA_CONFIG: Record<
+  string,
+  { label: string; icon: string }
+> = {
+  field: { label: 'Cancha / Sede', icon: 'location-outline' },
+  cancha: { label: 'Cancha / Sede', icon: 'location-outline' },
+  venue: { label: 'Sede Oficial', icon: 'location-outline' },
+  time: { label: 'Hora', icon: 'time-outline' },
+  hora: { label: 'Hora', icon: 'time-outline' },
+  date: { label: 'Fecha', icon: 'calendar-outline' },
+  fecha: { label: 'Fecha', icon: 'calendar-outline' },
+  score: { label: 'Marcador', icon: 'stats-chart-outline' },
+  marcador: { label: 'Marcador', icon: 'stats-chart-outline' },
+  position: { label: 'Posición', icon: 'shirt-outline' },
+  posicion: { label: 'Posición', icon: 'shirt-outline' },
+  sport: { label: 'Deporte', icon: 'football-outline' },
+  sportName: { label: 'Deporte', icon: 'football-outline' },
+  category: { label: 'Categoría', icon: 'ribbon-outline' },
+  stage: { label: 'Fase', icon: 'flag-outline' },
+  stageName: { label: 'Fase', icon: 'flag-outline' },
+  editionName: { label: 'Torneo', icon: 'trophy-outline' },
+  tournamentName: { label: 'Torneo', icon: 'trophy-outline' },
+  teamName: { label: 'Equipo', icon: 'shield-outline' },
+  amount: { label: 'Monto / Premio', icon: 'cash-outline' },
+  prize: { label: 'Premio', icon: 'medal-outline' },
+  reason: { label: 'Motivo', icon: 'information-circle-outline' },
+};
+
+// Claves técnicas internas que se excluyen de la visualización genérica
+const TECHNICAL_KEYS = new Set([
+  'teamId',
+  'playerId',
+  'tournamentId',
+  'editionId',
+  'matchId',
+  'stageId',
+  'prizeId',
+  '_id',
+  'id',
+  '__v',
+  'welcome',
+  'actionRequired',
+  'actionStatus',
+  'deliveryChannels',
+  'pushToken',
+  'whatsappDeliveryMetadata',
+]);
+
 /**
- * Modal Custom para Notificaciones
- * Reutilizable, responsivo para móviles, tablets y web.
+ * Modal Custom para Notificaciones (Data-Driven y Polimórfico)
+ * Sin estructuras rígidas if/else: renderiza dinámicamente según los datos de la notificación.
  */
 export const NotificationModal: React.FC<NotificationModalProps> = ({
   visible,
@@ -40,14 +108,155 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
   const router = useRouter();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
-  if (!item) return null;
-
   const modalWidth = Math.min(520, windowWidth * 0.92);
 
-  const visualConfig =
-    NOTIFICATION_TYPE_CONFIG[item.type] || NOTIFICATION_TYPE_CONFIG.SYSTEM_ALERT;
+  const visualConfig = item
+    ? NOTIFICATION_TYPE_CONFIG[item.type] || NOTIFICATION_TYPE_CONFIG.SYSTEM_ALERT
+    : NOTIFICATION_TYPE_CONFIG.SYSTEM_ALERT;
 
-  const targetRoute = visualConfig.defaultRoute?.(item.data);
+  const targetRoute = item ? visualConfig.defaultRoute?.(item.data) : null;
+
+  // 1. Detección Inteligente y Dinámica de la Entidad Principal (Spotlight)
+  const spotlightEntity = useMemo<SpotlightEntity | null>(() => {
+    if (!item) return null;
+    const data = item.data || {};
+
+    // Nombre principal: Jugador > Equipo > Torneo > Remitente
+    const entityName =
+      data.playerName ||
+      data.userName ||
+      data.teamName ||
+      data.tournamentName ||
+      item.sender?.nickname ||
+      item.sender?.username;
+
+    if (!entityName) return null;
+
+    // Avatar o logo
+    const avatarUrl =
+      data.playerAvatar ||
+      data.avatar ||
+      data.teamLogo ||
+      data.logo ||
+      data.tournamentLogo ||
+      item.sender?.avatar;
+
+    // Subtítulo descriptivo (email, deporte, nombre de usuario)
+    const subtitle =
+      data.playerEmail ||
+      data.userEmail ||
+      data.email ||
+      data.sport ||
+      data.sportName ||
+      (item.sender?.username && item.sender.username !== entityName
+        ? `@${item.sender.username}`
+        : undefined);
+
+    // Contexto relacional (ej. a qué escuadra o torneo se vincula la solicitud)
+    let contextTag: string | undefined;
+    if (data.playerName && data.teamName) {
+      contextTag = `Escuadra: ${data.teamName}`;
+    } else if (data.teamName && (data.tournamentName || data.editionName)) {
+      contextTag = `Torneo: ${data.tournamentName || data.editionName}`;
+    }
+
+    // Badge contextual
+    const badge =
+      data.role ||
+      (item.actionRequired
+        ? item.category === 'TEAMS'
+          ? 'ASPIRANTE'
+          : 'SOLICITANTE'
+        : undefined);
+
+    // Icono según tipo de entidad
+    const icon = data.playerName || item.sender
+      ? 'person'
+      : data.teamName
+        ? 'shield'
+        : 'trophy';
+
+    return {
+      name: entityName,
+      badge,
+      subtitle,
+      avatarUrl,
+      icon,
+      contextTag,
+    };
+  }, [item]);
+
+  // 2. Extracción Dinámica de Atributos del Campo Mixto
+  const dynamicAttributes = useMemo<DynamicAttribute[]>(() => {
+    if (!item?.data) return [];
+    const data = item.data;
+
+    // Claves ya absorbidas por el Spotlight para no duplicar en la lista
+    const spotlightConsumedKeys = new Set([
+      'playerName',
+      'playerNickname',
+      'playerUsername',
+      'playerAvatar',
+      'playerEmail',
+      'playerPhone',
+      'avatar',
+      'logo',
+      'teamLogo',
+      'tournamentLogo',
+      'userName',
+      'userEmail',
+      ...(spotlightEntity?.name === data.teamName ? ['teamName'] : []),
+      ...(spotlightEntity?.name === data.tournamentName ? ['tournamentName'] : []),
+      ...(spotlightEntity?.contextTag?.includes(data.teamName) ? ['teamName'] : []),
+      ...(spotlightEntity?.contextTag?.includes(data.tournamentName || data.editionName)
+        ? ['tournamentName', 'editionName']
+        : []),
+    ]);
+
+    const result: DynamicAttribute[] = [];
+
+    Object.entries(data).forEach(([key, value]) => {
+      if (
+        TECHNICAL_KEYS.has(key) ||
+        spotlightConsumedKeys.has(key) ||
+        value === null ||
+        value === undefined ||
+        value === '' ||
+        typeof value === 'object'
+      ) {
+        return;
+      }
+
+      const conf = ATTRIBUTE_METADATA_CONFIG[key] || {
+        label: key
+          .replace(/([A-Z])/g, ' $1')
+          .replace(/^./, (str) => str.toUpperCase())
+          .trim(),
+        icon: 'information-circle-outline',
+      };
+
+      result.push({
+        key,
+        label: conf.label,
+        value: String(value),
+        icon: conf.icon,
+      });
+    });
+
+    return result;
+  }, [item?.data, spotlightEntity]);
+
+  // Mensaje enriquecido con el nombre real de la entidad si estaba genérico
+  const displayMessage = useMemo(() => {
+    if (!item) return '';
+    if (
+      item.message.startsWith('Un jugador') &&
+      spotlightEntity?.name
+    ) {
+      return item.message.replace('Un jugador', spotlightEntity.name);
+    }
+    return item.message;
+  }, [item, spotlightEntity?.name]);
 
   const handleNavigate = () => {
     onClose();
@@ -57,17 +266,18 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
   };
 
   const isPendingAction =
-    item.actionRequired &&
-    (item.actionStatus === 'PENDING' || item.actionStatus === 'NONE');
+    Boolean(item?.actionRequired) &&
+    (item?.actionStatus === 'PENDING' || item?.actionStatus === 'NONE');
 
   const getActionTargetLabel = (): string => {
-    if (item.category === 'TOURNAMENTS') return 'Ver Torneo';
-    if (item.category === 'TEAMS') return 'Ver Equipo';
-    if (item.category === 'MATCHES') return 'Ver Calendario';
+    if (item?.category === 'TOURNAMENTS') return 'Ver Torneo';
+    if (item?.category === 'TEAMS') return 'Ver Equipo';
+    if (item?.category === 'MATCHES') return 'Ver Calendario';
     return 'Abrir Sección';
   };
 
   const formattedDate = (() => {
+    if (!item?.createdAt) return '';
     try {
       const d = new Date(item.createdAt);
       return d.toLocaleDateString('es-CO', {
@@ -80,6 +290,8 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
       return '';
     }
   })();
+
+  if (!item) return null;
 
   return (
     <Modal
@@ -152,44 +364,84 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                 {/* Título de la Notificación */}
                 <Text style={styles.titleText}>{item.title}</Text>
 
-                {/* Mensaje descriptivo */}
-                <Text style={styles.messageText}>{item.message}</Text>
+                {/* Mensaje descriptivo con nombre resuelto */}
+                <Text style={styles.messageText}>{displayMessage}</Text>
 
-                {/* Metadatos Contextuales */}
-                {item.data && Object.keys(item.data).length > 0 && (
-                  <View style={styles.metadataCard}>
-                    {item.data.playerName && (
-                      <View style={styles.metadataRow}>
-                        <Text style={styles.metadataLabel}>Jugador:</Text>
-                        <Text style={styles.metadataValue}>{item.data.playerName}</Text>
+                {/* 1. Spotlight de Entidad Principal (100% dinámico y desacoplado) */}
+                {spotlightEntity && (
+                  <View style={styles.spotlightCard}>
+                    <View style={styles.spotlightAvatarBox}>
+                      {spotlightEntity.avatarUrl ? (
+                        <Image
+                          source={{ uri: spotlightEntity.avatarUrl }}
+                          style={styles.spotlightAvatarImg}
+                        />
+                      ) : (
+                        <View style={styles.spotlightAvatarPlaceholder}>
+                          <WinnixIcon
+                            name={spotlightEntity.icon as any}
+                            size={22}
+                            color={Colors.brand_primary}
+                          />
+                        </View>
+                      )}
+                    </View>
+
+                    <View style={styles.spotlightInfo}>
+                      <View style={styles.spotlightTitleRow}>
+                        <Text style={styles.spotlightName} numberOfLines={1}>
+                          {spotlightEntity.name}
+                        </Text>
+                        {spotlightEntity.badge && (
+                          <View style={styles.spotlightBadgePill}>
+                            <Text style={styles.spotlightBadgePillText}>
+                              {spotlightEntity.badge}
+                            </Text>
+                          </View>
+                        )}
                       </View>
-                    )}
-                    {item.data.position && (
-                      <View style={styles.metadataRow}>
-                        <Text style={styles.metadataLabel}>Posición:</Text>
-                        <Text style={styles.metadataValue}>{item.data.position}</Text>
-                      </View>
-                    )}
-                    {item.data.field && (
-                      <View style={styles.metadataRow}>
-                        <Text style={styles.metadataLabel}>Cancha / Sede:</Text>
-                        <Text style={styles.metadataValue}>{item.data.field}</Text>
-                      </View>
-                    )}
-                    {item.data.time && (
-                      <View style={styles.metadataRow}>
-                        <Text style={styles.metadataLabel}>Hora:</Text>
-                        <Text style={styles.metadataValue}>{item.data.time}</Text>
-                      </View>
-                    )}
-                    {item.data.editionName && (
-                      <View style={styles.metadataRow}>
-                        <Text style={styles.metadataLabel}>Torneo:</Text>
-                        <Text style={styles.metadataValue}>{item.data.editionName}</Text>
-                      </View>
-                    )}
+
+                      {spotlightEntity.subtitle && (
+                        <Text style={styles.spotlightSubtitle} numberOfLines={1}>
+                          {spotlightEntity.subtitle}
+                        </Text>
+                      )}
+
+                      {spotlightEntity.contextTag && (
+                        <View style={styles.spotlightContextRow}>
+                          <WinnixIcon
+                            name='link-outline'
+                            size={13}
+                            color={Colors.brand_primary}
+                          />
+                          <Text style={styles.spotlightContextText} numberOfLines={1}>
+                            {spotlightEntity.contextTag}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                   </View>
                 )}
+
+                {/* 2. Grilla Dinámica de Atributos del Campo Mixto */}
+                {
+                  dynamicAttributes.length > 0 && (
+                    <View style={styles.metadataCard}>
+                      {dynamicAttributes.map((attr) => (
+                        <View key={attr.key} style={styles.metadataRow}>
+                          <View style={styles.metaLabelGroup}>
+                            <WinnixIcon
+                              name={attr.icon as any}
+                              size={14}
+                              color={Colors.text_tertiary}
+                            />
+                            <Text style={styles.metadataLabel}>{attr.label}:</Text>
+                          </View>
+                          <Text style={styles.metadataValue}>{attr.value}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
 
                 {/* Badges de Estado Resuelto */}
                 {item.actionStatus === 'ACCEPTED' && (
@@ -268,8 +520,8 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
             </View>
           </TouchableWithoutFeedback>
         </View>
-      </TouchableWithoutFeedback>
-    </Modal>
+      </TouchableWithoutFeedback >
+    </Modal >
   );
 };
 
@@ -358,10 +610,89 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     letterSpacing: 0.2,
   },
+  spotlightCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(40, 209, 195, 0.07)',
+    borderRadius: 16,
+    padding: 14,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(40, 209, 195, 0.22)',
+    marginBottom: 12,
+  },
+  spotlightAvatarBox: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    overflow: 'hidden',
+  },
+  spotlightAvatarImg: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+  },
+  spotlightAvatarPlaceholder: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: 'rgba(40, 209, 195, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(40, 209, 195, 0.35)',
+  },
+  spotlightInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  spotlightTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  spotlightName: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+    flex: 1,
+  },
+  spotlightBadgePill: {
+    backgroundColor: 'rgba(40, 209, 195, 0.18)',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(40, 209, 195, 0.35)',
+  },
+  spotlightBadgePillText: {
+    fontSize: 9.5,
+    fontWeight: '900',
+    color: Colors.brand_primary,
+    letterSpacing: 0.8,
+  },
+  spotlightSubtitle: {
+    fontSize: 12.5,
+    color: Colors.text_secondary,
+    fontWeight: '600',
+  },
+  spotlightContextRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  spotlightContextText: {
+    fontSize: 13,
+    color: Colors.text_secondary,
+    fontWeight: '600',
+    flex: 1,
+  },
   metadataCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.04)',
     borderRadius: 16,
-    padding: 16,
+    padding: 14,
     gap: 10,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
@@ -372,15 +703,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  metaLabelGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   metadataLabel: {
-    fontSize: 14,
+    fontSize: 13.5,
     color: Colors.text_tertiary,
     fontWeight: '700',
   },
   metadataValue: {
-    fontSize: 15.5,
+    fontSize: 14.5,
     color: '#FFFFFF',
-    fontWeight: '900',
+    fontWeight: '800',
   },
   resolvedBadgeAccepted: {
     flexDirection: 'row',

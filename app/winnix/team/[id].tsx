@@ -1,4 +1,13 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { useTeam } from '@/presentation/hooks/teams/useTeam';
+import { Colors } from '@/presentation/styles/colors';
+import { TeamContent } from '@/presentation/team/components/TeamContent';
+import { TeamDeleteModal } from '@/presentation/team/components/TeamDeleteModal';
+import { TeamEditModal } from '@/presentation/team/components/TeamEditModal';
+import { TeamHUDTabs } from '@/presentation/team/components/TeamHUDTabs';
+import { TeamHero } from '@/presentation/team/components/TeamHero';
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -12,38 +21,50 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useTeam } from '@/presentation/hooks/teams/useTeam';
-import { Colors } from '@/presentation/styles/colors';
-import { TeamContent } from '@/presentation/team/components/TeamContent';
-import { TeamDeleteModal } from '@/presentation/team/components/TeamDeleteModal';
-import { TeamEditModal } from '@/presentation/team/components/TeamEditModal';
-import { TeamHUDTabs } from '@/presentation/team/components/TeamHUDTabs';
-import { TeamHero } from '@/presentation/team/components/TeamHero';
 
 export default function TeamDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+
   const {
     team,
     loading,
     error,
     refresh,
+
+    // Role state
+    isCaptain,
+    isMember,
+
+    // Tabs & UI Mode
+    activeTab,
+    handleTabPress,
+    isEditing,
+    toggleEditing,
+
+    // Join / Leave Actions
+    hasRequestedJoin,
+    isSubmittingJoin,
+    isSubmittingLeave,
+    handleRequestJoin,
+    handleLeaveTeam,
+    handleToggleFavorite,
+
+    // Edit Modal logic
     isEditModalVisible,
     setIsEditModalVisible,
+    openEditModal,
+    handleEditSubmit,
+    isUpdating,
+
+    // Delete Modal logic
     isDeleteModalVisible,
     setIsDeleteModalVisible,
-    openEditModal,
     openDeleteModal,
-    handleEditSubmit,
     handleDeleteConfirm,
-    handleToggleFavorite,
-    isUpdating,
     isDeleting,
 
-    // Members Pagination
+    // Members Pagination & Actions
     members,
     loadingMembers,
     fetchNextMembersPage,
@@ -52,23 +73,6 @@ export default function TeamDetailScreen() {
     toggleMemberStatus,
     isTogglingMember,
   } = useTeam(id as string);
-  const [activeTab, setActiveTab] = useState('stats');
-  const [isEditing, setIsEditing] = useState(false);
-
-  // Reset states when team ID changes (manual navigation)
-  useEffect(() => {
-    setIsEditing(false);
-    setActiveTab('stats');
-  }, [id]);
-
-  // Reset edit mode when leaving the screen (navigation blur)
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        setIsEditing(false);
-      };
-    }, []),
-  );
 
   const scrollY = useSharedValue(0);
 
@@ -83,11 +87,6 @@ export default function TeamDetailScreen() {
     };
   });
 
-  const handleTabPress = (tabId: string) => {
-    setActiveTab(tabId);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  };
-
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -101,7 +100,9 @@ export default function TeamDetailScreen() {
     return (
       <View style={styles.errorContainer}>
         <Ionicons name='warning' size={64} color={Colors.text_error} />
-        <Text style={styles.errorText}>{error || 'Error de conexión con el núcleo'}</Text>
+        <Text style={styles.errorText}>
+          {error || 'Error de conexión con el núcleo'}
+        </Text>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backBtnText}>REINTENTAR</Text>
         </TouchableOpacity>
@@ -122,30 +123,30 @@ export default function TeamDetailScreen() {
           <Ionicons name='chevron-back' size={28} color={Colors.brand_primary} />
         </TouchableOpacity>
 
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            onPress={() => {
-              setIsEditing(!isEditing);
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            }}
-            style={[styles.headerBtn, isEditing && styles.headerBtnActive]}
-          >
-            <Ionicons
-              name={isEditing ? 'checkmark-circle' : 'create-outline'}
-              size={20}
-              color={isEditing ? Colors.brand_primary : '#fff'}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              openDeleteModal();
-            }}
-            style={styles.headerBtn}
-          >
-            <Ionicons name='trash-outline' size={20} color={Colors.red_400} />
-          </TouchableOpacity>
-        </View>
+        {/* Action icons only visible for Team Captains */}
+        {isCaptain && (
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              onPress={toggleEditing}
+              style={[styles.headerBtn, isEditing && styles.headerBtnActive]}
+            >
+              <Ionicons
+                name={isEditing ? 'checkmark-circle' : 'create-outline'}
+                size={20}
+                color={isEditing ? Colors.brand_primary : '#fff'}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                openDeleteModal();
+              }}
+              style={styles.headerBtn}
+            >
+              <Ionicons name='trash-outline' size={20} color={Colors.red_400} />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       {/* Dynamic Header (Title & Background) */}
@@ -173,7 +174,14 @@ export default function TeamDetailScreen() {
           team={team}
           onToggleFavorite={handleToggleFavorite}
           isEditing={isEditing}
-          onEdit={() => openEditModal()}
+          onEdit={openEditModal}
+          isCaptain={isCaptain}
+          isMember={isMember}
+          hasRequestedJoin={hasRequestedJoin}
+          isSubmittingJoin={isSubmittingJoin}
+          isSubmittingLeave={isSubmittingLeave}
+          onJoinRequest={handleRequestJoin}
+          onLeaveRequest={handleLeaveTeam}
         />
 
         <TeamHUDTabs activeTab={activeTab} onTabPress={handleTabPress} />
@@ -183,6 +191,7 @@ export default function TeamDetailScreen() {
           activeTab={activeTab}
           router={router}
           isEditing={isEditing}
+          isCaptain={Boolean(isCaptain)}
           refresh={refresh}
           // Members Props
           members={members}
