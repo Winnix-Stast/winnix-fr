@@ -20,6 +20,9 @@ export const ProfilePlayerSection: React.FC<Props> = ({
 }) => {
   const { activeRole } = useAuthStore();
   const isCaptain = activeRole === 'captain';
+  const isContactPublic = Boolean(
+    user?.configuration?.isContactInfoPublic ?? user?.isContactInfoPublic,
+  );
 
   const email = user?.email || 'No especificado';
   const rawPhone = user?.phoneNumber || (user as any)?.contact?.phone;
@@ -176,21 +179,21 @@ export const ProfilePlayerSection: React.FC<Props> = ({
             <View
               style={[
                 styles.privacyBadge,
-                user?.isContactInfoPublic ? styles.publicBadge : styles.privateBadge,
+                isContactPublic ? styles.publicBadge : styles.privateBadge,
               ]}
             >
               <WinnixIcon
-                name={user?.isContactInfoPublic ? 'globe-outline' : 'lock-closed-outline'}
+                name={isContactPublic ? 'globe-outline' : 'lock-closed-outline'}
                 size={11}
-                color={user?.isContactInfoPublic ? Colors.brand_primary : Colors.text_tertiary}
+                color={isContactPublic ? Colors.brand_primary : Colors.text_tertiary}
               />
               <Text
                 style={[
                   styles.privacyBadgeText,
-                  { color: user?.isContactInfoPublic ? Colors.brand_primary : Colors.text_tertiary },
+                  { color: isContactPublic ? Colors.brand_primary : Colors.text_tertiary },
                 ]}
               >
-                {user?.isContactInfoPublic ? 'PÚBLICO' : 'PRIVADO'}
+                {isContactPublic ? 'PÚBLICO' : 'PRIVADO'}
               </Text>
             </View>
           </View>
@@ -232,7 +235,7 @@ export const ProfilePlayerSection: React.FC<Props> = ({
             </View>
           </View>
         </>
-      ) : user?.isContactInfoPublic ? (
+      ) : isContactPublic ? (
         <>
           <View style={[styles.sectionHeaderRow, { marginTop: 24 }]}>
             <View style={styles.titleWithIcon}>

@@ -1,3 +1,9 @@
+export interface UserConfiguration {
+  isContactInfoPublic?: boolean;
+  consentPublicContactAt?: string | Date;
+  [key: string]: any;
+}
+
 export interface User {
   id?: string;
   email?: string;
@@ -14,6 +20,7 @@ export interface User {
   roles?: string[];
   roleEntities?: any[];
   activeRole?: string;
+  configuration?: UserConfiguration;
   isContactInfoPublic?: boolean;
   consentPublicContactAt?: string | Date;
 }

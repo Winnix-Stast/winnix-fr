@@ -1,3 +1,5 @@
+import { UserConfiguration } from '@/core/auth/interface/user';
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -16,6 +18,7 @@ export interface UserProfile {
   };
   roles?: string[];
   roleEntities?: any[];
+  configuration?: UserConfiguration;
   isContactInfoPublic?: boolean;
   consentPublicContactAt?: string;
 }
@@ -32,6 +35,11 @@ export interface UpdateProfilePayload {
   birthDate?: string;
   phoneNumber?: number;
   avatar?: string;
+  configuration?: {
+    isContactInfoPublic?: boolean;
+    consentPublicContactAt?: string | Date;
+    [key: string]: any;
+  };
   isContactInfoPublic?: boolean;
   consentPublicContactAt?: string;
 }

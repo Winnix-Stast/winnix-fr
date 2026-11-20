@@ -1,6 +1,3 @@
-import { useCallback, useEffect, useState } from 'react';
-import * as Haptics from 'expo-haptics';
-import { useFocusEffect } from 'expo-router';
 import { teamsAdapter } from '@/core/teams/teams-adapter';
 import {
   QUERY_PRESETS,
@@ -12,6 +9,9 @@ import {
 import { useAuthStore } from '@/presentation/auth/store/useAuthStore';
 import { useAlertStore } from '@/presentation/components/customs/useAlertStore';
 import { TeamFormData } from '@/presentation/schemas/teamSchema';
+import * as Haptics from 'expo-haptics';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { teamsKeys } from './useMyTeams';
 
 export const teamKeys = {
@@ -89,22 +89,38 @@ export const useTeam = (id: string) => {
   // El atleta recibió una invitación del capitán y debe responder (Aceptar / Rechazar)
   const isPendingInvitation = Boolean(
     !isCaptain &&
-      myMembership &&
-      myMembership.state === 'pending' &&
-      myMembership.invitationType !== 'JOIN_REQUEST',
+    myMembership &&
+    myMembership.state === 'pending' &&
+    myMembership.invitationType !== 'JOIN_REQUEST',
   );
 
   // El atleta solicitó unirse al equipo y está esperando que el capitán lo acepte
   const isPendingJoinRequest = Boolean(
     !isCaptain &&
-      myMembership &&
-      myMembership.state === 'pending' &&
-      myMembership.invitationType === 'JOIN_REQUEST',
+    myMembership &&
+    myMembership.state === 'pending' &&
+    myMembership.invitationType === 'JOIN_REQUEST',
   );
 
   const isMember = Boolean(
-    isCaptain ||
-      (myMembership && myMembership.isActive && myMembership.state === 'accepted'),
+    isCaptain || (myMembership && myMembership.state === 'accepted'),
+  );
+
+  const isInactiveMember = Boolean(
+    !isCaptain &&
+    myMembership &&
+    !myMembership.isActive &&
+    myMembership.state === 'accepted',
+  );
+
+  // Solicitudes pendientes de atletas que el capitán debe aprobar
+  const hasPendingRequests = Boolean(
+    isCaptain &&
+    ((team?.pendingRequestsCount || 0) > 0 ||
+      (members || []).some(
+        (m: any) =>
+          m.state === 'pending' && m.invitationType === 'JOIN_REQUEST',
+      )),
   );
 
   // Reset states on team ID change or blur
@@ -178,7 +194,7 @@ export const useTeam = (id: string) => {
     },
   );
 
-  // Mutation: Toggle Member Status
+  // Mutation: Toggle Member Status (Activar / Inactivar)
   const toggleMemberMutation = useMutationAdapter<
     any,
     Error,
@@ -189,9 +205,10 @@ export const useTeam = (id: string) => {
         ? teamsAdapter.deactivateMember(id, playerId)
         : teamsAdapter.activateMember(id, playerId),
     {
-      invalidateQueries: [teamKeys.members(id)],
+      invalidateQueries: [teamKeys.members(id), teamKeys.all, teamsKeys.lists()],
       onSuccess: () => {
         refetchMembers();
+        refetch();
       },
       onError: (error: any) => {
         useAlertStore.getState().showAlert({
@@ -202,6 +219,62 @@ export const useTeam = (id: string) => {
       },
     },
   );
+
+  // Mutation: Remove Member (Desvincular definitivamente)
+  const removeMemberMutation = useMutationAdapter<any, Error, string>(
+    (playerId) => teamsAdapter.removeMember(id, playerId),
+    {
+      invalidateQueries: [teamKeys.all, teamKeys.members(id), teamsKeys.lists()],
+      onSuccess: () => {
+        useAlertStore.getState().showAlert({
+          title: 'Jugador Desvinculado',
+          message: 'El jugador ha sido desvinculado de la plantilla.',
+          type: 'success',
+        });
+        refetch();
+        refetchMembers();
+      },
+      onError: (err: any) => {
+        useAlertStore.getState().showAlert({
+          title: 'Error de Desvinculación',
+          message:
+            err?.response?.data?.message ||
+            err?.message ||
+            'No se pudo desvincular al jugador.',
+          type: 'error',
+        });
+      },
+    },
+  );
+
+  // Actions con confirmación para gestión de plantilla
+  const handleDeactivateMember = (playerId: string, playerName?: string) => {
+    useAlertStore.getState().showAlert({
+      title: '¿Inactivar Jugador?',
+      message: `¿Deseas inactivar a ${playerName || 'este jugador'} temporalmente? No computará para alineaciones activas hasta que sea reactivado.`,
+      type: 'warning',
+      confirmText: 'Sí, Inactivar',
+      onConfirm: () => {
+        toggleMemberMutation.mutate({ playerId, currentActive: true });
+      },
+    });
+  };
+
+  const handleReactivateMember = (playerId: string) => {
+    toggleMemberMutation.mutate({ playerId, currentActive: false });
+  };
+
+  const handleRemoveMember = (playerId: string, playerName?: string) => {
+    useAlertStore.getState().showAlert({
+      title: '¿Desvincular Jugador?',
+      message: `¿Estás seguro de que deseas desvincular a ${playerName || 'este jugador'} de la plantilla oficial?`,
+      type: 'warning',
+      confirmText: 'Sí, Desvincular',
+      onConfirm: () => {
+        removeMemberMutation.mutate(playerId);
+      },
+    });
+  };
 
   // Mutation: Respond Team Invitation
   const respondInvitationMutation = useMutationAdapter<
@@ -331,8 +404,10 @@ export const useTeam = (id: string) => {
     // Role state
     isCaptain,
     isMember,
+    isInactiveMember,
     isPendingInvitation,
     isPendingJoinRequest,
+    hasPendingRequests,
 
     // Tabs & UI Mode
     activeTab,
@@ -377,5 +452,9 @@ export const useTeam = (id: string) => {
     toggleMemberStatus: (playerId: string, currentActive: boolean) =>
       toggleMemberMutation.mutate({ playerId, currentActive }),
     isTogglingMember: toggleMemberMutation.isPending,
+    handleDeactivateMember,
+    handleReactivateMember,
+    handleRemoveMember,
+    isRemovingMember: removeMemberMutation.isPending,
   };
 };

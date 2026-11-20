@@ -210,7 +210,10 @@ export const useProfile = (targetUserId?: string) => {
             : undefined,
         phoneNumber: parsedPhone,
         avatar: currentUser.avatar || '',
-        isContactInfoPublic: Boolean((currentUser as any)?.isContactInfoPublic),
+        isContactInfoPublic: Boolean(
+          (currentUser as any)?.configuration?.isContactInfoPublic ??
+            (currentUser as any)?.isContactInfoPublic,
+        ),
       });
     }
   }, [profileData, authUser, isEditing]);
@@ -349,7 +352,9 @@ export const useProfile = (targetUserId?: string) => {
         birthDate: formData.birthDate ? formData.birthDate.toISOString() : undefined,
         phoneNumber: formData.phoneNumber ?? undefined,
         avatar: finalAvatarUrl,
-        isContactInfoPublic: formData.isContactInfoPublic,
+        configuration: {
+          isContactInfoPublic: formData.isContactInfoPublic,
+        },
       };
 
       console.log(payload);
@@ -366,7 +371,10 @@ export const useProfile = (targetUserId?: string) => {
         city: formattedCity || user?.city,
         neighborhood: formattedNeighborhood || user?.neighborhood,
         avatar: finalAvatarUrl || user?.avatar,
-        isContactInfoPublic: formData.isContactInfoPublic,
+        configuration: {
+          ...user?.configuration,
+          isContactInfoPublic: formData.isContactInfoPublic,
+        },
       });
 
       useAlertStore.getState().showAlert({
