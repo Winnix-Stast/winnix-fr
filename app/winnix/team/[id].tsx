@@ -2,7 +2,6 @@ import { useTeam } from '@/presentation/hooks/teams/useTeam';
 import { Colors } from '@/presentation/styles/colors';
 import { TeamContent } from '@/presentation/team/components/TeamContent';
 import { TeamDeleteModal } from '@/presentation/team/components/TeamDeleteModal';
-import { TeamEditModal } from '@/presentation/team/components/TeamEditModal';
 import { TeamHUDTabs } from '@/presentation/team/components/TeamHUDTabs';
 import { TeamHero } from '@/presentation/team/components/TeamHero';
 import { Ionicons } from '@expo/vector-icons';
@@ -35,12 +34,12 @@ export default function TeamDetailScreen() {
     // Role state
     isCaptain,
     isMember,
+    isPendingInvitation,
+    isPendingJoinRequest,
 
     // Tabs & UI Mode
     activeTab,
     handleTabPress,
-    isEditing,
-    toggleEditing,
 
     // Join / Leave Actions
     hasRequestedJoin,
@@ -49,13 +48,8 @@ export default function TeamDetailScreen() {
     handleRequestJoin,
     handleLeaveTeam,
     handleToggleFavorite,
-
-    // Edit Modal logic
-    isEditModalVisible,
-    setIsEditModalVisible,
-    openEditModal,
-    handleEditSubmit,
-    isUpdating,
+    handleRespondInvitation,
+    isRespondingInvitation,
 
     // Delete Modal logic
     isDeleteModalVisible,
@@ -127,14 +121,13 @@ export default function TeamDetailScreen() {
         {isCaptain && (
           <View style={styles.headerActions}>
             <TouchableOpacity
-              onPress={toggleEditing}
-              style={[styles.headerBtn, isEditing && styles.headerBtnActive]}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push(`/winnix/team/edit?id=${team._id}`);
+              }}
+              style={styles.headerBtn}
             >
-              <Ionicons
-                name={isEditing ? 'checkmark-circle' : 'create-outline'}
-                size={20}
-                color={isEditing ? Colors.brand_primary : '#fff'}
-              />
+              <Ionicons name='create-outline' size={20} color={Colors.brand_primary} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
@@ -173,10 +166,13 @@ export default function TeamDetailScreen() {
         <TeamHero
           team={team}
           onToggleFavorite={handleToggleFavorite}
-          isEditing={isEditing}
-          onEdit={openEditModal}
+          isEditing={false}
           isCaptain={isCaptain}
           isMember={isMember}
+          isPendingInvitation={isPendingInvitation}
+          isPendingJoinRequest={isPendingJoinRequest}
+          isRespondingInvitation={isRespondingInvitation}
+          onRespondInvitation={handleRespondInvitation}
           hasRequestedJoin={hasRequestedJoin}
           isSubmittingJoin={isSubmittingJoin}
           isSubmittingLeave={isSubmittingLeave}
@@ -190,7 +186,7 @@ export default function TeamDetailScreen() {
           team={team}
           activeTab={activeTab}
           router={router}
-          isEditing={isEditing}
+          isEditing={false}
           isCaptain={Boolean(isCaptain)}
           refresh={refresh}
           // Members Props
@@ -206,15 +202,7 @@ export default function TeamDetailScreen() {
         <View style={{ height: 100 }} />
       </Animated.ScrollView>
 
-      {/* Management Modals */}
-      <TeamEditModal
-        visible={isEditModalVisible}
-        team={team}
-        onClose={() => setIsEditModalVisible(false)}
-        onSubmit={handleEditSubmit}
-        isSubmitting={isUpdating}
-      />
-
+      {/* Team Delete Confirmation Modal */}
       <TeamDeleteModal
         visible={isDeleteModalVisible}
         teamName={team?.name || ''}

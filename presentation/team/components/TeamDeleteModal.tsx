@@ -1,6 +1,11 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import ModalRN from 'react-native-modal';
+import {
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/presentation/styles/colors';
 import { CustomButton } from '@/presentation/theme/components/';
@@ -21,51 +26,57 @@ export const TeamDeleteModal: React.FC<Props> = ({
   isDeleting,
 }) => {
   return (
-    <ModalRN
-      isVisible={visible}
-      onBackdropPress={onClose}
-      animationIn='zoomIn'
-      animationOut='zoomOut'
-      backdropOpacity={0.8}
-      style={styles.modal}
+    <Modal
+      visible={visible}
+      transparent
+      animationType='fade'
+      onRequestClose={onClose}
     >
-      <View style={styles.container}>
-        <View style={styles.iconContainer}>
-          <Ionicons name='warning' size={50} color={Colors.red_500} />
-        </View>
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.backdrop}>
+          <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+            <View style={styles.container}>
+              <View style={styles.iconContainer}>
+                <Ionicons name='warning' size={50} color={Colors.red_500} />
+              </View>
 
-        <Text style={styles.title}>¿Eliminar Equipo?</Text>
-        <Text style={styles.subtitle}>
-          Estás a punto de eliminar permanentemente a{' '}
-          <Text style={styles.highlight}>{teamName}</Text>. Esta acción no se puede
-          deshacer y todos los jugadores perderán acceso al equipo.
-        </Text>
+              <Text style={styles.title}>¿Eliminar Equipo?</Text>
+              <Text style={styles.subtitle}>
+                Estás a punto de eliminar permanentemente a{' '}
+                <Text style={styles.highlight}>{teamName}</Text>. Esta acción no se puede
+                deshacer y todos los jugadores perderán acceso al equipo.
+              </Text>
 
-        <View style={styles.buttonRow}>
-          <View style={{ flex: 1 }}>
-            <CustomButton
-              label='Cancelar'
-              onPress={onClose}
-              outline
-              disabled={isDeleting}
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <CustomButton
-              label={isDeleting ? 'Borrando...' : 'Eliminar'}
-              onPress={onConfirm}
-              icon='trash-outline'
-              disabled={isDeleting}
-            />
-          </View>
+              <View style={styles.buttonRow}>
+                <View style={{ flex: 1 }}>
+                  <CustomButton
+                    label='Cancelar'
+                    onPress={onClose}
+                    outline
+                    disabled={isDeleting}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <CustomButton
+                    label={isDeleting ? 'Borrando...' : 'Eliminar'}
+                    onPress={onConfirm}
+                    icon='trash-outline'
+                    disabled={isDeleting}
+                  />
+                </View>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-      </View>
-    </ModalRN>
+      </TouchableWithoutFeedback>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  modal: {
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     justifyContent: 'center',
     alignItems: 'center',
   },

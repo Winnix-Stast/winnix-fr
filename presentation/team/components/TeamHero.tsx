@@ -1,5 +1,13 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -11,6 +19,17 @@ interface TeamHeroProps {
   onToggleFavorite: (id: string, isFav: boolean) => void;
   isEditing?: boolean;
   onEdit?: () => void;
+  isCaptain?: boolean;
+  isMember?: boolean;
+  isPendingInvitation?: boolean;
+  isPendingJoinRequest?: boolean;
+  isRespondingInvitation?: boolean;
+  onRespondInvitation?: (action: 'ACCEPT' | 'REJECT') => void;
+  hasRequestedJoin?: boolean;
+  isSubmittingJoin?: boolean;
+  isSubmittingLeave?: boolean;
+  onJoinRequest?: () => void;
+  onLeaveRequest?: () => void;
 }
 
 export const TeamHero = ({
@@ -18,7 +37,20 @@ export const TeamHero = ({
   onToggleFavorite,
   isEditing,
   onEdit,
+  isCaptain,
+  isMember,
+  isPendingInvitation,
+  isPendingJoinRequest,
+  isRespondingInvitation,
+  onRespondInvitation,
+  hasRequestedJoin,
+  isSubmittingJoin,
+  isSubmittingLeave,
+  onJoinRequest,
+  onLeaveRequest,
 }: TeamHeroProps) => {
+  const isAlreadyOnTeam = isMember || hasRequestedJoin;
+
   return (
     <View style={styles.heroSection}>
       <LinearGradient
@@ -66,6 +98,107 @@ export const TeamHero = ({
             <View style={styles.sportDot} />
             <Text style={styles.sportText}>{team.sport?.name || 'EQUIPO'}</Text>
           </View>
+
+          {/* Role Status, Member Badges & Actions */}
+          {isCaptain ? (
+            <View style={styles.captainHeroBadge}>
+              <Ionicons name='star' size={14} color='#000000' />
+              <Text style={styles.captainHeroBadgeText}>CAPITÁN DEL EQUIPO</Text>
+            </View>
+          ) : isPendingInvitation ? (
+            <View style={styles.pendingInvitationContainer}>
+              <View style={styles.pendingInvitationBadge}>
+                <Ionicons name='time-outline' size={14} color={Colors.status_draft} />
+                <Text style={styles.pendingInvitationBadgeText}>INVITACIÓN PENDIENTE</Text>
+              </View>
+
+              <View style={styles.heroInvitationActionsRow}>
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    onRespondInvitation?.('REJECT');
+                  }}
+                  disabled={isRespondingInvitation}
+                  style={styles.heroRejectBtn}
+                >
+                  {isRespondingInvitation ? (
+                    <ActivityIndicator size='small' color={Colors.status_cancelled} />
+                  ) : (
+                    <>
+                      <Ionicons name='close-outline' size={15} color={Colors.status_cancelled} />
+                      <Text style={styles.heroRejectBtnText}>RECHAZAR</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    onRespondInvitation?.('ACCEPT');
+                  }}
+                  disabled={isRespondingInvitation}
+                  style={styles.heroAcceptBtn}
+                >
+                  {isRespondingInvitation ? (
+                    <ActivityIndicator size='small' color='#000000' />
+                  ) : (
+                    <>
+                      <Ionicons name='checkmark-outline' size={15} color='#000000' />
+                      <Text style={styles.heroAcceptBtnText}>ACEPTAR</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : isPendingJoinRequest || hasRequestedJoin ? (
+            <View style={styles.pendingHeroBadge}>
+              <Ionicons name='time-outline' size={14} color={Colors.orange_400} />
+              <Text style={styles.pendingHeroBadgeText}>SOLICITUD PENDIENTE</Text>
+            </View>
+          ) : isMember ? (
+            <View style={styles.memberActionRow}>
+              <View style={styles.memberHeroBadge}>
+                <Ionicons name='shield-checkmark' size={14} color={Colors.brand_primary} />
+                <Text style={styles.memberHeroBadgeText}>MIEMBRO DE LA PLANTILLA</Text>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  if (onLeaveRequest) onLeaveRequest();
+                }}
+                disabled={isSubmittingLeave}
+                style={styles.leaveHeroBtn}
+              >
+                {isSubmittingLeave ? (
+                  <ActivityIndicator size='small' color={Colors.status_cancelled} />
+                ) : (
+                  <>
+                    <Ionicons name='log-out-outline' size={14} color={Colors.status_cancelled} />
+                    <Text style={styles.leaveHeroBtnText}>DEJAR EQUIPO</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                if (onJoinRequest) onJoinRequest();
+              }}
+              disabled={isSubmittingJoin}
+              style={styles.joinHeroBtn}
+            >
+              {isSubmittingJoin ? (
+                <ActivityIndicator size='small' color='#000000' />
+              ) : (
+                <>
+                  <Ionicons name='person-add' size={16} color='#000000' />
+                  <Text style={styles.joinHeroBtnText}>UNIRSE AL EQUIPO</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
 
         <TouchableOpacity
@@ -88,13 +221,13 @@ export const TeamHero = ({
 
 const styles = StyleSheet.create({
   heroSection: {
-    height: 280,
-    justifyContent: 'center',
     paddingTop: 40,
+    paddingBottom: 20,
+    justifyContent: 'center',
     position: 'relative',
   },
   heroGradient: {
-    ...StyleSheet.absoluteFillObject,
+    ...(StyleSheet.absoluteFill as any),
   },
   heroContent: {
     alignItems: 'center',
@@ -145,9 +278,10 @@ const styles = StyleSheet.create({
   },
   titleInfo: {
     alignItems: 'center',
+    gap: 8,
   },
   teamNameText: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: '900',
     color: '#fff',
     letterSpacing: 2,
@@ -161,7 +295,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(40, 209, 195, 0.1)',
     paddingHorizontal: 15,
     paddingVertical: 5,
-    marginTop: 10,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.brand_primary,
   },
@@ -178,6 +312,101 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 2,
   },
+  joinHeroBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.brand_primary,
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    borderRadius: 16,
+    marginTop: 8,
+    shadowColor: Colors.brand_primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  joinHeroBtnText: {
+    color: '#000000',
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+  captainHeroBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FBBF24',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 14,
+    marginTop: 8,
+  },
+  captainHeroBadgeText: {
+    color: '#000000',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+  },
+  memberActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 8,
+  },
+  memberHeroBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(40, 209, 195, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(40, 209, 195, 0.4)',
+  },
+  memberHeroBadgeText: {
+    color: '#28D1C3',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  pendingHeroBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(251, 191, 36, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.4)',
+    marginTop: 8,
+  },
+  pendingHeroBadgeText: {
+    color: '#FBBF24',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  leaveHeroBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(239, 68, 68, 0.14)',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.4)',
+  },
+  leaveHeroBtnText: {
+    color: '#EF4444',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
   favBtnHero: {
     position: 'absolute',
     right: 20,
@@ -187,9 +416,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   logoEditOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...(StyleSheet.absoluteFill as any),
     backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -222,5 +454,69 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.brand_primary,
+  },
+  pendingInvitationContainer: {
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
+  pendingInvitationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.4)',
+  },
+  pendingInvitationBadgeText: {
+    color: Colors.status_draft,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.6,
+  },
+  heroInvitationActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  heroRejectBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1.2,
+    borderColor: 'rgba(239, 68, 68, 0.4)',
+  },
+  heroRejectBtnText: {
+    color: Colors.status_cancelled,
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.6,
+  },
+  heroAcceptBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: Colors.brand_primary,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 12,
+    shadowColor: Colors.brand_primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  heroAcceptBtnText: {
+    color: '#000000',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.6,
   },
 });

@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Alert } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import * as Haptics from 'expo-haptics';
+import { useFocusEffect } from 'expo-router';
 import { teamsAdapter } from '@/core/teams/teams-adapter';
 import {
   QUERY_PRESETS,
@@ -8,19 +9,30 @@ import {
   useMutationAdapter,
   useQueryAdapter,
 } from '@/helpers/adapters/queryAdapter';
-import { useCustomForm } from '@/hooks/useCustomForm';
-import { TeamFormData, teamSchema } from '@/presentation/schemas/teamSchema';
+import { useAuthStore } from '@/presentation/auth/store/useAuthStore';
+import { useAlertStore } from '@/presentation/components/customs/useAlertStore';
+import { TeamFormData } from '@/presentation/schemas/teamSchema';
 import { teamsKeys } from './useMyTeams';
 
 export const teamKeys = {
   ...createQueryKeyFactory('team'),
-  members: (id: string) => [...createQueryKeyFactory('team').detail(id), 'members'],
+  members: (id: string) => [...createQueryKeyFactory('team').detail(id), 'infinite-members'],
 };
 
 export const useTeam = (id: string) => {
+  const { user } = useAuthStore();
+
+  // Modal states
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
+  // Screen UI states
+  const [activeTab, setActiveTab] = useState('stats');
+  const [isEditing, setIsEditing] = useState(false);
+  const [hasRequestedJoin, setHasRequestedJoin] = useState(false);
+  const [isSubmittingJoin, setIsSubmittingJoin] = useState(false);
+
+  // Query: Team Detail
   const {
     data: responseData,
     isLoading,
@@ -38,7 +50,7 @@ export const useTeam = (id: string) => {
 
   const team = responseData?.data || responseData || null;
 
-  // Infinite Query for Team Members
+  // Infinite Query: Team Members
   const {
     data: membersData,
     fetchNextPage: fetchNextMembersPage,
@@ -51,19 +63,79 @@ export const useTeam = (id: string) => {
     (pageParam) => teamsAdapter.getTeamMembers(id, { page: pageParam, limit: 20 }),
     {
       enabled: !!id,
-      ...QUERY_PRESETS.SEMI_STATIC,
+      staleTime: 0,
+      refetchOnMount: true,
     },
   );
 
   const members =
-    membersData?.pages.flatMap(
-      (page: any) => page.memberships || page.data?.memberships || [],
+    membersData?.pages?.flatMap(
+      (page: any) =>
+        page?.memberships ||
+        page?.data?.memberships ||
+        (Array.isArray(page?.data) ? page.data : []) ||
+        (Array.isArray(page) ? page : []),
     ) || [];
 
-  // Custom Form for editing the team
-  const form = useCustomForm<TeamFormData>(teamSchema);
+  // Computed Roles & Membership Status
+  const isCaptain = Boolean(
+    user?.id && team?.captain?._id && user.id === team.captain._id,
+  );
 
-  // Mutations
+  const myMembership = (members || []).find(
+    (m: any) => m.player?._id === user?.id,
+  );
+
+  // El atleta recibió una invitación del capitán y debe responder (Aceptar / Rechazar)
+  const isPendingInvitation = Boolean(
+    !isCaptain &&
+      myMembership &&
+      myMembership.state === 'pending' &&
+      myMembership.invitationType !== 'JOIN_REQUEST',
+  );
+
+  // El atleta solicitó unirse al equipo y está esperando que el capitán lo acepte
+  const isPendingJoinRequest = Boolean(
+    !isCaptain &&
+      myMembership &&
+      myMembership.state === 'pending' &&
+      myMembership.invitationType === 'JOIN_REQUEST',
+  );
+
+  const isMember = Boolean(
+    isCaptain ||
+      (myMembership && myMembership.isActive && myMembership.state === 'accepted'),
+  );
+
+  // Reset states on team ID change or blur
+  useEffect(() => {
+    setIsEditing(false);
+    setActiveTab('stats');
+    setHasRequestedJoin(false);
+  }, [id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+      refetchMembers();
+      return () => {
+        setIsEditing(false);
+      };
+    }, [id]),
+  );
+
+  // Tab & Edit Actions
+  const handleTabPress = (tabId: string) => {
+    setActiveTab(tabId);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const toggleEditing = () => {
+    setIsEditing((prev) => !prev);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  };
+
+  // Mutation: Update Team
   const updateTeamMutation = useMutationAdapter<
     any,
     Error,
@@ -71,138 +143,239 @@ export const useTeam = (id: string) => {
   >(({ id, payload }) => teamsAdapter.updateTeam(id, payload), {
     invalidateQueries: [teamKeys.all, teamsKeys.lists()],
     onSuccess: () => {
-      Alert.alert('Éxito', 'El equipo ha sido actualizado correctamente');
+      useAlertStore.getState().showAlert({
+        title: 'Equipo Actualizado',
+        message: 'Los cambios se han guardado exitosamente.',
+        type: 'success',
+      });
+      setIsEditModalVisible(false);
+      refetch();
     },
-    onError: (err) => {
-      Alert.alert('Error', err?.message || 'Ocurrió un error al actualizar el equipo');
+    onError: (error: any) => {
+      useAlertStore.getState().showAlert({
+        title: 'Error de Actualización',
+        message: error?.message || 'No se pudo actualizar el equipo.',
+        type: 'error',
+      });
     },
   });
 
+  // Mutation: Delete Team
   const deleteTeamMutation = useMutationAdapter<any, Error, string>(
-    teamsAdapter.deleteTeam,
+    (teamId) => teamsAdapter.deleteTeam(teamId),
     {
-      invalidateQueries: [teamsKeys.lists()],
+      invalidateQueries: [teamKeys.all, teamsKeys.lists()],
       onSuccess: () => {
-        Alert.alert('Equipo Eliminado', 'El equipo ha sido eliminado correctamente');
+        setIsDeleteModalVisible(false);
       },
-      onError: (err) => {
-        Alert.alert('Error', err?.message || 'Ocurrió un error al eliminar el equipo');
+      onError: (error: any) => {
+        useAlertStore.getState().showAlert({
+          title: 'Error de Eliminación',
+          message: error?.message || 'No se pudo eliminar el equipo.',
+          type: 'error',
+        });
       },
     },
   );
 
-  const toggleFavoriteMutation = useMutationAdapter<
+  // Mutation: Toggle Member Status
+  const toggleMemberMutation = useMutationAdapter<
     any,
     Error,
-    { id: string; isFavorite: boolean }
-  >(({ id, isFavorite }) => teamsAdapter.updateTeam(id, { isFavorite }), {
-    invalidateQueries: [teamKeys.all, teamsKeys.lists()],
-    onError: (err: any) => {
-      Alert.alert('Error', err?.message || 'No se pudo cambiar el estado de favorito');
+    { playerId: string; currentActive: boolean }
+  >(
+    ({ playerId, currentActive }) =>
+      currentActive
+        ? teamsAdapter.deactivateMember(id, playerId)
+        : teamsAdapter.activateMember(id, playerId),
+    {
+      invalidateQueries: [teamKeys.members(id)],
+      onSuccess: () => {
+        refetchMembers();
+      },
+      onError: (error: any) => {
+        useAlertStore.getState().showAlert({
+          title: 'Error de Estado',
+          message: error?.message || 'No se pudo cambiar el estado del miembro.',
+          type: 'error',
+        });
+      },
+    },
+  );
+
+  // Mutation: Respond Team Invitation
+  const respondInvitationMutation = useMutationAdapter<
+    any,
+    Error,
+    'ACCEPT' | 'REJECT'
+  >((action) => teamsAdapter.respondInvitation(id, action), {
+    invalidateQueries: [teamKeys.all, teamsKeys.lists(), ['notifications']],
+    onSuccess: (_, action) => {
+      useAlertStore.getState().showAlert({
+        title: action === 'ACCEPT' ? '¡Invitación Aceptada!' : 'Invitación Rechazada',
+        message:
+          action === 'ACCEPT'
+            ? 'Te has sumado exitosamente a la plantilla oficial.'
+            : 'Has declinado la invitación a la escuadra.',
+        type: 'success',
+      });
+      refetch();
+      refetchMembers();
+    },
+    onError: (err) => {
+      useAlertStore.getState().showAlert({
+        title: 'Error al Responder',
+        message: err?.message || 'No se pudo procesar la respuesta a la invitación.',
+        type: 'error',
+      });
     },
   });
 
-  const deactivateMemberMutation = useMutationAdapter<any, Error, string>(
-    (playerId) => teamsAdapter.deactivateMember(id, playerId),
-    {
-      invalidateQueries: [teamKeys.members(id)],
-      onError: (err: any) => {
-        Alert.alert('Error', err?.message || 'No se pudo desactivar el jugador');
-      },
-    },
-  );
-
-  const activateMemberMutation = useMutationAdapter<any, Error, string>(
-    (playerId) => teamsAdapter.activateMember(id, playerId),
-    {
-      invalidateQueries: [teamKeys.members(id)],
-      onError: (err: any) => {
-        Alert.alert('Error', err?.message || 'No se pudo activar el jugador');
-      },
-    },
-  );
-
-  // Handlers
-  const openEditModal = () => setIsEditModalVisible(true);
-  const openDeleteModal = () => setIsDeleteModalVisible(true);
-
-  const handleEditSubmit = (data: TeamFormData) => {
-    if (team) {
-      const fullUpdatePayload = {
-        name: data.name,
-        logo: data.logo,
-        sport: data.sport,
-        players: team.members?.map((p: any) => ({
-          player: p.user?._id || p.user,
-          joinedAt: p.joinedAt,
-          leftAt: p.leftAt,
-        })),
-      };
-
-      updateTeamMutation.mutate(
-        { id: team._id, payload: fullUpdatePayload },
-        {
-          onSuccess: () => {
-            setIsEditModalVisible(false);
-          },
-        },
-      );
+  // Action: Join Team Request
+  const handleRequestJoin = async () => {
+    if (!user?.id || !team?._id || isSubmittingJoin || hasRequestedJoin) {
+      return;
     }
-  };
-
-  const handleDeleteConfirm = () => {
-    if (team) {
-      deleteTeamMutation.mutate(team._id, {
-        onSuccess: () => {
-          setIsDeleteModalVisible(false);
-        },
+    try {
+      setIsSubmittingJoin(true);
+      await teamsAdapter.requestJoinTeam(team._id, user.id);
+      setHasRequestedJoin(true);
+      refetch();
+      refetchMembers();
+      useAlertStore.getState().showAlert({
+        title: '¡Solicitud Enviada!',
+        message: `Tu solicitud para unirte a ${team.name} ha sido enviada al capitán. Podrás seguir el estado en 'Mis Equipos'.`,
+        type: 'success',
+        confirmText: 'Entendido',
       });
+    } catch (err: any) {
+      setHasRequestedJoin(true);
+      refetchMembers();
+      useAlertStore.getState().showAlert({
+        title: 'Solicitud de Ingreso',
+        message:
+          err?.message ||
+          'Ya tienes una solicitud pendiente para esta escuadra.',
+        type: 'info',
+        confirmText: 'Entendido',
+      });
+    } finally {
+      setIsSubmittingJoin(false);
     }
   };
 
-  const handleToggleFavorite = (id: string, currentStatus: boolean) => {
-    toggleFavoriteMutation.mutate({ id, isFavorite: !currentStatus });
+  // Mutation: Leave Team
+  const leaveTeamMutation = useMutationAdapter<any, Error, void>(
+    () => teamsAdapter.leaveTeam(id),
+    {
+      invalidateQueries: [teamKeys.all, teamsKeys.lists(), ['my-teams']],
+      onSuccess: () => {
+        setHasRequestedJoin(false);
+        refetch();
+        refetchMembers();
+        useAlertStore.getState().showAlert({
+          title: 'Equipo Abandonado',
+          message: `Has salido de ${team?.name || 'la escuadra'} exitosamente.`,
+          type: 'info',
+          confirmText: 'Entendido',
+        });
+      },
+      onError: (err: any) => {
+        useAlertStore.getState().showAlert({
+          title: 'Error de Desvinculación',
+          message:
+            err?.response?.data?.message ||
+            err?.message ||
+            'No se pudo salir del equipo.',
+          type: 'error',
+        });
+      },
+    },
+  );
+
+  // Action: Leave Team
+  const handleLeaveTeam = () => {
+    if (!user?.id || !team?._id || leaveTeamMutation.isPending) return;
+
+    useAlertStore.getState().showAlert({
+      title: '¿Abandonar Equipo?',
+      message: `¿Estás seguro de que deseas salir de ${team.name}?`,
+      type: 'warning',
+      confirmText: 'Sí, Salir',
+      onConfirm: () => {
+        leaveTeamMutation.mutate();
+      },
+    });
   };
 
-  const toggleMemberStatus = (playerId: string, isActive: boolean) => {
-    if (isActive) {
-      deactivateMemberMutation.mutate(playerId);
-    } else {
-      activateMemberMutation.mutate(playerId);
+  // Action: Toggle Favorite
+  const handleToggleFavorite = async (teamId: string, currentFav: boolean) => {
+    try {
+      await teamsAdapter.updateTeam(teamId, { isFavorite: !currentFav });
+      refetch();
+    } catch (e) {
+      console.log('Error toggling favorite:', e);
     }
   };
 
   return {
     team,
     loading: isLoading,
-    error: isError ? error?.message : null,
+    error: error?.message || null,
     refresh: () => {
       refetch();
       refetchMembers();
     },
+    refetchMembers,
 
-    // Members
+    // Role state
+    isCaptain,
+    isMember,
+    isPendingInvitation,
+    isPendingJoinRequest,
+
+    // Tabs & UI Mode
+    activeTab,
+    setActiveTab,
+    handleTabPress,
+    isEditing,
+    setIsEditing,
+    toggleEditing,
+
+    // Join / Leave / Invitation Actions
+    hasRequestedJoin,
+    isSubmittingJoin,
+    isSubmittingLeave: leaveTeamMutation.isPending,
+    handleRequestJoin,
+    handleLeaveTeam,
+    handleToggleFavorite,
+    handleRespondInvitation: (action: 'ACCEPT' | 'REJECT') =>
+      respondInvitationMutation.mutate(action),
+    isRespondingInvitation: respondInvitationMutation.isPending,
+
+    // Edit Modal logic (Typed directly with TeamFormData)
+    isEditModalVisible,
+    setIsEditModalVisible,
+    openEditModal: () => setIsEditModalVisible(true),
+    handleEditSubmit: (data: TeamFormData) =>
+      updateTeamMutation.mutate({ id, payload: data }),
+    isUpdating: updateTeamMutation.isPending,
+
+    // Delete Modal logic
+    isDeleteModalVisible,
+    setIsDeleteModalVisible,
+    openDeleteModal: () => setIsDeleteModalVisible(true),
+    handleDeleteConfirm: () => deleteTeamMutation.mutate(id),
+    isDeleting: deleteTeamMutation.isPending,
+
+    // Members Pagination & Actions
     members,
     loadingMembers: isLoadingMembers,
     fetchNextMembersPage,
     hasNextMembersPage,
     isFetchingNextMembersPage,
-    toggleMemberStatus,
-
-    // Management State/Actions
-    isEditModalVisible,
-    setIsEditModalVisible,
-    isDeleteModalVisible,
-    setIsDeleteModalVisible,
-    openEditModal,
-    openDeleteModal,
-    handleEditSubmit,
-    handleDeleteConfirm,
-    handleToggleFavorite,
-    isUpdating: updateTeamMutation.isPending,
-    isDeleting: deleteTeamMutation.isPending,
-    isTogglingFavorite: toggleFavoriteMutation.isPending,
-    isTogglingMember:
-      deactivateMemberMutation.isPending || activateMemberMutation.isPending,
+    toggleMemberStatus: (playerId: string, currentActive: boolean) =>
+      toggleMemberMutation.mutate({ playerId, currentActive }),
+    isTogglingMember: toggleMemberMutation.isPending,
   };
 };

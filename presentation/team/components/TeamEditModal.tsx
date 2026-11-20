@@ -1,20 +1,22 @@
-import React, { useEffect, useMemo } from 'react';
+import { useCustomForm } from '@/hooks/useCustomForm';
+import { TeamFormData, teamSchema } from '@/presentation/schemas/teamSchema';
+import { Colors } from '@/presentation/styles/colors';
+import { CustomInput } from '@/presentation/theme/components/';
+import { CustomImagePicker } from '@/presentation/theme/components/CustomImagePicker';
+import { AppModal } from '@/presentation/theme/components/CustomModal';
+import React, { useEffect } from 'react';
 import {
+  ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import ModalRN from 'react-native-modal';
-import { useCustomForm } from '@/hooks/useCustomForm';
-import { useSports } from '@/presentation/hooks/sports/useSports';
-import { TeamFormData, teamSchema } from '@/presentation/schemas/teamSchema';
-import { Colors } from '@/presentation/styles/colors';
-import { CustomButton, CustomInput } from '@/presentation/theme/components/';
 
 interface Props {
   visible: boolean;
@@ -34,13 +36,6 @@ export const TeamEditModal: React.FC<Props> = ({
   const { control, handleSubmit, errors, reset } =
     useCustomForm<TeamFormData>(teamSchema);
 
-  const { sports } = useSports();
-
-  const sportOptions = useMemo(
-    () => sports.map((s: any) => ({ label: s.name, value: s._id })),
-    [sports],
-  );
-
   useEffect(() => {
     if (visible && team) {
       reset({
@@ -56,28 +51,39 @@ export const TeamEditModal: React.FC<Props> = ({
   };
 
   return (
-    <ModalRN
-      isVisible={visible}
-      onBackdropPress={onClose}
-      animationIn='fadeInUp'
-      animationOut='fadeOutDown'
-      backdropOpacity={0.8}
-      style={styles.modal}
+    <AppModal
+      visible={visible}
+      onClose={onClose}
+      showIcon={true}
+      iconColor='#94A3B8'
+      backdropOpacity={0.85}
+      contentStyle={styles.modalContent}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+        style={{ width: '100%' }}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
             contentContainerStyle={styles.scrollContainer}
             keyboardShouldPersistTaps='handled'
+            showsVerticalScrollIndicator={false}
           >
             <View style={styles.container}>
-              <Text style={styles.title}>Editar Equipo</Text>
+              <Text style={styles.title}>EDITAR EQUIPO</Text>
               <Text style={styles.subtitle}>Actualiza los datos de tu escuadra</Text>
 
               <View style={styles.form}>
+                {/* Logo Image Picker desde Galería */}
+                <CustomImagePicker
+                  name='logo'
+                  control={control}
+                  label='Logo del Equipo'
+                  aspect={[1, 1]}
+                  isRound={true}
+                  errorMessage={errors.logo?.message}
+                />
+
                 <CustomInput
                   name='name'
                   control={control}
@@ -87,97 +93,106 @@ export const TeamEditModal: React.FC<Props> = ({
                   errorMessage={errors.name?.message}
                 />
 
-                <CustomInput
-                  name='logo'
-                  control={control}
-                  placeholder='URL del Logo (Opcional)'
-                  label='Logo'
-                  iconRight='image-outline'
-                  errorMessage={errors.logo?.message}
-                />
-
                 <View style={styles.buttonRow}>
-                  <View style={{ flex: 1 }}>
-                    <CustomButton
-                      label='Cancelar'
-                      onPress={onClose}
-                      outline
-                      disabled={isSubmitting}
-                    />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <CustomButton
-                      label={isSubmitting ? 'Guardando...' : 'Actualizar'}
-                      onPress={handleSubmit(onValidSubmit)}
-                      icon='save-outline'
-                      disabled={isSubmitting}
-                    />
-                  </View>
+                  <TouchableOpacity
+                    style={styles.cancelBtn}
+                    onPress={onClose}
+                    disabled={isSubmitting}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.cancelBtnText}>CANCELAR</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.submitBtn}
+                    onPress={handleSubmit(onValidSubmit)}
+                    disabled={isSubmitting}
+                    activeOpacity={0.8}
+                  >
+                    {isSubmitting ? (
+                      <ActivityIndicator size='small' color='#000' />
+                    ) : (
+                      <Text style={styles.submitBtnText}>ACTUALIZAR</Text>
+                    )}
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
-    </ModalRN>
+    </AppModal>
   );
 };
 
 const styles = StyleSheet.create({
-  modal: {
-    margin: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  keyboardView: {
-    flex: 1,
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
+  modalContent: {
+    backgroundColor: '#0C1432',
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: 'rgba(40, 209, 195, 0.4)',
+    width: '90%',
+    maxWidth: 420,
+    overflow: 'hidden',
   },
   scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    paddingVertical: 40,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: 10,
   },
   container: {
-    backgroundColor: Colors.surface_elevated,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: Colors.border_focus,
-    padding: 24,
-    width: '90%',
-    maxWidth: '90%',
-    minHeight: 400,
-    shadowColor: Colors.brand_primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8,
+    width: '100%',
   },
   title: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.text_brand,
+    color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: 8,
+    letterSpacing: 0.5,
+    marginBottom: 4,
   },
   subtitle: {
-    fontSize: 14,
-    color: Colors.text_secondary,
+    fontSize: 12,
+    color: '#94A3B8',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   form: {
-    gap: 20,
+    gap: 14,
   },
   buttonRow: {
     flexDirection: 'row',
-    gap: 15,
-    marginTop: 20,
-    minHeight: 55,
-    alignItems: 'stretch',
+    gap: 12,
+    marginTop: 10,
+  },
+  cancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelBtnText: {
+    color: '#E2E8F0',
+    fontSize: 13,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
+  submitBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: Colors.brand_primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  submitBtnText: {
+    color: '#000000',
+    fontSize: 13,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
   },
 });

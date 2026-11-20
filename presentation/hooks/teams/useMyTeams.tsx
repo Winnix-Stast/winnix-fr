@@ -1,5 +1,4 @@
-import { useCallback, useState } from 'react';
-import { Alert } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { teamsAdapter } from '@/core/teams/teams-adapter';
 import {
@@ -9,6 +8,7 @@ import {
   useMutationAdapter,
 } from '@/helpers/adapters/queryAdapter';
 import { useCustomForm } from '@/hooks/useCustomForm';
+import { useAlertStore } from '@/presentation/components/customs/useAlertStore';
 import { TeamFormData, teamSchema } from '@/presentation/schemas/teamSchema';
 
 export const teamsKeys = createQueryKeyFactory('teams');
@@ -18,7 +18,7 @@ export const useMyTeams = (query: any = {}) => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
-  // Infinite Query for fetching teams
+  // Infinite Query for fetching user's own teams (REALTIME update)
   const {
     data: responseData,
     isLoading,
@@ -30,20 +30,29 @@ export const useMyTeams = (query: any = {}) => {
     isFetchingNextPage,
   } = useInfiniteQueryAdapter(
     teamsKeys.list(query),
-    (pageParam) => teamsAdapter.getOwnTeams({ ...query, page: pageParam, limit: 20 }),
+    (pageParam) => teamsAdapter.getMyTeams({ ...query, page: pageParam, limit: 20 }),
     {
-      ...QUERY_PRESETS.SEMI_STATIC,
+      staleTime: 0,
+      refetchOnMount: true,
     },
   );
 
-  console.log('responseData here :>> ', responseData);
+  const extractTeamsFromPage = (page: any) => {
+    if (!page) return [];
+    if (Array.isArray(page)) return page;
+    if (Array.isArray(page.teams)) return page.teams;
+    if (Array.isArray(page.data?.teams)) return page.data.teams;
+    if (Array.isArray(page.data?.data?.teams)) return page.data.data.teams;
+    if (Array.isArray(page.data)) return page.data;
+    return [];
+  };
 
   const teams =
     responseData?.pages
-      .flatMap((page: any) => page.teams || page.data?.teams || [])
-      .filter(Boolean) || [];
+      .flatMap((page: any) => extractTeamsFromPage(page))
+      .filter((t: any) => t && t._id) || [];
 
-  console.log('teams :>> ', teams);
+  console.log('teams extraídos en useMyTeams :>> ', teams);
 
   // Force refetch on screen focus
   useFocusEffect(
@@ -51,6 +60,21 @@ export const useMyTeams = (query: any = {}) => {
       refetch();
     }, [refetch]),
   );
+
+  // Smart Real-time sync: Si el jugador tiene solicitudes pendientes de aprobación,
+  // consulta en segundo plano cada 8 segundos mientras la vista está activa,
+  // apagándose automáticamente cuando el capitán acepta la solicitud o al salir de la pantalla.
+  const hasPendingRequests = useMemo(() => {
+    return teams.some((t: any) => t.membershipStatus === 'pending');
+  }, [teams]);
+
+  useEffect(() => {
+    if (!hasPendingRequests) return;
+    const interval = setInterval(() => {
+      refetch();
+    }, 8000);
+    return () => clearInterval(interval);
+  }, [hasPendingRequests, refetch]);
 
   // Custom Form for creating/editing a team
   const form = useCustomForm<TeamFormData>(teamSchema);
@@ -61,15 +85,27 @@ export const useMyTeams = (query: any = {}) => {
     {
       invalidateQueries: [teamsKeys.lists()],
       onSuccess: () => {
-        Alert.alert('Éxito', 'El equipo ha sido creado correctamente');
+        useAlertStore.getState().showAlert({
+          title: '¡Equipo Creado!',
+          message: 'Tu nuevo equipo ha sido registrado exitosamente.',
+          type: 'success',
+          confirmText: '¡Excelente!',
+        });
         form.reset();
+        refetch();
       },
       onError: (err) => {
-        Alert.alert('Error', err?.message || 'Ocurrió un error al crear el equipo');
+        useAlertStore.getState().showAlert({
+          title: 'Error al Crear Equipo',
+          message: err?.message || 'Ocurrió un error al crear el equipo.',
+          type: 'error',
+          confirmText: 'Entendido',
+        });
       },
     },
   );
 
+  // Mutation for updating a team
   const updateTeamMutation = useMutationAdapter<
     any,
     Error,
@@ -77,47 +113,85 @@ export const useMyTeams = (query: any = {}) => {
   >(({ id, payload }) => teamsAdapter.updateTeam(id, payload), {
     invalidateQueries: [teamsKeys.lists()],
     onSuccess: () => {
-      Alert.alert('Éxito', 'El equipo ha sido actualizado correctamente');
-      form.reset();
+      useAlertStore.getState().showAlert({
+        title: 'Equipo Actualizado',
+        message: 'Los cambios se han guardado exitosamente.',
+        type: 'success',
+      });
+      setIsEditModalVisible(false);
+      setSelectedTeam(null);
+      refetch();
     },
     onError: (err) => {
-      Alert.alert('Error', err?.message || 'Ocurrió un error al actualizar el equipo');
+      useAlertStore.getState().showAlert({
+        title: 'Error de Actualización',
+        message: err?.message || 'No se pudo actualizar el equipo.',
+        type: 'error',
+      });
     },
   });
 
+  // Mutation for deleting a team
   const deleteTeamMutation = useMutationAdapter<any, Error, string>(
-    teamsAdapter.deleteTeam,
+    (id) => teamsAdapter.deleteTeam(id),
     {
       invalidateQueries: [teamsKeys.lists()],
       onSuccess: () => {
-        Alert.alert('Equipo Eliminado', 'El equipo ha sido eliminado correctamente');
+        useAlertStore.getState().showAlert({
+          title: 'Equipo Eliminado',
+          message: 'El equipo ha sido eliminado permanentemente.',
+          type: 'success',
+        });
+        setIsDeleteModalVisible(false);
+        setSelectedTeam(null);
+        refetch();
       },
       onError: (err) => {
-        Alert.alert('Error', err?.message || 'Ocurrió un error al eliminar el equipo');
+        useAlertStore.getState().showAlert({
+          title: 'Error de Eliminación',
+          message: err?.message || 'No se pudo eliminar el equipo.',
+          type: 'error',
+        });
       },
     },
   );
 
-  const toggleFavoriteMutation = useMutationAdapter<
+  // Mutation for responding to team invitations directly from card
+  const respondInvitationMutation = useMutationAdapter<
     any,
     Error,
-    { id: string; isFavorite: boolean }
-  >(({ id, isFavorite }) => teamsAdapter.updateTeam(id, { isFavorite }), {
-    invalidateQueries: [teamsKeys.lists()],
-    onSuccess: () => {
-      // No alert needed for favorite toggle, or a toast if available
+    { teamId: string; action: 'ACCEPT' | 'REJECT' }
+  >(({ teamId, action }) => teamsAdapter.respondInvitation(teamId, action), {
+    invalidateQueries: [teamsKeys.lists(), ['team'], ['notifications']],
+    onSuccess: (_, variables) => {
+      useAlertStore.getState().showAlert({
+        title: variables.action === 'ACCEPT' ? '¡Invitación Aceptada!' : 'Invitación Rechazada',
+        message:
+          variables.action === 'ACCEPT'
+            ? 'Te has sumado exitosamente a la escuadra.'
+            : 'Has declinado la invitación a la escuadra.',
+        type: 'success',
+      });
+      refetch();
     },
-    onError: (err: any) => {
-      Alert.alert('Error', err?.message || 'No se pudo cambiar el estado de favorito');
+    onError: (err) => {
+      useAlertStore.getState().showAlert({
+        title: 'Error al Responder',
+        message: err?.message || 'No se pudo procesar la respuesta a la invitación.',
+        type: 'error',
+      });
     },
   });
 
-  const onSubmitCreate = form.handleSubmit((data) => {
-    createTeamMutation.mutate(data);
-  });
-
+  // Helper functions to open modals
   const openEditModal = (team: any) => {
     setSelectedTeam(team);
+    form.setValue('name', team.name);
+    form.setValue('logo', team.logo || '');
+    form.setValue(
+      'sport',
+      typeof team.sport === 'object' ? team.sport?._id : team.sport,
+    );
     setIsEditModalVisible(true);
   };
 
@@ -126,82 +200,52 @@ export const useMyTeams = (query: any = {}) => {
     setIsDeleteModalVisible(true);
   };
 
-  const handleEditSubmit = (data: TeamFormData) => {
-    if (selectedTeam) {
-      const fullUpdatePayload = {
-        name: data.name,
-        logo: data.logo,
-        sport: data.sport,
-        players: selectedTeam.players?.map((p: any) => ({
-          player: p.player?._id || p.player,
-          joinedAt: p.joinedAt,
-          leftAt: p.leftAt,
-        })),
-        tournaments: selectedTeam.tournaments?.map((t: any) => ({
-          tournament: t.tournament?._id || t.tournament,
-          stages: t.stages?.map((s: any) => ({
-            stage: s.stage?._id || s.stage,
-            points: s.points,
-            goals_scored: s.goals_scored,
-            goals_conceded: s.goals_conceded,
-            matches_played: s.matches_played,
-            matches_won: s.matches_won,
-            matches_drawn: s.matches_drawn,
-            matches_lost: s.matches_lost,
-          })),
-        })),
-      };
-
-      updateTeamMutation.mutate(
-        { id: selectedTeam._id, payload: fullUpdatePayload },
-        {
-          onSuccess: () => {
-            setIsEditModalVisible(false);
-          },
-        },
-      );
+  const handleToggleFavorite = async (teamId: string, currentFav: boolean) => {
+    try {
+      await teamsAdapter.updateTeam(teamId, { isFavorite: !currentFav });
+      refetch();
+    } catch (e) {
+      console.log('Error toggling favorite:', e);
     }
-  };
-
-  const handleDeleteConfirm = () => {
-    if (selectedTeam) {
-      deleteTeamMutation.mutate(selectedTeam._id, {
-        onSuccess: () => {
-          setIsDeleteModalVisible(false);
-        },
-      });
-    }
-  };
-
-  const handleToggleFavorite = (id: string, currentStatus: boolean) => {
-    toggleFavoriteMutation.mutate({ id, isFavorite: !currentStatus });
   };
 
   return {
     teams,
     loading: isLoading,
-    error: isError ? error?.message : null,
+    error: isError ? error?.message || 'Error de conexión' : null,
+    refetch,
     refresh: refetch,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    form,
-    isCreating: createTeamMutation.isPending,
-    createError: createTeamMutation.error,
-    onSubmitCreate,
+    // Mutations & Actions
+    createTeamMutation,
     updateTeamMutation,
     deleteTeamMutation,
+    // Form logic
+    form,
+    // Modal states & helpers
     selectedTeam,
-    setSelectedTeam,
     isEditModalVisible,
     setIsEditModalVisible,
     isDeleteModalVisible,
     setIsDeleteModalVisible,
     openEditModal,
     openDeleteModal,
-    handleEditSubmit,
-    handleDeleteConfirm,
+    handleEditSubmit: form.handleSubmit((data) => {
+      if (selectedTeam) {
+        updateTeamMutation.mutate({ id: selectedTeam._id, payload: data });
+      }
+    }),
+    handleDeleteConfirm: () => {
+      if (selectedTeam) {
+        deleteTeamMutation.mutate(selectedTeam._id);
+      }
+    },
     handleToggleFavorite,
-    isTogglingFavorite: toggleFavoriteMutation.isPending,
+    handleRespondInvitation: (teamId: string, action: 'ACCEPT' | 'REJECT') =>
+      respondInvitationMutation.mutate({ teamId, action }),
+    isRespondingInvitation: respondInvitationMutation.isPending,
+    // Pagination
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   };
 };

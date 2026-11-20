@@ -39,6 +39,8 @@ export interface PlayerCardProps {
   isCaptain?: boolean;
   isActive: boolean;
   state?: string;
+  invitationType?: 'INVITATION' | 'JOIN_REQUEST';
+  isMe?: boolean;
   onToggle: () => void;
   onRemove?: () => void;
   isToggling?: boolean;

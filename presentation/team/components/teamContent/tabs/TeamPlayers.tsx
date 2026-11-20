@@ -1,5 +1,8 @@
 import { CustomPaginationInfinityScroll } from '@/presentation/components/CustomPaginationInfinityScroll';
 import { Colors } from '@/presentation/styles/colors';
+import { useAuthStore } from '@/presentation/auth/store/useAuthStore';
+import { teamsActions } from '@/core/teams/actions/teams-actions';
+import { WinnixIcon } from '@/presentation/plugins/Icon';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
@@ -9,12 +12,13 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { AddPlayerModal } from '../modals/AddPlayerModal';
 import { SectionTitle } from '../shared/SectionTitle';
+import { TeamRecruitBox } from '../shared/TeamRecruitBox';
 import { PlayerCardProps } from '../types';
 
 const PlayerMiniStat = ({ label, value }: { label: string; value: any }) => (
@@ -33,6 +37,8 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   isCaptain,
   isActive,
   state,
+  invitationType,
+  isMe,
   onToggle,
   onRemove,
   isToggling,
@@ -46,10 +52,17 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
         isEditing && styles.cardContainerEditing,
         !isActive && styles.cardContainerInactive,
         state === 'pending' && styles.cardContainerPending,
+        isMe && state === 'accepted' && styles.cardContainerMe,
       ]}
     >
       {/* Avatar */}
-      <View style={[styles.avatarWrapper, !isActive && { borderColor: '#475569' }]}>
+      <View
+        style={[
+          styles.avatarWrapper,
+          !isActive && { borderColor: Colors.text_tertiary },
+          isMe && state === 'accepted' && { borderColor: Colors.brand_primary },
+        ]}
+      >
         <Image
           source={
             player?.avatar
@@ -62,18 +75,29 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
 
       {/* Información Principal */}
       <View style={styles.infoContainer}>
-        <Text style={styles.playerName} numberOfLines={1}>
-          {player?.username
-            ? player?.username?.toUpperCase()
-            : player?.nickname?.toUpperCase()}
-        </Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.playerName} numberOfLines={1}>
+            {player?.username
+              ? player?.username?.toUpperCase()
+              : player?.nickname?.toUpperCase()}
+          </Text>
+          {isMe && state === 'accepted' && (
+            <View style={styles.meBadge}>
+              <Text style={styles.meBadgeText}>TÚ</Text>
+            </View>
+          )}
+        </View>
 
         <View style={styles.positionRow}>
           <Text style={styles.playerPosition}>{player?.position || 'Jugador'}</Text>
           {state === 'pending' && (
             <View style={styles.pendingBadge}>
-              <Ionicons name='time-outline' size={11} color='#F59E0B' />
-              <Text style={styles.pendingBadgeText}>INVITACIÓN PENDIENTE</Text>
+              <Ionicons name='time-outline' size={11} color={Colors.status_draft} />
+              <Text style={styles.pendingBadgeText}>
+                {invitationType === 'JOIN_REQUEST'
+                  ? 'SOLICITUD PENDIENTE'
+                  : 'INVITACIÓN PENDIENTE'}
+              </Text>
             </View>
           )}
         </View>
@@ -163,7 +187,74 @@ export const TeamPlayers = ({
   toggleMemberStatus,
   isTogglingMember,
 }: any) => {
-  const [isAddModalVisible, setIsAddModalVisible] = React.useState(false);
+  const { user } = useAuthStore();
+  const currentUserId = user?.id;
+
+  // Integrated Recruitment states (replaces floating popup modal)
+  const [isRecruitingOpen, setIsRecruitingOpen] = React.useState(false);
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [isSearching, setIsSearching] = React.useState(false);
+  const [searchedPlayer, setSearchedPlayer] = React.useState<any>(null);
+  const [hasSearched, setHasSearched] = React.useState(false);
+  const [isRecruiting, setIsRecruiting] = React.useState(false);
+
+  const handleResetSearch = () => {
+    setSearchTerm('');
+    setSearchedPlayer(null);
+    setHasSearched(false);
+  };
+
+  const handleSearchPlayer = async () => {
+    if (!searchTerm.trim()) return;
+    setIsSearching(true);
+    setHasSearched(false);
+    setSearchedPlayer(null);
+    try {
+      const player = await teamsActions.searchUserByTermAction(searchTerm.trim());
+      setSearchedPlayer(player);
+    } catch (e) {
+      setSearchedPlayer(null);
+    } finally {
+      setIsSearching(false);
+      setHasSearched(true);
+    }
+  };
+
+  const handleRecruitPlayer = async (playerId: string) => {
+    if (!team?._id || !playerId || isRecruiting) return;
+    try {
+      setIsRecruiting(true);
+      await teamsActions.addMemberAction(team._id, playerId);
+      useAlertStore.getState().showAlert({
+        title: '¡Invitación Enviada!',
+        message: 'Se ha enviado la invitación al atleta. Figurará como pendiente en la plantilla hasta que acepte.',
+        type: 'success',
+      });
+      handleResetSearch();
+      setIsRecruitingOpen(false);
+      if (refresh) refresh();
+    } catch (err: any) {
+      const isConflict =
+        err?.statusCode === 409 ||
+        err?.status === 409 ||
+        err?.response?.status === 409;
+      if (isConflict) {
+        useAlertStore.getState().showAlert({
+          title: 'Jugador Ya Convocado',
+          message: 'Este jugador ya forma parte de la plantilla o tiene una invitación pendiente.',
+          type: 'warning',
+        });
+      } else {
+        useAlertStore.getState().showAlert({
+          title: 'Error de Reclutamiento',
+          message: err?.response?.data?.message || err?.message || 'No se pudo enviar la invitación al jugador.',
+          type: 'error',
+        });
+      }
+    } finally {
+      setIsRecruiting(false);
+    }
+  };
 
   const handleConfirmRemove = (
     playerId: string,
@@ -187,12 +278,12 @@ export const TeamPlayers = ({
     <View style={styles.contentPadding}>
       <SectionTitle title='PLANTILLA DE JUGADORES' icon='people' />
 
-      {/* Botón Estilo Gamer / HUD para Reclutar Jugadores (Solo visible para el Capitán) */}
+      {/* Botón Estilo Gamer y Tarjeta de Reclutamiento Integrada (Solo visible para el Capitán) */}
       {isCaptain && (
         <View style={styles.actionHeaderWrapper}>
           <TouchableOpacity
             style={styles.addPlayerGamerBtn}
-            onPress={() => setIsAddModalVisible(true)}
+            onPress={() => setIsRecruitingOpen((prev) => !prev)}
             activeOpacity={0.8}
           >
             <LinearGradient
@@ -205,9 +296,34 @@ export const TeamPlayers = ({
                 <Ionicons name='person-add' size={18} color={Colors.brand_primary} />
               </View>
               <Text style={styles.gamerBtnText}>+ RECLUTAR JUGADOR</Text>
-              <Ionicons name='chevron-forward' size={16} color={Colors.brand_primary} />
+              <Ionicons
+                name={isRecruitingOpen ? 'chevron-up' : 'chevron-forward'}
+                size={16}
+                color={Colors.brand_primary}
+              />
             </LinearGradient>
           </TouchableOpacity>
+
+          {/* Tarjeta de Reclutamiento Integrada */}
+          {isRecruitingOpen && (
+            <Animated.View entering={FadeInDown.duration(250)} style={{ marginBottom: 12 }}>
+              <TeamRecruitBox
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                isSearching={isSearching}
+                searchedPlayer={searchedPlayer}
+                hasSearched={hasSearched}
+                isRecruiting={isRecruiting}
+                onSearch={handleSearchPlayer}
+                onRecruit={handleRecruitPlayer}
+                onReset={handleResetSearch}
+                onClose={() => {
+                  setIsRecruitingOpen(false);
+                  handleResetSearch();
+                }}
+              />
+            </Animated.View>
+          )}
         </View>
       )}
 
@@ -227,41 +343,38 @@ export const TeamPlayers = ({
             isLoading={loadingMembers}
             scrollEnabled={false}
             emptyMessage='No hay jugadores registrados'
-            renderItem={({ item: member, index }: any) => (
-              <PlayerCard
-                key={member.player?._id || index}
-                player={member.player}
-                stats={member.playerGlobalStats}
-                index={index}
-                isActive={member.isActive}
-                state={member.state}
-                isEditing={isEditing}
-                isCaptain={isCaptain}
-                isToggling={isTogglingMember}
-                onToggle={() => toggleMemberStatus(member.player?._id, member.isActive)}
-                onRemove={() =>
-                  handleConfirmRemove(
-                    member.player?._id,
-                    member.player?.username || member.player?.nickname || 'Jugador',
-                    member.state === 'pending',
-                  )
-                }
-                onPress={() => router.push(`/winnix/profile/${member.player?._id}`)}
-              />
-            )}
+            renderItem={({ item: member, index }: any) => {
+              const playerId = member.player?._id || member.player?.id;
+              const isMe = Boolean(currentUserId && playerId && String(playerId) === String(currentUserId));
+
+              return (
+                <PlayerCard
+                  key={playerId || index}
+                  player={member.player}
+                  stats={member.playerGlobalStats}
+                  index={index}
+                  isActive={member.isActive}
+                  state={member.state}
+                  invitationType={member.invitationType}
+                  isMe={isMe}
+                  isEditing={isEditing}
+                  isCaptain={isCaptain}
+                  isToggling={isTogglingMember}
+                  onToggle={() => toggleMemberStatus(member.player?._id, member.isActive)}
+                  onRemove={() =>
+                    handleConfirmRemove(
+                      member.player?._id,
+                      member.player?.username || member.player?.nickname || 'Jugador',
+                      member.state === 'pending',
+                    )
+                  }
+                  onPress={() => router.push(`/winnix/profile/${member.player?._id}`)}
+                />
+              );
+            }}
           />
         )}
       </View>
-
-      {/* Modal de Reclutamiento de Jugadores */}
-      <AddPlayerModal
-        visible={isAddModalVisible}
-        teamId={team?._id}
-        onClose={() => setIsAddModalVisible(false)}
-        onSuccess={() => {
-          if (refresh) refresh();
-        }}
-      />
     </View>
   );
 };
@@ -295,6 +408,11 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(148, 163, 184, 0.35)',
     borderWidth: 1.5,
   },
+  cardContainerMe: {
+    backgroundColor: 'rgba(40, 209, 195, 0.08)',
+    borderColor: 'rgba(40, 209, 195, 0.45)',
+    borderWidth: 1.5,
+  },
   avatarWrapper: {
     marginRight: 16,
     borderRadius: 25,
@@ -311,12 +429,31 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
   playerName: {
     color: Colors.text_primary,
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.5,
-    marginBottom: 2,
+  },
+  meBadge: {
+    backgroundColor: 'rgba(40, 209, 195, 0.18)',
+    paddingHorizontal: 7,
+    paddingVertical: 1.5,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(40, 209, 195, 0.4)',
+    marginLeft: 8,
+  },
+  meBadgeText: {
+    color: '#28D1C3',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.6,
   },
   playerPosition: {
     color: Colors.text_tertiary,
