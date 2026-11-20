@@ -19,6 +19,7 @@ interface TeamCard3DProps {
 
 export const TeamCard3D = ({ team, onPress, onToggleFavorite }: TeamCard3DProps) => {
   const scale = useSharedValue(1);
+  const hasPendingRequests = (team?.pendingRequestsCount || 0) > 0;
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -49,7 +50,7 @@ export const TeamCard3D = ({ team, onPress, onToggleFavorite }: TeamCard3DProps)
       >
         <LinearGradient
           colors={[Colors.surface_elevated, Colors.surface_base]}
-          style={styles.cardInner}
+          style={[styles.cardInner, hasPendingRequests && styles.cardInnerPending]}
         >
           {/* Header Ribbon / Rank */}
           <View style={styles.cardRibbon}>
@@ -87,9 +88,21 @@ export const TeamCard3D = ({ team, onPress, onToggleFavorite }: TeamCard3DProps)
 
             {/* Info Section */}
             <View style={styles.infoContainer}>
-              <View style={styles.idBadgeMini}>
-                <Ionicons name='flash' size={10} color={Colors.brand_primary} />
-                <Text style={styles.incrementalText}>#{team.incremental}</Text>
+              <View style={styles.badgeRow}>
+                <View style={styles.idBadgeMini}>
+                  <Ionicons name='flash' size={10} color={Colors.brand_primary} />
+                  <Text style={styles.incrementalText}>#{team.incremental}</Text>
+                </View>
+                {hasPendingRequests && (
+                  <View style={styles.pendingAlertBadge}>
+                    <View style={styles.pendingDotSmall} />
+                    <Text style={styles.pendingAlertText}>
+                      {team.pendingRequestsCount === 1
+                        ? '1 solicitud pendiente'
+                        : `${team.pendingRequestsCount} solicitudes pendientes`}
+                    </Text>
+                  </View>
+                )}
               </View>
               <Text style={styles.teamName} numberOfLines={1}>
                 {team.name}
@@ -159,6 +172,11 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(40, 209, 195, 0.15)',
     borderTopColor: 'rgba(40, 209, 195, 0.4)',
     borderLeftColor: 'rgba(40, 209, 195, 0.4)',
+  },
+  cardInnerPending: {
+    borderColor: 'rgba(245, 158, 11, 0.25)',
+    borderTopColor: 'rgba(245, 158, 11, 0.45)',
+    borderLeftColor: 'rgba(245, 158, 11, 0.45)',
   },
   cardRibbon: {
     position: 'absolute',
@@ -230,6 +248,12 @@ const styles = StyleSheet.create({
   infoContainer: {
     flex: 1,
   },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
   idBadgeMini: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -238,7 +262,29 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 4,
     alignSelf: 'flex-start',
-    marginBottom: 4,
+  },
+  pendingAlertBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.22)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    gap: 5,
+  },
+  pendingDotSmall: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#F59E0B',
+  },
+  pendingAlertText: {
+    color: '#F59E0B',
+    fontSize: 10.5,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   incrementalText: {
     color: Colors.brand_primary,

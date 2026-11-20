@@ -5,6 +5,8 @@ import { Fonts } from "../../styles/global-styles";
 
 interface Props {
   icon?: keyof typeof Ionicons.glyphMap;
+  iconColor?: string;
+  iconSize?: number;
   label: string;
   onPress: () => void;
   stylePressable?: StyleProp<ViewStyle>;
@@ -14,7 +16,18 @@ interface Props {
   outline?: boolean;
 }
 
-export const CustomButton = ({ label, icon, onPress, stylePressable, styleText, disabled = false, styleIcon, outline = false }: Props) => {
+export const CustomButton = ({
+  label,
+  icon,
+  iconColor,
+  iconSize,
+  onPress,
+  stylePressable,
+  styleText,
+  disabled = false,
+  styleIcon,
+  outline = false,
+}: Props) => {
   return (
     <Pressable
       onPress={!disabled ? onPress : undefined}
@@ -31,7 +44,14 @@ export const CustomButton = ({ label, icon, onPress, stylePressable, styleText, 
       disabled={disabled}>
       <Text style={[styles.label, { color: outline ? Colors.actions_primary_bg : Colors.surface_base }, styleText]}>{label}</Text>
 
-      {icon && <Ionicons name={icon} size={24} color={outline ? Colors.actions_primary_bg : Colors.surface_base} style={[{ marginHorizontal: 5 }, styleIcon]} />}
+      {icon && (
+        <Ionicons
+          name={icon}
+          size={iconSize ?? 24}
+          color={iconColor ?? (outline ? Colors.actions_primary_bg : Colors.surface_base)}
+          style={[{ marginHorizontal: 5 }, styleIcon]}
+        />
+      )}
     </Pressable>
   );
 };

@@ -34,8 +34,10 @@ export default function TeamDetailScreen() {
     // Role state
     isCaptain,
     isMember,
+    isInactiveMember,
     isPendingInvitation,
     isPendingJoinRequest,
+    hasPendingRequests,
 
     // Tabs & UI Mode
     activeTab,
@@ -66,6 +68,10 @@ export default function TeamDetailScreen() {
     isFetchingNextMembersPage,
     toggleMemberStatus,
     isTogglingMember,
+    handleDeactivateMember,
+    handleReactivateMember,
+    handleRemoveMember,
+    isRemovingMember,
   } = useTeam(id as string);
 
   const scrollY = useSharedValue(0);
@@ -169,6 +175,7 @@ export default function TeamDetailScreen() {
           isEditing={false}
           isCaptain={isCaptain}
           isMember={isMember}
+          isInactiveMember={isInactiveMember}
           isPendingInvitation={isPendingInvitation}
           isPendingJoinRequest={isPendingJoinRequest}
           isRespondingInvitation={isRespondingInvitation}
@@ -180,7 +187,11 @@ export default function TeamDetailScreen() {
           onLeaveRequest={handleLeaveTeam}
         />
 
-        <TeamHUDTabs activeTab={activeTab} onTabPress={handleTabPress} />
+        <TeamHUDTabs
+          activeTab={activeTab}
+          hasPendingPlayers={hasPendingRequests}
+          onTabPress={handleTabPress}
+        />
 
         <TeamContent
           team={team}
@@ -197,6 +208,10 @@ export default function TeamDetailScreen() {
           isFetchingNextMembersPage={isFetchingNextMembersPage}
           toggleMemberStatus={toggleMemberStatus}
           isTogglingMember={isTogglingMember}
+          handleDeactivateMember={handleDeactivateMember}
+          handleReactivateMember={handleReactivateMember}
+          handleRemoveMember={handleRemoveMember}
+          isRemovingMember={isRemovingMember}
         />
 
         <View style={{ height: 100 }} />

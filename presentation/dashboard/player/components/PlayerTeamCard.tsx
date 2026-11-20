@@ -1,11 +1,11 @@
-import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import { Team } from '@/core/teams/interface/team.interface';
 import { WinnixIcon } from '@/presentation/plugins/Icon';
 import { Colors } from '@/presentation/styles/colors';
 import { CustomButton } from '@/presentation/theme/components';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import React from 'react';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface PlayerTeamCardProps {
   team: Team;
@@ -23,6 +23,7 @@ export const PlayerTeamCard: React.FC<PlayerTeamCardProps> = ({
   const isCaptain = currentUserId === team.captain?._id;
   const isPending = team.membershipStatus === 'pending';
   const isJoinRequest = team.invitationType === 'JOIN_REQUEST';
+  const isInactive = team.isMemberActive === false;
   const captainName = team.captain?.nickname || team.captain?.username || 'Capitán';
   const captainAvatar = team.captain?.avatar;
   const sportName = team.sport?.name?.toUpperCase() || 'FÚTBOL';
@@ -36,16 +37,28 @@ export const PlayerTeamCard: React.FC<PlayerTeamCardProps> = ({
   const roleLabel = isCaptain
     ? 'CAPITÁN'
     : isPending
-    ? isJoinRequest
-      ? 'SOLICITUD PENDIENTE'
-      : 'INVITACIÓN PENDIENTE'
-    : 'MI ESCUADRA';
+      ? isJoinRequest
+        ? 'SOLICITUD PENDIENTE'
+        : 'INVITACIÓN PENDIENTE'
+      : isInactive
+        ? 'INACTIVO'
+        : 'MI ESCUADRA';
 
   const roleColor = isCaptain
     ? Colors.orange_400
     : isPending
-    ? Colors.status_draft
-    : Colors.brand_primary;
+      ? Colors.status_draft
+      : isInactive
+        ? Colors.text_tertiary
+        : Colors.brand_primary;
+
+  const roleIcon = isCaptain
+    ? 'star'
+    : isPending
+      ? 'time-outline'
+      : isInactive
+        ? 'pause-circle-outline'
+        : 'shield-checkmark';
 
   return (
     <Pressable
@@ -53,6 +66,7 @@ export const PlayerTeamCard: React.FC<PlayerTeamCardProps> = ({
       style={({ pressed }) => [
         styles.cardContainer,
         isPending && styles.cardPending,
+        isInactive && styles.cardInactive,
         pressed && styles.cardPressed,
       ]}
     >
@@ -67,9 +81,17 @@ export const PlayerTeamCard: React.FC<PlayerTeamCardProps> = ({
             <Text style={styles.sportText}>{sportName}</Text>
           </View>
 
-          <View style={[styles.roleBadge, { borderColor: roleColor }]}>
+          <View
+            style={[
+              styles.roleBadge,
+              {
+                borderColor: isInactive ? 'rgba(255, 255, 255, 0.15)' : roleColor,
+                backgroundColor: isInactive ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.3)',
+              },
+            ]}
+          >
             <WinnixIcon
-              name={isCaptain ? 'star' : isPending ? 'time-outline' : 'shield-checkmark'}
+              name={roleIcon as any}
               size={11}
               color={roleColor}
             />
@@ -164,7 +186,8 @@ export const PlayerTeamCard: React.FC<PlayerTeamCardProps> = ({
             <View style={{ flex: 1 }}>
               <CustomButton
                 label='RECHAZAR'
-                icon='close-outline'
+                iconColor='#EF4444'
+                iconSize={16}
                 outline
                 onPress={() => onRespond?.(team._id, 'REJECT')}
                 disabled={isResponding}
@@ -175,7 +198,8 @@ export const PlayerTeamCard: React.FC<PlayerTeamCardProps> = ({
             <View style={{ flex: 1 }}>
               <CustomButton
                 label='ACEPTAR'
-                icon='checkmark-outline'
+                iconColor='#030819'
+                iconSize={16}
                 onPress={() => onRespond?.(team._id, 'ACCEPT')}
                 disabled={isResponding}
                 stylePressable={styles.acceptBtn}
@@ -199,6 +223,9 @@ const styles = StyleSheet.create({
   },
   cardPending: {
     borderColor: 'rgba(245, 158, 11, 0.4)',
+  },
+  cardInactive: {
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   cardPressed: {
     transform: [{ scale: 0.985 }],
@@ -332,29 +359,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginTop: 2,
+    marginTop: 4,
   },
   rejectBtn: {
     minHeight: 38,
     paddingVertical: 0,
+    paddingHorizontal: 12,
     borderRadius: 10,
-    borderColor: Colors.status_cancelled,
-    borderWidth: 1.2,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderColor: 'rgba(239, 68, 68, 0.35)',
+    borderWidth: 1,
   },
   rejectBtnText: {
-    color: Colors.status_cancelled,
+    color: '#EF4444',
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: '800',
     letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   acceptBtn: {
     minHeight: 38,
     paddingVertical: 0,
+    paddingHorizontal: 12,
     borderRadius: 10,
+    backgroundColor: Colors.brand_primary,
+    borderWidth: 0,
   },
   acceptBtnText: {
+    color: '#030819',
     fontSize: 11,
     fontWeight: '900',
     letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
 });

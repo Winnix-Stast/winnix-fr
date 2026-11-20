@@ -25,6 +25,7 @@ export const useEditTeam = (id: string) => {
   const [isSavingGeneral, setIsSavingGeneral] = useState(false);
   const [isSavingVisual, setIsSavingVisual] = useState(false);
   const [isTogglingMember, setIsTogglingMember] = useState(false);
+  const [isRemovingMember, setIsRemovingMember] = useState(false);
 
   // Search & Recruit state
   const [searchTerm, setSearchTerm] = useState('');
@@ -181,21 +182,46 @@ export const useEditTeam = (id: string) => {
     }
   };
 
-  // 7. Toggle de estado de miembro (Desvincular o Reactivar)
-  const handleToggleMember = async (playerId: string, currentActive: boolean) => {
+  // 7. Inactivar y reactivar miembro
+  const handleDeactivateMember = (playerId: string, playerName?: string) => {
+    useAlertStore.getState().showAlert({
+      title: '¿Inactivar Jugador?',
+      message: `¿Deseas inactivar a ${playerName || 'este jugador'} temporalmente? No computará en la plantilla activa hasta que sea reactivado.`,
+      type: 'warning',
+      showCancel: true,
+      confirmText: 'Sí, Inactivar',
+      cancelText: 'Volver',
+      onConfirm: async () => {
+        try {
+          setIsTogglingMember(true);
+          await teamsAdapter.deactivateMember(id, playerId);
+          refetchMembers();
+          refetchTeam();
+          await queryClient.invalidateQueries({ queryKey: teamKeys.members(id) });
+        } catch (err: any) {
+          useAlertStore.getState().showAlert({
+            title: 'Error de Estado',
+            message: err?.message || 'No se pudo inactivar al jugador.',
+            type: 'error',
+          });
+        } finally {
+          setIsTogglingMember(false);
+        }
+      },
+    });
+  };
+
+  const handleReactivateMember = async (playerId: string) => {
     try {
       setIsTogglingMember(true);
-      if (currentActive) {
-        await teamsAdapter.deactivateMember(id, playerId);
-      } else {
-        await teamsAdapter.activateMember(id, playerId);
-      }
+      await teamsAdapter.activateMember(id, playerId);
       refetchMembers();
+      refetchTeam();
       await queryClient.invalidateQueries({ queryKey: teamKeys.members(id) });
     } catch (err: any) {
       useAlertStore.getState().showAlert({
         title: 'Error de Estado',
-        message: err?.message || 'No se pudo cambiar el estado del jugador.',
+        message: err?.message || 'No se pudo reactivar al jugador.',
         type: 'error',
       });
     } finally {
@@ -203,19 +229,42 @@ export const useEditTeam = (id: string) => {
     }
   };
 
-  // 8. Confirmar desvinculación o cancelación de invitación
+  // 8. Confirmar desvinculación definitiva o cancelación de invitación
   const handleRemoveMember = (playerId: string, playerName: string, isPending: boolean = false) => {
     useAlertStore.getState().showAlert({
       title: isPending ? '¿Cancelar Invitación?' : '¿Desvincular Jugador?',
       message: isPending
         ? `¿Estás seguro de que deseas cancelar la invitación enviada a ${playerName}?`
-        : `¿Estás seguro de que deseas desvincular a ${playerName} de la plantilla? Se conservará su historial de estadísticas.`,
+        : `¿Estás seguro de que deseas desvincular definitivamente a ${playerName} del equipo?`,
       type: 'warning',
       showCancel: true,
       confirmText: isPending ? 'Sí, Cancelar' : 'Sí, Desvincular',
       cancelText: 'Volver',
       onConfirm: async () => {
-        await handleToggleMember(playerId, true);
+        try {
+          setIsRemovingMember(true);
+          await teamsAdapter.removeMember(id, playerId);
+          refetchMembers();
+          refetchTeam();
+          await queryClient.invalidateQueries({ queryKey: teamKeys.all });
+          await queryClient.invalidateQueries({ queryKey: teamKeys.members(id) });
+          await queryClient.invalidateQueries({ queryKey: teamsKeys.lists() });
+          useAlertStore.getState().showAlert({
+            title: isPending ? 'Invitación Cancelada' : 'Jugador Desvinculado',
+            message: isPending
+              ? 'La invitación ha sido cancelada.'
+              : 'El jugador ha sido desvinculado exitosamente.',
+            type: 'success',
+          });
+        } catch (err: any) {
+          useAlertStore.getState().showAlert({
+            title: 'Error de Desvinculación',
+            message: err?.response?.data?.message || err?.message || 'No se pudo desvincular al jugador.',
+            type: 'error',
+          });
+        } finally {
+          setIsRemovingMember(false);
+        }
       },
     });
   };
@@ -319,9 +368,13 @@ export const useEditTeam = (id: string) => {
     isSavingGeneral,
     isSavingVisual,
     isTogglingMember,
+    isRemovingMember,
     onSubmitGeneral,
     onSubmitVisual,
-    handleToggleMember,
+    handleToggleMember: (playerId: string, currentActive: boolean) =>
+      currentActive ? handleDeactivateMember(playerId) : handleReactivateMember(playerId),
+    handleDeactivateMember,
+    handleReactivateMember,
     handleRemoveMember,
     handleGoBack,
     captainName,

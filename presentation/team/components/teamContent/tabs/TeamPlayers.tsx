@@ -40,6 +40,8 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   invitationType,
   isMe,
   onToggle,
+  onDeactivate,
+  onReactivate,
   onRemove,
   isToggling,
 }) => (
@@ -88,19 +90,20 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
           )}
         </View>
 
-        <View style={styles.positionRow}>
-          <Text style={styles.playerPosition}>{player?.position || 'Jugador'}</Text>
-          {state === 'pending' && (
+        <Text style={styles.playerPosition}>{player?.position || 'Jugador'}</Text>
+
+        {state === 'pending' && (
+          <View style={styles.pendingBadgeRow}>
             <View style={styles.pendingBadge}>
-              <Ionicons name='time-outline' size={11} color={Colors.status_draft} />
+              <Ionicons name='time-outline' size={11} color='#F59E0B' />
               <Text style={styles.pendingBadgeText}>
                 {invitationType === 'JOIN_REQUEST'
                   ? 'SOLICITUD PENDIENTE'
                   : 'INVITACIÓN PENDIENTE'}
               </Text>
             </View>
-          )}
-        </View>
+          </View>
+        )}
 
         <View style={styles.statsRow}>
           <PlayerMiniStat label='PJ' value={stats?.matchesPlayed || 0} />
@@ -110,45 +113,48 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
 
       {!isActive ? (
         <View style={styles.deactivatedActionsCol}>
-          {isCaptain && (
-            <TouchableOpacity
-              onPress={onToggle}
-              disabled={isToggling}
-              style={styles.reactivateBtn}
-              activeOpacity={0.8}
-            >
-              {isToggling ? (
-                <ActivityIndicator size='small' color='#000' />
-              ) : (
-                <>
-                  <Ionicons name='flash' size={13} color='#000' />
-                  <Text style={styles.reactivateBtnText}>REACTIVAR</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          )}
-
-          <View style={styles.deactivatedBadge}>
-            <Ionicons name='person-remove-outline' size={10} color='#EF4444' />
-            <Text style={styles.deactivatedBadgeText}>DESVINCULADO</Text>
+          <View style={styles.inactiveBadge}>
+            <Ionicons name='pause-circle-outline' size={11} color={Colors.text_tertiary} />
+            <Text style={styles.inactiveBadgeText}>INACTIVO</Text>
           </View>
+
+          {isCaptain && (
+            <View style={styles.captainActionsRow}>
+              <TouchableOpacity
+                onPress={onReactivate || onToggle}
+                disabled={isToggling}
+                style={styles.reactivateBtn}
+                activeOpacity={0.8}
+              >
+                {isToggling ? (
+                  <ActivityIndicator size='small' color='#000' />
+                ) : (
+                  <>
+                    <Ionicons name='flash' size={12} color='#000' />
+                    <Text style={styles.reactivateBtnText}>REACTIVAR</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={onRemove}
+                disabled={isToggling}
+                style={styles.deleteMiniBtn}
+                activeOpacity={0.8}
+              >
+                <Ionicons name='trash-outline' size={14} color={Colors.red_400} />
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       ) : isEditing ? (
         <View style={styles.editingActionsRow}>
           <TouchableOpacity
-            onPress={onToggle}
+            onPress={onDeactivate || onToggle}
             disabled={isToggling}
-            style={[styles.toggleBtn, isActive ? styles.activeBtn : styles.inactiveBtn]}
+            style={styles.pauseBtn}
           >
-            {isToggling ? (
-              <ActivityIndicator size='small' color='#fff' />
-            ) : (
-              <Ionicons
-                name={isActive ? 'eye-outline' : 'eye-off-outline'}
-                size={18}
-                color='#fff'
-              />
-            )}
+            <Ionicons name='pause' size={15} color='#F59E0B' />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -156,7 +162,19 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
             disabled={isToggling}
             style={styles.deleteBtn}
           >
-            <Ionicons name='trash-outline' size={18} color='#FF4D4D' />
+            <Ionicons name='trash-outline' size={16} color='#FF4D4D' />
+          </TouchableOpacity>
+        </View>
+      ) : state === 'pending' && isCaptain ? (
+        <View style={styles.deactivatedActionsCol}>
+          <TouchableOpacity
+            onPress={onRemove}
+            disabled={isToggling}
+            style={styles.cancelPendingBtn}
+            activeOpacity={0.8}
+          >
+            <Ionicons name='close-circle-outline' size={13} color='#F59E0B' />
+            <Text style={styles.cancelPendingText}>Cancelar</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -186,6 +204,10 @@ export const TeamPlayers = ({
   isFetchingNextMembersPage,
   toggleMemberStatus,
   isTogglingMember,
+  handleDeactivateMember,
+  handleReactivateMember,
+  handleRemoveMember,
+  isRemovingMember,
 }: any) => {
   const { user } = useAuthStore();
   const currentUserId = user?.id;
@@ -359,14 +381,33 @@ export const TeamPlayers = ({
                   isMe={isMe}
                   isEditing={isEditing}
                   isCaptain={isCaptain}
-                  isToggling={isTogglingMember}
+                  isToggling={isTogglingMember || isRemovingMember}
                   onToggle={() => toggleMemberStatus(member.player?._id, member.isActive)}
+                  onDeactivate={() =>
+                    handleDeactivateMember
+                      ? handleDeactivateMember(
+                          member.player?._id,
+                          member.player?.nickname || member.player?.username,
+                        )
+                      : toggleMemberStatus(member.player?._id, true)
+                  }
+                  onReactivate={() =>
+                    handleReactivateMember
+                      ? handleReactivateMember(member.player?._id)
+                      : toggleMemberStatus(member.player?._id, false)
+                  }
                   onRemove={() =>
-                    handleConfirmRemove(
-                      member.player?._id,
-                      member.player?.username || member.player?.nickname || 'Jugador',
-                      member.state === 'pending',
-                    )
+                    handleRemoveMember
+                      ? handleRemoveMember(
+                          member.player?._id,
+                          member.player?.nickname || member.player?.username,
+                          member.state === 'pending',
+                        )
+                      : handleConfirmRemove(
+                          member.player?._id,
+                          member.player?.username || member.player?.nickname || 'Jugador',
+                          member.state === 'pending',
+                        )
                   }
                   onPress={() => router.push(`/winnix/profile/${member.player?._id}`)}
                 />
@@ -404,9 +445,10 @@ const styles = StyleSheet.create({
     borderLeftColor: Colors.brand_primary,
   },
   cardContainerInactive: {
-    backgroundColor: '#0B132B',
-    borderColor: 'rgba(148, 163, 184, 0.35)',
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    borderColor: 'rgba(148, 163, 184, 0.25)',
     borderWidth: 1.5,
+    opacity: 0.85,
   },
   cardContainerMe: {
     backgroundColor: 'rgba(40, 209, 195, 0.08)',
@@ -567,31 +609,30 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   cardContainerPending: {
-    backgroundColor: 'rgba(245, 158, 11, 0.08)',
-    borderColor: 'rgba(245, 158, 11, 0.4)',
-    borderWidth: 1.5,
+    backgroundColor: Colors.surface_elevated,
+    borderColor: 'rgba(245, 158, 11, 0.25)',
+    borderWidth: 1,
   },
-  positionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
+  pendingBadgeRow: {
+    marginTop: 2,
+    marginBottom: 6,
+    alignSelf: 'flex-start',
   },
   pendingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    backgroundColor: 'rgba(245, 158, 11, 0.08)',
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 2.5,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderColor: 'rgba(245, 158, 11, 0.22)',
     gap: 4,
   },
   pendingBadgeText: {
     color: '#F59E0B',
-    fontSize: 9,
-    fontWeight: 'bold',
+    fontSize: 9.5,
+    fontWeight: '700',
     letterSpacing: 0.5,
   },
   deactivatedActionsCol: {
@@ -599,20 +640,62 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
   },
-  deactivatedBadge: {
+  inactiveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    backgroundColor: 'rgba(148, 163, 184, 0.12)',
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 2.5,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.4)',
+    borderColor: 'rgba(148, 163, 184, 0.3)',
     gap: 4,
   },
-  deactivatedBadgeText: {
-    color: '#EF4444',
-    fontSize: 10,
+  inactiveBadgeText: {
+    color: Colors.text_tertiary,
+    fontSize: 9,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
+  captainActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  deleteMiniBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pauseBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cancelPendingBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    gap: 4,
+  },
+  cancelPendingText: {
+    color: Colors.text_secondary,
+    fontSize: 11,
     fontWeight: 'bold',
     letterSpacing: 0.5,
   },
@@ -620,15 +703,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.brand_primary,
-    paddingVertical: 9,
-    paddingHorizontal: 13,
-    borderRadius: 10,
-    gap: 6,
+    paddingVertical: 7,
+    paddingHorizontal: 11,
+    borderRadius: 8,
+    gap: 4,
     elevation: 3,
   },
   reactivateBtnText: {
     color: '#000000',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
     letterSpacing: 0.5,
   },

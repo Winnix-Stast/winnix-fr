@@ -1,7 +1,7 @@
-import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { WinnixIcon } from '@/presentation/plugins/Icon';
 import { Colors } from '@/presentation/styles';
+import React from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { TeamRecruitBox } from '../teamContent/shared/TeamRecruitBox';
 
 interface Props {
@@ -16,8 +16,11 @@ interface Props {
   handleResetSearch: () => void;
   members: any[];
   isTogglingMember: boolean;
+  isRemovingMember?: boolean;
   handleRemoveMember: (playerId: string, displayName: string, isPending?: boolean) => void;
-  handleToggleMember: (playerId: string, currentActive: boolean) => Promise<void>;
+  handleDeactivateMember?: (playerId: string, displayName?: string) => void;
+  handleReactivateMember?: (playerId: string) => Promise<void>;
+  handleToggleMember: (playerId: string, currentActive: boolean) => Promise<void> | void;
 }
 
 export const TeamEditRosterSection: React.FC<Props> = ({
@@ -32,7 +35,10 @@ export const TeamEditRosterSection: React.FC<Props> = ({
   handleResetSearch,
   members,
   isTogglingMember,
+  isRemovingMember,
   handleRemoveMember,
+  handleDeactivateMember,
+  handleReactivateMember,
   handleToggleMember,
 }) => {
   return (
@@ -85,13 +91,13 @@ export const TeamEditRosterSection: React.FC<Props> = ({
             const statusColor = isPending
               ? '#F59E0B'
               : isActive
-              ? Colors.status_finished
-              : Colors.status_cancelled;
+                ? Colors.status_finished
+                : Colors.text_tertiary;
             const statusLabel = isPending
               ? 'INVITACIÓN PENDIENTE'
               : isActive
-              ? 'ACTIVO'
-              : 'DESVINCULADO';
+                ? 'ACTIVO'
+                : 'INACTIVO';
 
             return (
               <View
@@ -108,11 +114,20 @@ export const TeamEditRosterSection: React.FC<Props> = ({
                       ? { uri: player.avatar }
                       : require('@/assets/icons/brand/default/default2.png')
                   }
-                  style={styles.playerAvatar}
+                  style={[
+                    styles.playerAvatar,
+                    !isActive && !isPending && { opacity: 0.6 },
+                  ]}
                 />
 
                 <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={styles.playerNameText} numberOfLines={1}>
+                  <Text
+                    style={[
+                      styles.playerNameText,
+                      !isActive && !isPending && { color: Colors.text_secondary },
+                    ]}
+                    numberOfLines={1}
+                  >
                     {displayName.toUpperCase()}
                   </Text>
                   <Text style={styles.playerPositionText}>
@@ -143,32 +158,64 @@ export const TeamEditRosterSection: React.FC<Props> = ({
                       onPress={() =>
                         handleRemoveMember(player._id, displayName, true)
                       }
-                      disabled={isTogglingMember}
+                      disabled={isTogglingMember || isRemovingMember}
                       style={styles.cancelInvitationBtn}
                     >
                       <WinnixIcon name='close-circle-outline' size={16} color='#F59E0B' />
                       <Text style={styles.cancelInvitationText}>Cancelar</Text>
                     </TouchableOpacity>
                   ) : isActive ? (
-                    <TouchableOpacity
-                      onPress={() =>
-                        handleRemoveMember(player._id, displayName, false)
-                      }
-                      disabled={isTogglingMember}
-                      style={styles.deactivateActionBtn}
-                    >
-                      <WinnixIcon name='trash-outline' size={16} color={Colors.status_cancelled} />
-                      <Text style={styles.deactivateActionText}>Desvincular</Text>
-                    </TouchableOpacity>
+                    <View style={styles.actionButtonsRow}>
+                      <TouchableOpacity
+                        onPress={() =>
+                          handleDeactivateMember
+                            ? handleDeactivateMember(player._id, displayName)
+                            : handleToggleMember(player._id, true)
+                        }
+                        disabled={isTogglingMember || isRemovingMember}
+                        style={styles.inactivateActionBtn}
+                      >
+                        <WinnixIcon name='pause' size={14} color='#F59E0B' />
+                        <Text style={styles.inactivateActionText}>Inactivar</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        onPress={() =>
+                          handleRemoveMember(player._id, displayName, false)
+                        }
+                        disabled={isTogglingMember || isRemovingMember}
+                        style={styles.deactivateActionBtn}
+                      >
+                        <WinnixIcon name='trash-outline' size={14} color={Colors.status_cancelled} />
+                        <Text style={styles.deactivateActionText}>Desvincular</Text>
+                      </TouchableOpacity>
+                    </View>
                   ) : (
-                    <TouchableOpacity
-                      onPress={() => handleToggleMember(player._id, false)}
-                      disabled={isTogglingMember}
-                      style={styles.reactivateActionBtn}
-                    >
-                      <WinnixIcon name='flash' size={14} color='#000' />
-                      <Text style={styles.reactivateActionText}>Reactivar</Text>
-                    </TouchableOpacity>
+                    <View style={styles.actionButtonsRow}>
+                      <TouchableOpacity
+                        onPress={() =>
+                          handleReactivateMember
+                            ? handleReactivateMember(player._id)
+                            : handleToggleMember(player._id, false)
+                        }
+                        disabled={isTogglingMember || isRemovingMember}
+                        style={styles.reactivateActionBtn}
+                      >
+                        <WinnixIcon name='flash' size={14} color='#000' />
+                        <Text style={styles.reactivateActionText}>Reactivar</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        onPress={() =>
+                          handleRemoveMember(player._id, displayName, false)
+                        }
+                        disabled={isTogglingMember || isRemovingMember}
+                        style={styles.deactivateActionBtn}
+                      >
+                        <WinnixIcon name='trash-outline' size={14} color={Colors.status_cancelled} />
+                        <Text style={styles.deactivateActionText}>Desvincular</Text>
+                      </TouchableOpacity>
+                    </View>
                   )}
                 </View>
               </View>
@@ -220,8 +267,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   playerCardInactive: {
-    opacity: 0.6,
-    borderColor: 'rgba(239, 68, 68, 0.25)',
+    opacity: 0.75,
+    borderColor: 'rgba(148, 163, 184, 0.25)',
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
   },
   playerCardPending: {
     borderColor: 'rgba(245, 158, 11, 0.4)',
@@ -262,6 +310,27 @@ const styles = StyleSheet.create({
   playerActionButtons: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  inactivateActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    gap: 4,
+  },
+  inactivateActionText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#F59E0B',
   },
   cancelInvitationBtn: {
     flexDirection: 'row',

@@ -61,7 +61,9 @@ export interface Team {
   playersCount?: number;
   players?: TeamMember[];
   membershipStatus?: 'accepted' | 'pending' | 'rejected';
+  isMemberActive?: boolean;
   invitationType?: 'INVITATION' | 'JOIN_REQUEST';
+  pendingRequestsCount?: number;
   createdAt?: string;
   updatedAt?: string;
 }

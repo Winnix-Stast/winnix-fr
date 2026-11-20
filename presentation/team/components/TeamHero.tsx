@@ -1,4 +1,7 @@
-import React from 'react';
+import { Colors } from '@/presentation/styles/colors';
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   ActivityIndicator,
   Image,
@@ -9,10 +12,6 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Colors } from '@/presentation/styles/colors';
 
 interface TeamHeroProps {
   team: any;
@@ -21,6 +20,7 @@ interface TeamHeroProps {
   onEdit?: () => void;
   isCaptain?: boolean;
   isMember?: boolean;
+  isInactiveMember?: boolean;
   isPendingInvitation?: boolean;
   isPendingJoinRequest?: boolean;
   isRespondingInvitation?: boolean;
@@ -39,6 +39,7 @@ export const TeamHero = ({
   onEdit,
   isCaptain,
   isMember,
+  isInactiveMember,
   isPendingInvitation,
   isPendingJoinRequest,
   isRespondingInvitation,
@@ -157,10 +158,19 @@ export const TeamHero = ({
             </View>
           ) : isMember ? (
             <View style={styles.memberActionRow}>
-              <View style={styles.memberHeroBadge}>
-                <Ionicons name='shield-checkmark' size={14} color={Colors.brand_primary} />
-                <Text style={styles.memberHeroBadgeText}>MIEMBRO DE LA PLANTILLA</Text>
-              </View>
+              {isInactiveMember ? (
+                <View style={[styles.memberHeroBadge, styles.inactiveHeroBadge]}>
+                  <Ionicons name='pause-circle-outline' size={14} color={Colors.text_tertiary} />
+                  <Text style={[styles.memberHeroBadgeText, styles.inactiveHeroBadgeText]}>
+                    MEMBRESÍA INACTIVA
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.memberHeroBadge}>
+                  <Ionicons name='shield-checkmark' size={14} color={Colors.brand_primary} />
+                  <Text style={styles.memberHeroBadgeText}>MIEMBRO DE LA PLANTILLA</Text>
+                </View>
+              )}
 
               <TouchableOpacity
                 onPress={() => {
@@ -371,6 +381,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '900',
     letterSpacing: 0.5,
+  },
+  inactiveHeroBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  inactiveHeroBadgeText: {
+    color: Colors.text_tertiary,
   },
   pendingHeroBadge: {
     flexDirection: 'row',

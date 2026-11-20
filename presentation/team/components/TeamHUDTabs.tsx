@@ -29,10 +29,11 @@ export const TABS = [
 interface GameTabProps {
   tab: { id: string; label: string; icon: string };
   isActive: boolean;
+  showPendingDot?: boolean;
   onPress: () => void;
 }
 
-const GameTab = ({ tab, isActive, onPress }: GameTabProps) => {
+const GameTab = ({ tab, isActive, showPendingDot, onPress }: GameTabProps) => {
   const glowValue = useSharedValue(0.4);
 
   useEffect(() => {
@@ -81,6 +82,7 @@ const GameTab = ({ tab, isActive, onPress }: GameTabProps) => {
           size={18}
           color={isActive ? Colors.brand_primary : Colors.text_tertiary}
         />
+        {showPendingDot && <View style={styles.pendingDot} />}
       </Animated.View>
       <Text
         style={[styles.gameTabLabel as TextStyle, isActive && styles.gameTabActiveLabel]}
@@ -94,10 +96,15 @@ const GameTab = ({ tab, isActive, onPress }: GameTabProps) => {
 
 interface TeamHUDTabsProps {
   activeTab: string;
+  hasPendingPlayers?: boolean;
   onTabPress: (tabId: string) => void;
 }
 
-export const TeamHUDTabs = ({ activeTab, onTabPress }: TeamHUDTabsProps) => {
+export const TeamHUDTabs = ({
+  activeTab,
+  hasPendingPlayers,
+  onTabPress,
+}: TeamHUDTabsProps) => {
   return (
     <View style={styles.tabBarContainer}>
       <View style={styles.gridLine} />
@@ -111,6 +118,7 @@ export const TeamHUDTabs = ({ activeTab, onTabPress }: TeamHUDTabsProps) => {
             key={tab.id}
             tab={tab}
             isActive={activeTab === tab.id}
+            showPendingDot={tab.id === 'players' && Boolean(hasPendingPlayers)}
             onPress={() => onTabPress(tab.id)}
           />
         ))}
@@ -177,5 +185,17 @@ const styles = StyleSheet.create({
     height: 2,
     backgroundColor: Colors.brand_primary,
     marginTop: 4,
+  },
+  pendingDot: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#F59E0B',
+    borderWidth: 1.5,
+    borderColor: '#050c26',
+    zIndex: 10,
   },
 });
