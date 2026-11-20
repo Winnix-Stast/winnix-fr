@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
 import {
   useInfiniteQuery,
   useMutation,
@@ -8,10 +9,14 @@ import {
 import { notificationsActions } from '@/core/notifications/actions/notifications-actions';
 import { nativeNotificationsAdapter } from '@/core/notifications/adapters/native-notifications.adapter';
 import { NotificationCategory } from '@/core/notifications/interface/notification.interface';
+import { useAuthStore } from '@/presentation/auth/store/useAuthStore';
 import { useAlertStore } from '@/presentation/components/customs/useAlertStore';
 
 export const useNotifications = () => {
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || 'guest';
+
   const [selectedCategory, setSelectedCategory] = useState<
     NotificationCategory | 'UNREAD'
   >('ALL');
@@ -24,7 +29,7 @@ export const useNotifications = () => {
 
   // 1. Query principal con paginación infinita (15 notificaciones más recientes por página)
   const notificationsQuery = useInfiniteQuery({
-    queryKey: ['notifications', selectedCategory],
+    queryKey: ['notifications', userId, selectedCategory],
     queryFn: ({ pageParam = 1 }) =>
       notificationsActions.getNotificationsAction({
         category: selectedCategory === 'UNREAD' ? undefined : selectedCategory,
@@ -33,6 +38,8 @@ export const useNotifications = () => {
         limit: 15,
       }),
     initialPageParam: 1,
+    staleTime: 0,
+    refetchOnMount: 'always',
     getNextPageParam: (lastPage, allPages) => {
       const loadedCount = allPages.reduce(
         (acc, page) => acc + (page.notifications?.length || 0),
@@ -47,21 +54,33 @@ export const useNotifications = () => {
 
   // 2. Query de contador de no leídas para badge
   const unreadCountQuery = useQuery({
-    queryKey: ['notifications-unread-count'],
+    queryKey: ['notifications-unread-count', userId],
     queryFn: async () => {
       const count = await notificationsActions.getUnreadCountAction();
       nativeNotificationsAdapter.updateAppIconBadgeCount(count);
       return count;
     },
+    enabled: Boolean(user?.id),
+    staleTime: 30000,
+    retry: false,
   });
+
+  // Forzar refetch inmediato al entrar a la pantalla
+  useFocusEffect(
+    useCallback(() => {
+      if (!user?.id) return;
+      queryClient.invalidateQueries({ queryKey: ['notifications', userId] });
+      queryClient.invalidateQueries({ queryKey: ['notifications-unread-count', userId] });
+    }, [queryClient, userId, user?.id]),
+  );
 
   // 3. Mutación: Marcar como leída
   const markAsReadMutation = useMutation({
     mutationFn: (id: string) => notificationsActions.markAsReadAction(id),
     onSuccess: () => {
       nativeNotificationsAdapter.triggerNotificationVibration('medium');
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', userId] });
+      queryClient.invalidateQueries({ queryKey: ['notifications-unread-count', userId] });
     },
   });
 
@@ -70,8 +89,8 @@ export const useNotifications = () => {
     mutationFn: () => notificationsActions.markAllAsReadAction(),
     onSuccess: () => {
       nativeNotificationsAdapter.triggerNotificationVibration('success');
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', userId] });
+      queryClient.invalidateQueries({ queryKey: ['notifications-unread-count', userId] });
       useAlertStore.getState().showAlert({
         title: '¡Todo al día!',
         message: 'Todas las notificaciones han sido marcadas como leídas.',
@@ -99,14 +118,18 @@ export const useNotifications = () => {
         );
       }
 
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', userId] });
+      queryClient.invalidateQueries({ queryKey: ['notifications-unread-count', userId] });
+      queryClient.invalidateQueries({ queryKey: ['my-teams'] });
+      queryClient.invalidateQueries({ queryKey: ['teams'] });
+      queryClient.invalidateQueries({ queryKey: ['team'] });
+
       useAlertStore.getState().showAlert({
         title:
           variables.action === 'ACCEPT' ? 'Solicitud Aceptada' : 'Solicitud Rechazada',
         message:
           variables.action === 'ACCEPT'
-            ? 'Has aceptado la solicitud exitosamente.'
+            ? 'Has aceptado la solicitud exitosamente. El jugador ha sido incorporado a la plantilla.'
             : 'Has rechazado la solicitud.',
         type: variables.action === 'ACCEPT' ? 'success' : 'info',
         confirmText: 'Entendido',
@@ -128,11 +151,11 @@ export const useNotifications = () => {
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['notifications'] }),
-      queryClient.invalidateQueries({ queryKey: ['notifications-unread-count'] }),
+      queryClient.invalidateQueries({ queryKey: ['notifications', userId] }),
+      queryClient.invalidateQueries({ queryKey: ['notifications-unread-count', userId] }),
     ]);
     setIsRefreshing(false);
-  }, [queryClient]);
+  }, [queryClient, userId]);
 
   const notifications = useMemo(() => {
     if (!notificationsQuery.data?.pages) return [];

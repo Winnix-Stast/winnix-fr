@@ -47,8 +47,8 @@ export const notificationsActions = {
       const response = await privateFetcher.get<any>('/notifications/unread-count');
       const data = response?.data?.data || response?.data || response;
       return Number(data?.unreadCount) || 0;
-    } catch (error) {
-      console.error('Error in getUnreadCountAction:', error);
+    } catch {
+      // Manejo silencioso: una falla de red o token en el badge secundario no debe disparar RedBox
       return 0;
     }
   },

@@ -2,6 +2,7 @@ import { NOTIFICATION_TYPE_CONFIG } from '@/core/notifications/constants/notific
 import { NotificationItem } from '@/core/notifications/interface/notification.interface';
 import { WinnixIcon } from '@/presentation/plugins/Icon';
 import { Colors } from '@/presentation/styles/colors';
+import { useQueryClient } from '@tanstack/react-query';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -106,6 +107,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
   isSubmittingAction = false,
 }) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   const modalWidth = Math.min(520, windowWidth * 0.92);
@@ -261,6 +263,9 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
   const handleNavigate = () => {
     onClose();
     if (targetRoute) {
+      queryClient.invalidateQueries({ queryKey: ['team'] });
+      queryClient.invalidateQueries({ queryKey: ['teams'] });
+      queryClient.invalidateQueries({ queryKey: ['my-teams'] });
       router.push(targetRoute as any);
     }
   };

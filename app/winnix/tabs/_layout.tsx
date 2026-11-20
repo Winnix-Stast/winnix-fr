@@ -1,10 +1,25 @@
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { Tabs } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
+import { notificationsActions } from '@/core/notifications/actions/notifications-actions';
+import { useAuthStore } from '@/presentation/auth/store/useAuthStore';
 import { WinnixIcon } from '@/presentation/plugins/Icon';
 import { Colors } from '@/presentation/styles/colors';
 
 export default function TabsLayout() {
+  const { user, status } = useAuthStore();
+  const userId = user?.id;
+
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ['notifications-unread-count', userId],
+    queryFn: () => notificationsActions.getUnreadCountAction(),
+    enabled: status === 'authenticated' && Boolean(userId),
+    staleTime: 60000,
+    refetchInterval: 120000,
+    retry: false,
+  });
+
   return (
     <Tabs
       screenOptions={{
@@ -68,7 +83,10 @@ export default function TabsLayout() {
         options={{
           title: `Notificaciones`,
           tabBarIcon: ({ color }) => (
-            <WinnixIcon size={28} name='notifications-outline' color={color} />
+            <View style={styles.iconContainer}>
+              <WinnixIcon size={26} name='notifications-outline' color={color} />
+              {unreadCount > 0 && <View style={styles.unreadDotBadge} />}
+            </View>
           ),
         }}
       />
@@ -97,3 +115,25 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  iconContainer: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  unreadDotBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.brand_primary,
+    borderWidth: 2,
+    borderColor: Colors.surface_base,
+    zIndex: 10,
+  },
+});
