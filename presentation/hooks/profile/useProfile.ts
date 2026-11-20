@@ -1,19 +1,20 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Clipboard } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
-import * as ImagePicker from 'expo-image-picker';
 import { filesAdapter } from '@/core/files/files-adapter';
 import { profileActions } from '@/core/profile/actions/profile-actions';
 import { tournamentsActions } from '@/core/tournaments/actions/tournaments-actions';
+import { toTitleCase } from '@/helpers/text.utils';
 import { useCustomForm } from '@/hooks/useCustomForm';
 import { useAuthStore } from '@/presentation/auth/store/useAuthStore';
 import { useAlertStore } from '@/presentation/components/customs/useAlertStore';
 import { useMyBrands } from '@/presentation/hooks/brands/useMyBrands';
 import { useMyInscriptions } from '@/presentation/hooks/inscriptions/useMyInscriptions';
 import { ProfileFormValues, profileSchema } from '@/presentation/schemas/profileSchema';
+import { useQuery } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
+import * as ImagePicker from 'expo-image-picker';
+import { useCallback, useEffect, useState } from 'react';
+import { Clipboard } from 'react-native';
 
-export type ProfileRoleTab = 'organizador' | 'carrera' | 'juez' | 'dt';
+export type ProfileRoleTab = 'organizador' | 'capitan' | 'carrera' | 'juez' | 'dt';
 
 export interface UserRoleOption {
   id: ProfileRoleTab;
@@ -22,7 +23,7 @@ export interface UserRoleOption {
 }
 
 export const useProfile = (targetUserId?: string) => {
-  const { user: authUser, updateUser } = useAuthStore();
+  const { user: authUser, activeRole, updateUser } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -60,6 +61,7 @@ export const useProfile = (targetUserId?: string) => {
         : []),
       (user as any)?.role,
       (user as any)?.roleType,
+      activeRole,
     ]
       .filter(Boolean)
       .map((r: any) => String(r).toUpperCase());
@@ -71,11 +73,14 @@ export const useProfile = (targetUserId?: string) => {
         r.includes('MARCA') ||
         r.includes('MANAGER'),
     );
+    const isCaptainRole =
+      rawRoleStrings.some((r) => r.includes('CAPTAIN')) ||
+      (isOwnProfile && activeRole === 'captain');
+
     const isPlayerRole = rawRoleStrings.some(
       (r) =>
         r.includes('PLAY') ||
         r.includes('JUGAD') ||
-        r.includes('CAPTA') ||
         r.includes('DEPORTIST'),
     );
     const isJudgeRole = rawRoleStrings.some(
@@ -91,11 +96,19 @@ export const useProfile = (targetUserId?: string) => {
 
     const options: UserRoleOption[] = [];
 
+    // Prioritizar orden según rol activo del usuario
+    if (activeRole === 'captain' && isCaptainRole) {
+      options.push({ id: 'capitan', label: 'CAPITÁN', icon: 'star' });
+    }
+
     if (isOrganizerRole) {
       options.push({ id: 'organizador', label: 'ORGANIZADOR', icon: 'briefcase' });
     }
+    if (isCaptainRole && !options.some((o) => o.id === 'capitan')) {
+      options.push({ id: 'capitan', label: 'CAPITÁN', icon: 'star' });
+    }
     if (isPlayerRole) {
-      options.push({ id: 'carrera', label: 'CARRERA DEPORTIVA', icon: 'person' });
+      options.push({ id: 'carrera', label: 'JUGADOR', icon: 'person' });
     }
     if (isJudgeRole) {
       options.push({ id: 'juez', label: 'ÁRBITRO / JUEZ', icon: 'ribbon' });
@@ -114,13 +127,15 @@ export const useProfile = (targetUserId?: string) => {
       ).toLowerCase();
       if (emailOrName.includes('organiz')) {
         options.push({ id: 'organizador', label: 'ORGANIZADOR', icon: 'briefcase' });
+      } else if (activeRole === 'captain') {
+        options.push({ id: 'capitan', label: 'CAPITÁN', icon: 'star' });
       } else {
-        options.push({ id: 'carrera', label: 'CARRERA DEPORTIVA', icon: 'person' });
+        options.push({ id: 'carrera', label: 'JUGADOR', icon: 'person' });
       }
     }
 
     return options;
-  }, [user])();
+  }, [user, activeRole, isOwnProfile])();
 
   const [activeTab, setActiveTab] = useState<ProfileRoleTab>(availableRoleTabs[0]?.id);
 
@@ -181,20 +196,21 @@ export const useProfile = (targetUserId?: string) => {
 
       setAvatarUri(currentUser.avatar || null);
       reset({
-        username: currentUser.username || '',
+        username: toTitleCase(currentUser.username) || '',
         email: currentUser.email || '',
-        nickname: currentUser.nickname || '',
+        nickname: toTitleCase(currentUser.nickname) || '',
         documentType: currentUser.documentType || '',
         idNumber: currentUser.idNumber || undefined,
         country: currentUser.country || '',
-        city: currentUser.city || '',
-        neighborhood: currentUser.neighborhood || '',
+        city: toTitleCase(currentUser.city) || '',
+        neighborhood: toTitleCase(currentUser.neighborhood) || '',
         birthDate:
           parsedBirthDate && !isNaN(parsedBirthDate.getTime())
             ? parsedBirthDate
             : undefined,
         phoneNumber: parsedPhone,
         avatar: currentUser.avatar || '',
+        isContactInfoPublic: Boolean((currentUser as any)?.isContactInfoPublic),
       });
     }
   }, [profileData, authUser, isEditing]);
@@ -316,18 +332,24 @@ export const useProfile = (targetUserId?: string) => {
         finalAvatarUrl = uploadRes.url;
       }
 
+      const formattedUsername = formData.username ? toTitleCase(formData.username) : undefined;
+      const formattedNickname = formData.nickname ? toTitleCase(formData.nickname) : undefined;
+      const formattedCity = formData.city ? toTitleCase(formData.city) : undefined;
+      const formattedNeighborhood = formData.neighborhood ? toTitleCase(formData.neighborhood) : undefined;
+
       const payload = {
-        username: formData.username,
+        username: formattedUsername,
         email: formData.email,
-        nickname: formData.nickname,
+        nickname: formattedNickname,
         documentType: formData.documentType,
         idNumber: formData.idNumber ?? undefined,
         country: formData.country,
-        city: formData.city,
-        neighborhood: formData.neighborhood,
+        city: formattedCity,
+        neighborhood: formattedNeighborhood,
         birthDate: formData.birthDate ? formData.birthDate.toISOString() : undefined,
         phoneNumber: formData.phoneNumber ?? undefined,
         avatar: finalAvatarUrl,
+        isContactInfoPublic: formData.isContactInfoPublic,
       };
 
       console.log(payload);
@@ -338,10 +360,19 @@ export const useProfile = (targetUserId?: string) => {
 
       // Update auth store with updated user profile details
       updateUser({
-        username: formData.username || user?.username,
+        username: formattedUsername || user?.username,
         email: formData.email || user?.email,
-        nickname: formData.nickname || user?.nickname,
+        nickname: formattedNickname || user?.nickname,
+        city: formattedCity || user?.city,
+        neighborhood: formattedNeighborhood || user?.neighborhood,
         avatar: finalAvatarUrl || user?.avatar,
+        isContactInfoPublic: formData.isContactInfoPublic,
+      });
+
+      useAlertStore.getState().showAlert({
+        title: '¡Perfil Actualizado!',
+        message: 'Tus datos personales y preferencias de privacidad han sido actualizados con éxito.',
+        type: 'success',
       });
 
       closeEditModal();

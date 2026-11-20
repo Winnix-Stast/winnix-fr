@@ -24,6 +24,7 @@ export const profileSchema = yup.object().shape({
     .nullable()
     .optional(),
   avatar: yup.mixed().nullable().optional(),
+  isContactInfoPublic: yup.boolean().optional(),
 });
 
 export type ProfileFormValues = yup.InferType<typeof profileSchema>;

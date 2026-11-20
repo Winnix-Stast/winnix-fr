@@ -13,4 +13,7 @@ export interface User {
   avatar?: string;
   roles?: string[];
   roleEntities?: any[];
+  activeRole?: string;
+  isContactInfoPublic?: boolean;
+  consentPublicContactAt?: string | Date;
 }

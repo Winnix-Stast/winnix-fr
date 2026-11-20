@@ -16,6 +16,8 @@ export interface UserProfile {
   };
   roles?: string[];
   roleEntities?: any[];
+  isContactInfoPublic?: boolean;
+  consentPublicContactAt?: string;
 }
 
 export interface UpdateProfilePayload {
@@ -30,4 +32,6 @@ export interface UpdateProfilePayload {
   birthDate?: string;
   phoneNumber?: number;
   avatar?: string;
+  isContactInfoPublic?: boolean;
+  consentPublicContactAt?: string;
 }

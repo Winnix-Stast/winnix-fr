@@ -6,6 +6,7 @@ import { UserProfile } from '@/core/profile/interface/profile.interface';
 import { ProfileRoleTab } from '@/presentation/hooks/profile/useProfile';
 import { WinnixIcon } from '@/presentation/plugins/Icon';
 import { Colors } from '@/presentation/styles/colors';
+import { toTitleCase } from '@/helpers/text.utils';
 
 interface Props {
   user: User | UserProfile | null | undefined;
@@ -54,6 +55,29 @@ const getHeroConfigForRole = (
   const anyUser = user as any;
 
   switch (role) {
+    case 'capitan':
+      return {
+        roleName: 'Capitán',
+        icon: 'star',
+        ringColors: [Colors.orange_400, Colors.brand_primary],
+        statusIcon: 'shield-checkmark',
+        leftBubble: {
+          label: 'ROL',
+          labelColor: Colors.orange_400,
+          borderColor: Colors.brand_primary,
+          value: 'CAPITÁN',
+          sub: 'DE ESCUADRA',
+        },
+        rightBubble: {
+          label: 'INSCRIP.',
+          labelColor: Colors.brand_primary,
+          borderColor: Colors.orange_400,
+          value: counts.inscriptionsCount,
+          sub: 'TORNEOS',
+        },
+        subtitleText: `Capitán de Escuadra • ${locationText || 'Winnix League'}`,
+      };
+
     case 'organizador':
       return {
         roleName: 'Organizador',
@@ -129,7 +153,16 @@ const getHeroConfigForRole = (
     case 'carrera':
     default: {
       const hasRatingOrOvr = anyUser?.ovr || anyUser?.rating;
-      const position = anyUser?.preferredPosition || anyUser?.position || 'DEPORTISTA';
+      const position = anyUser?.preferredPosition || anyUser?.position;
+      const displayValue = hasRatingOrOvr
+        ? anyUser?.ovr || anyUser?.rating
+        : position
+        ? String(position).toUpperCase()
+        : 'JUGADOR';
+      const displaySub = hasRatingOrOvr
+        ? (position ? String(position).toUpperCase() : 'GENERAL')
+        : 'CANCHA';
+
       return {
         roleName: 'Jugador',
         icon: 'football-outline',
@@ -139,8 +172,8 @@ const getHeroConfigForRole = (
           label: hasRatingOrOvr ? 'OVR' : 'POSICIÓN',
           labelColor: Colors.orange_400,
           borderColor: Colors.brand_primary,
-          value: anyUser?.ovr || anyUser?.rating || position,
-          sub: hasRatingOrOvr ? position : 'PRINCIPAL',
+          value: displayValue,
+          sub: displaySub,
         },
         rightBubble: {
           label: 'INSCRIP.',
@@ -170,10 +203,11 @@ export const ProfileHeaderHero: React.FC<Props> = ({
   isOwnProfile = true,
   onBack,
 }) => {
-  const nickname =
+  const rawNickname =
     user?.nickname ||
     user?.username ||
-    (user?.email ? user.email.split('@')[0] : 'USUARIO WINNIX');
+    (user?.email ? user.email.split('@')[0] : 'Usuario Winnix');
+  const nickname = toTitleCase(rawNickname);
 
   const locationText = [user?.city, user?.country].filter(Boolean).join(', ');
 
@@ -193,14 +227,23 @@ export const ProfileHeaderHero: React.FC<Props> = ({
   );
 
   const userRolesList: string[] = [];
+  if (
+    rawRoles.includes('CAPTAIN') ||
+    rawRoles.includes('CAPITAN') ||
+    activeTab === 'capitan'
+  )
+    userRolesList.push('Capitán');
   if (rawRoles.includes('ORGANIZER') || rawRoles.includes('ORGANIZADOR'))
     userRolesList.push('Organizador');
   if (
     rawRoles.includes('PLAYER') ||
     rawRoles.includes('JUGADOR') ||
     rawRoles.includes('DEPORTISTA')
-  )
-    userRolesList.push('Jugador');
+  ) {
+    if (!userRolesList.includes('Capitán') || activeTab !== 'capitan') {
+      userRolesList.push('Jugador');
+    }
+  }
   if (
     rawRoles.includes('JUDGE') ||
     rawRoles.includes('JUEZ') ||
@@ -281,6 +324,10 @@ export const ProfileHeaderHero: React.FC<Props> = ({
                 style={styles.portraitAvatarImage}
                 resizeMode='cover'
               />
+              <LinearGradient
+                colors={['transparent', 'rgba(4, 7, 18, 0.75)']}
+                style={styles.portraitGradientOverlay}
+              />
             </View>
           ) : (
             /* Fallback Circular Avatar if no photo */
@@ -317,7 +364,17 @@ export const ProfileHeaderHero: React.FC<Props> = ({
           <Text style={[styles.bubbleLabel, { color: heroConfig.leftBubble.labelColor }]}>
             {heroConfig.leftBubble.label}
           </Text>
-          <Text style={styles.bubbleValue}>{heroConfig.leftBubble.value}</Text>
+          <Text
+            style={[
+              styles.bubbleValue,
+              typeof heroConfig.leftBubble.value === 'string' &&
+                heroConfig.leftBubble.value.length > 3 &&
+                styles.bubbleValueText,
+            ]}
+            numberOfLines={1}
+          >
+            {heroConfig.leftBubble.value}
+          </Text>
           <Text style={styles.bubbleSub}>{heroConfig.leftBubble.sub}</Text>
         </View>
 
@@ -334,7 +391,17 @@ export const ProfileHeaderHero: React.FC<Props> = ({
           >
             {heroConfig.rightBubble.label}
           </Text>
-          <Text style={styles.bubbleValue}>{heroConfig.rightBubble.value}</Text>
+          <Text
+            style={[
+              styles.bubbleValue,
+              typeof heroConfig.rightBubble.value === 'string' &&
+                heroConfig.rightBubble.value.length > 3 &&
+                styles.bubbleValueText,
+            ]}
+            numberOfLines={1}
+          >
+            {heroConfig.rightBubble.value}
+          </Text>
           <Text style={styles.bubbleSub}>{heroConfig.rightBubble.sub}</Text>
         </View>
       </View>
@@ -524,35 +591,48 @@ const styles = StyleSheet.create({
   floatingBubble: {
     position: 'absolute',
     top: 36,
-    backgroundColor: 'rgba(14, 21, 41, 0.95)',
-    borderRadius: 18,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    backgroundColor: 'rgba(10, 16, 36, 0.88)',
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     alignItems: 'center',
-    minWidth: 74,
+    minWidth: 64,
     elevation: 8,
     zIndex: 20,
-    borderWidth: 2,
+    borderWidth: 1.2,
   },
   portraitFloatingBubbleLeft: {
-    left: 4,
-    top: 96,
+    left: 10,
+    bottom: 12,
+    top: undefined,
   },
   portraitFloatingBubbleRight: {
-    right: 4,
-    top: 96,
+    right: 10,
+    bottom: 12,
+    top: undefined,
   },
   leftBubble: { left: -6 },
   rightBubble: { right: -6 },
-  bubbleLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1 },
+  bubbleLabel: { fontSize: 8, fontWeight: '900', letterSpacing: 0.8 },
   bubbleValue: {
     color: Colors.text_primary,
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: '900',
-    lineHeight: 24,
+    lineHeight: 18,
     marginVertical: 2,
   },
-  bubbleSub: { color: Colors.text_tertiary, fontSize: 9, fontWeight: '800' },
+  bubbleValueText: {
+    fontSize: 11,
+    letterSpacing: 0.5,
+  },
+  bubbleSub: { color: Colors.text_tertiary, fontSize: 8, fontWeight: '800' },
+  portraitGradientOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 75,
+  },
   floatingInfoSection: {
     paddingHorizontal: 20,
     marginTop: 16,
@@ -563,8 +643,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '900',
     color: Colors.text_primary,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
   subtitleRow: {
     flexDirection: 'row',
