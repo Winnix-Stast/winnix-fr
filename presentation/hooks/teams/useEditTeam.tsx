@@ -1,6 +1,3 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'expo-router';
-import { useQueryClient } from '@tanstack/react-query';
 import { filesAdapter } from '@/core/files/files-adapter';
 import { teamsActions } from '@/core/teams/actions/teams-actions';
 import { teamsAdapter } from '@/core/teams/teams-adapter';
@@ -12,8 +9,11 @@ import {
 import { useCustomForm } from '@/hooks/useCustomForm';
 import { useAlertStore } from '@/presentation/components/customs/useAlertStore';
 import { TeamFormData, teamSchema } from '@/presentation/schemas/teamSchema';
-import { teamKeys } from './useTeam';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { teamsKeys } from './useMyTeams';
+import { teamKeys } from './useTeam';
 
 export type TeamEditTabType = 'ajustes' | 'multimedia' | 'jugadores' | 'info';
 
